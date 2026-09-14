@@ -41,6 +41,20 @@ Deployed to Cloudflare Pages.
 - Column span is editorial (`feature: true` spans 2). Row span is
   computed at build time from the image's intrinsic aspect ratio.
 - No cropping. No layout shift.
+- Row-span math needs a reference column width per breakpoint (the
+  actual viewport isn't known at build time). Use a realistic device
+  width for that reference, not the CSS breakpoint's edge — e.g. the
+  `sm` tier covers 0-600px in CSS, but no real phone is anywhere near
+  600px wide, so reserving rows for a 600px column massively
+  overshoots on an actual phone. Use the widest mainstream device in
+  that range instead (currently 430px, iPhone 16 Pro Max, for `sm`).
+  It's still a safe upper bound (no overflow on any real device), but
+  fits rows far tighter on the phones people actually use.
+- `grid-auto-rows` + `gap` also sets the row-quantization granularity:
+  every spanned row internally "pays" one full `gap` even inside a
+  single image's reserved box, so a smaller `gap` on mobile both
+  tightens the visible spacing between photos and shrinks that
+  rounding slack.
 
 ## Style
 - Plain CSS in `.astro` files. No Tailwind, no CSS framework.

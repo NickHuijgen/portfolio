@@ -8,25 +8,38 @@ interface Props {
 
 const { activeTag } = Astro.props;
 
-const GAP = 16;
 const ROW = 8;
 
 // Reference width is the upper edge of each breakpoint's range, so the
 // computed row-span always covers the image at any narrower width within
 // that range (extra whitespace below, never an overflow/crop).
 const TIERS = {
-	lg: { container: 1200, columns: 4 },
-	md: { container: 1000, columns: 3 },
-	sm: { container: 600, columns: 2 },
+	lg: { container: 1200, columns: 4, gap: 16 },
+	md: { container: 1000, columns: 3, gap: 16 },
+	// The sm breakpoint spans 0-600px in CSS, but no real phone is
+	// anywhere near that wide. Using 600 as the reference here reserved
+	// rows sized for a much wider viewport than any phone actually
+	// renders at, leaving a lot of dead space below every image on an
+	// actual phone (e.g. an iPhone 16 at 390px). 430px is the widest
+	// mainstream phone (iPhone 16 Pro Max) — it's still a safe upper
+	// bound (no overflow on any real device), but fits rows far
+	// tighter on the phones people actually browse on.
+	//
+	// The gap is also tighter here: grid-auto-rows + gap sets the
+	// row-quantization granularity, so every spanned row internally
+	// "pays" one full gap even inside a single image's reserved box.
+	// A smaller gap on mobile both tightens the visible spacing
+	// between photos and shrinks that rounding slack.
+	sm: { container: 430, columns: 3, gap: 8 },
 };
 
-function columnWidth(container: number, columns: number) {
-	return (container - GAP * (columns - 1)) / columns;
+function columnWidth(container: number, columns: number, gap: number) {
+	return (container - gap * (columns - 1)) / columns;
 }
 
-function rowSpan(aspectRatio: number, width: number) {
+function rowSpan(aspectRatio: number, width: number, gap: number) {
 	const height = width / aspectRatio;
-	return Math.ceil((height + GAP) / (ROW + GAP));
+	return Math.ceil((height + gap) / (ROW + gap));
 }
 
 const photos = await getCollection('photos');
@@ -42,13 +55,13 @@ const items = photos.map((photo) => {
 	const mdColSpan = photo.data.feature ? 2 : 1;
 	const smColSpan = photo.data.feature ? 2 : 1;
 
-	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns);
-	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns);
-	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns);
+	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns, TIERS.lg.gap);
+	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns, TIERS.md.gap);
+	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns, TIERS.sm.gap);
 
-	const lgWidth = lgColWidth * lgColSpan + GAP * (lgColSpan - 1);
-	const mdWidth = mdColWidth * mdColSpan + GAP * (mdColSpan - 1);
-	const smWidth = smColWidth * smColSpan + GAP * (smColSpan - 1);
+	const lgWidth = lgColWidth * lgColSpan + TIERS.lg.gap * (lgColSpan - 1);
+	const mdWidth = mdColWidth * mdColSpan + TIERS.md.gap * (mdColSpan - 1);
+	const smWidth = smColWidth * smColSpan + TIERS.sm.gap * (smColSpan - 1);
 
 	const visible = !activeTag || photo.data.tags.includes(activeTag);
 
@@ -65,9 +78,9 @@ const items = photos.map((photo) => {
 		lgColSpan,
 		mdColSpan,
 		smColSpan,
-		lgRows: rowSpan(aspectRatio, lgWidth),
-		mdRows: rowSpan(aspectRatio, mdWidth),
-		smRows: rowSpan(aspectRatio, smWidth),
+		lgRows: rowSpan(aspectRatio, lgWidth, TIERS.lg.gap),
+		mdRows: rowSpan(aspectRatio, mdWidth, TIERS.md.gap),
+		smRows: rowSpan(aspectRatio, smWidth, TIERS.sm.gap),
 		sizesLg: Math.round(lgWidth),
 		sizesMd: Math.round(mdWidth),
 		sizesSm: Math.round(smWidth),
@@ -152,6 +165,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	const grid = document.getElementById('photo-grid');
 	const count = document.getElementById('photo-count');
 	const initialTag = nav.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
+	history.replaceState({ tag: initialTag }, '', location.href);
 	function render(tag) {
 		let visible = 0;
 		grid.querySelectorAll('figure').forEach((fig) => {
@@ -173,7 +187,10 @@ const visibleCount = items.filter((item) => item.visible).length;
 		render(tag);
 		history.pushState({ tag }, '', a.getAttribute('href'));
 	});
-	window.addEventListener('popstate', (e) => render((e.state && e.state.tag) ?? initialTag));
+	window.addEventListener('popstate', (e) => {
+		if (!e.state || typeof e.state.tag !== 'string') return;
+		render(e.state.tag);
+	});
 </script>
 
 <script is:inline>
@@ -269,14 +286,15 @@ const visibleCount = items.filter((item) => item.visible).length;
 		display: grid;
 		grid-auto-flow: dense;
 		grid-auto-rows: 8px;
-		gap: 16px;
-		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+		grid-template-columns: repeat(3, 1fr);
 		max-width: 1200px;
 		margin: 0 auto;
 	}
 
 	@media (min-width: 600px) {
 		.grid {
+			gap: 16px;
 			grid-template-columns: repeat(3, 1fr);
 		}
 	}
