@@ -1,0 +1,59 @@
+- id: photo-01
+  src: ./images/photo-01.jpg
+  alt: Placeholder portrait shot, warm tones
+  caption: Quiet corner, late afternoon
+  date: 2024-03-12
+  tags: [street]
+  feature: false
+
+- id: photo-02
+  src: ./images/photo-02.jpg
+  alt: Placeholder landscape shot, green tones
+  date: 2024-04-02
+  tags: [landscape]
+  feature: false
+
+- id: photo-03
+  src: ./images/photo-03.jpg
+  alt: Placeholder tall portrait shot, blue tones
+  caption: Waiting for the light
+  date: 2024-04-20
+  tags: [portrait]
+  feature: true
+
+- id: photo-04
+  src: ./images/photo-04.jpg
+  alt: Placeholder wide landscape shot, red tones
+  date: 2024-05-15
+  tags: [landscape, street]
+  feature: false
+
+- id: photo-05
+  src: ./images/photo-05.jpg
+  alt: Placeholder portrait shot, ochre tones
+  caption: Between appointments
+  date: 2024-06-01
+  tags: [portrait]
+  feature: false
+
+- id: photo-06
+  src: ./images/photo-06.jpg
+  alt: Placeholder landscape shot, teal tones
+  date: 2024-07-09
+  tags: [landscape]
+  feature: true
+
+- id: photo-07
+  src: ./images/photo-07.jpg
+  alt: Placeholder landscape shot, violet tones
+  caption: Passing through
+  date: 2024-08-22
+  tags: [street]
+  feature: false
+
+- id: photo-08
+  src: ./images/photo-08.jpg
+  alt: Placeholder tall portrait shot, brown tones
+  date: 2024-09-30
+  tags: [portrait, street]
+  feature: false
