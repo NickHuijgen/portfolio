@@ -42,6 +42,14 @@ function rowSpan(aspectRatio: number, width: number, gap: number) {
 	return Math.ceil((height + gap) / (ROW + gap));
 }
 
+// In-grid expansion target column span per breakpoint. These numbers
+// are duplicated as literals in the `.item.is-open` CSS below (Astro
+// `<style>` blocks can't reference frontmatter values) — keep them in
+// sync if either changes. sm goes to the tier's full column count
+// (true full width); lg/md deliberately leave one column of
+// neighbouring grid visible rather than also going full width.
+const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns };
+
 const photos = await getCollection('photos');
 photos.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
@@ -63,20 +71,34 @@ const items = photos.map((photo) => {
 	const mdWidth = mdColWidth * mdColSpan + TIERS.md.gap * (mdColSpan - 1);
 	const smWidth = smColWidth * smColSpan + TIERS.sm.gap * (smColSpan - 1);
 
+	// Expanded (in-grid open) widths — same column-width math, just at
+	// the wider OPEN_COLS span, so the recomputed row span actually
+	// matches the aspect ratio at the width the tile will render at
+	// once open. No JS measurement needed at click time because of this.
+	const lgOpenWidth = lgColWidth * OPEN_COLS.lg + TIERS.lg.gap * (OPEN_COLS.lg - 1);
+	const mdOpenWidth = mdColWidth * OPEN_COLS.md + TIERS.md.gap * (OPEN_COLS.md - 1);
+	const smOpenWidth = smColWidth * OPEN_COLS.sm + TIERS.sm.gap * (OPEN_COLS.sm - 1);
+
 	const visible = !activeTag || photo.data.tags.includes(activeTag);
+
+	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, ${Math.round(smWidth)}px`;
+	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, ${Math.round(smOpenWidth)}px`;
 
 	return {
 		photo,
 		visible,
+		sizes,
+		sizesOpen,
+		aspectRatio,
 		lgColSpan,
 		mdColSpan,
 		smColSpan,
 		lgRows: rowSpan(aspectRatio, lgWidth, TIERS.lg.gap),
 		mdRows: rowSpan(aspectRatio, mdWidth, TIERS.md.gap),
 		smRows: rowSpan(aspectRatio, smWidth, TIERS.sm.gap),
-		sizesLg: Math.round(lgWidth),
-		sizesMd: Math.round(mdWidth),
-		sizesSm: Math.round(smWidth),
+		lgOpenRows: rowSpan(aspectRatio, lgOpenWidth, TIERS.lg.gap),
+		mdOpenRows: rowSpan(aspectRatio, mdOpenWidth, TIERS.md.gap),
+		smOpenRows: rowSpan(aspectRatio, smOpenWidth, TIERS.sm.gap),
 	};
 });
 
@@ -117,19 +139,26 @@ const visibleCount = items.filter((item) => item.visible).length;
 					class="item"
 					hidden={!item.visible}
 					data-tags={item.photo.data.tags.join(' ')}
-					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
+					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
 				>
 					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
 						<Image
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
 							widths={[400, 800, 1600]}
-							sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, ${item.sizesSm}px`}
+							sizes={item.sizes}
+							data-sizes={item.sizes}
+							data-sizes-open={item.sizesOpen}
 							loading={index < 6 ? 'eager' : 'lazy'}
 							fetchpriority={index < 6 ? 'high' : undefined}
-							transition:name={`photo-${item.photo.id}`}
 						/>
 					</a>
+					<div class="expand-overlay">
+						<a href={`/photo/${item.photo.id}`} class="expand-link" aria-label="View full photo">
+							⤢
+						</a>
+						{item.photo.data.caption && <p class="expand-caption">{item.photo.data.caption}</p>}
+					</div>
 				</figure>
 			))
 		}
@@ -148,36 +177,185 @@ const visibleCount = items.filter((item) => item.visible).length;
 </script>
 
 <script is:inline>
-	const nav = document.querySelector('.filters');
-	const grid = document.getElementById('photo-grid');
-	const count = document.getElementById('photo-count');
-	const initialTag = nav.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
-	history.replaceState({ tag: initialTag }, '', location.href);
-	function render(tag) {
-		let visible = 0;
-		grid.querySelectorAll('figure').forEach((fig) => {
-			const match = !tag || (fig.getAttribute('data-tags') ?? '').split(' ').includes(tag);
-			fig.hidden = !match;
-			if (match) visible++;
+	(() => {
+		// Filtering logic below is unchanged; only the binding changed.
+		// It used to hold `.filters` / `#photo-grid` in closure variables
+		// and bind the click listener to the nav element — both of which
+		// ClientRouter replaces on every swap, leaving the filters dead
+		// after a trip to /photo/[id] and back. Listeners now live on
+		// `document`/`window`, and elements are looked up per call.
+		if (window.__photoFilterInit) return;
+		window.__photoFilterInit = true;
+
+		function render(tag) {
+			const nav = document.querySelector('.filters');
+			const grid = document.getElementById('photo-grid');
+			const count = document.getElementById('photo-count');
+			if (!nav || !grid || !count) return;
+			let visible = 0;
+			grid.querySelectorAll('figure').forEach((fig) => {
+				const match = !tag || (fig.getAttribute('data-tags') ?? '').split(' ').includes(tag);
+				fig.hidden = !match;
+				if (match) visible++;
+			});
+			count.textContent = `${visible} photo${visible === 1 ? '' : 's'}`;
+			nav.querySelectorAll('a').forEach((a) => {
+				if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
+				else a.removeAttribute('aria-current');
+			});
+		}
+
+		// Capture phase — see the note in the expansion script below:
+		// ClientRouter's own document click listener is registered first
+		// and would navigate before a bubble-phase preventDefault landed.
+		document.addEventListener(
+			'click',
+			(e) => {
+				const a = e.target.closest?.('.filters a');
+				if (!a) return;
+				e.preventDefault();
+				const tag = a.getAttribute('data-tag') ?? '';
+				render(tag);
+				history.pushState({ ...history.state, tag }, '', a.getAttribute('href'));
+			},
+			true,
+		);
+
+		window.addEventListener('popstate', (e) => {
+			if (!e.state || typeof e.state.tag !== 'string') return;
+			render(e.state.tag);
 		});
-		count.textContent = `${visible} photo${visible === 1 ? '' : 's'}`;
-		nav.querySelectorAll('a').forEach((a) => {
-			if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
-			else a.removeAttribute('aria-current');
+
+		document.addEventListener('astro:page-load', () => {
+			const nav = document.querySelector('.filters');
+			if (!nav) return;
+			const initialTag = nav.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
+			history.replaceState({ ...history.state, tag: initialTag }, '', location.href);
 		});
-	}
-	nav.addEventListener('click', (e) => {
-		const a = e.target.closest('a');
-		if (!a) return;
-		e.preventDefault();
-		const tag = a.getAttribute('data-tag') ?? '';
-		render(tag);
-		history.pushState({ tag }, '', a.getAttribute('href'));
-	});
-	window.addEventListener('popstate', (e) => {
-		if (!e.state || typeof e.state.tag !== 'string') return;
-		render(e.state.tag);
-	});
+	})();
+</script>
+
+<script is:inline>
+	(() => {
+		// Every listener below is bound to `document`/`window`, never to
+		// `#photo-grid`. ClientRouter replaces the grid element on each
+		// swap and does not re-execute an already-seen inline script, so
+		// anything bound to the grid goes stale the first time you come
+		// back from /photo/[id] — clicks would then fall through to a
+		// real navigation instead of expanding.
+		if (window.__photoExpandInit) return;
+		window.__photoExpandInit = true;
+
+		let openId = null;
+
+		function tileFor(id) {
+			return document.getElementById(id)?.closest('figure') ?? null;
+		}
+
+		function setTileOpen(fig, open) {
+			if (!fig) return;
+			fig.classList.toggle('is-open', open);
+			const img = fig.querySelector('img');
+			img.sizes = open ? img.dataset.sizesOpen : img.dataset.sizes;
+		}
+
+		// Only the figures currently on screen, so the reflow around the
+		// toggled tile animates too — not every figure in the grid.
+		function visibleIds() {
+			const ids = [];
+			const grid = document.getElementById('photo-grid');
+			if (!grid) return ids;
+			grid.querySelectorAll('figure:not([hidden])').forEach((fig) => {
+				const r = fig.getBoundingClientRect();
+				if (r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth) {
+					ids.push(fig.querySelector('.thumb-link').id);
+				}
+			});
+			return ids;
+		}
+
+		function setOpen(id) {
+			const affected = new Set(visibleIds());
+			if (openId) affected.add(openId);
+			if (id) affected.add(id);
+
+			function apply() {
+				if (openId && openId !== id) setTileOpen(tileFor(openId), false);
+				if (id) setTileOpen(tileFor(id), true);
+				openId = id;
+			}
+
+			const canAnimate =
+				!matchMedia('(prefers-reduced-motion: reduce)').matches && document.startViewTransition;
+			if (!canAnimate) {
+				apply();
+				return Promise.resolve();
+			}
+
+			// Names are id-derived and only ever live on one figure each,
+			// assigned here and cleared below — never all up front, so no
+			// figure can end up sharing a name with another.
+			affected.forEach((tid) => {
+				const fig = tileFor(tid);
+				if (fig) fig.style.viewTransitionName = `photo-${tid}`;
+			});
+			const transition = document.startViewTransition(apply);
+			transition.finished.finally(() => {
+				affected.forEach((tid) => {
+					const fig = tileFor(tid);
+					if (fig) fig.style.viewTransitionName = '';
+				});
+			});
+			return transition.updateCallbackDone;
+		}
+
+		// Capture phase, not bubble: ClientRouter registers its own
+		// document-level click listener from <head>, so it would other-
+		// wise run first and navigate away before we ever preventDefault.
+		// It does bail on ev.defaultPrevented — we just have to get there
+		// first, and document-capture is the earliest point in the path.
+		document.addEventListener(
+			'click',
+			(e) => {
+				const a = e.target.closest?.('.thumb-link');
+				if (!a || !a.closest('#photo-grid')) return;
+				e.preventDefault();
+				const id = a.id;
+				const next = openId === id ? null : id;
+				// Null state on purpose: ClientRouter's popstate handler
+				// returns early for `ev.state === null`, so back/forward
+				// between expanded tiles collapses in place instead of
+				// ClientRouter fetching /photo/[id] and swapping the whole
+				// document. The open tile is recovered from the URL below.
+				if (next) history.pushState(null, '', `/photo/${next}`);
+				else history.replaceState(null, '', '/');
+				setOpen(next).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
+			},
+			true,
+		);
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key !== 'Escape' || !openId) return;
+			const id = openId;
+			history.replaceState(null, '', '/');
+			setOpen(null).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
+		});
+
+		window.addEventListener('popstate', () => {
+			// Only meaningful while the grid is on screen; if ClientRouter
+			// swapped us elsewhere the fresh page starts collapsed anyway.
+			if (!document.getElementById('photo-grid')) return;
+			const match = location.pathname.match(/^\/photo\/([^/]+)\/?$/);
+			const target = match && tileFor(match[1]) ? match[1] : null;
+			if (target === openId) return;
+			setOpen(target);
+		});
+
+		// A swap hands us a fresh grid with nothing expanded.
+		document.addEventListener('astro:page-load', () => {
+			openId = null;
+		});
+	})();
 </script>
 
 <style>
@@ -259,6 +437,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	}
 
 	.item {
+		position: relative;
 		margin: 0;
 		grid-column: span var(--cols-sm);
 		grid-row: span var(--rows-sm);
@@ -292,5 +471,80 @@ const visibleCount = items.filter((item) => item.visible).length;
 	.thumb-link:focus-visible {
 		outline: 2px solid #1a73e8;
 		outline-offset: 2px;
+	}
+
+	/* In-grid expansion. Column spans here (3/2/3) must match
+	   OPEN_COLS in the frontmatter — Astro <style> blocks can't read
+	   frontmatter values, so this is the one place they're duplicated. */
+	.item.is-open {
+		grid-column: span 3;
+		grid-row: span var(--rows-sm-open);
+	}
+
+	@media (min-width: 600px) {
+		.item.is-open {
+			grid-column: span 2;
+			grid-row: span var(--rows-md-open);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.item.is-open {
+			grid-column: span 3;
+			grid-row: span var(--rows-lg-open);
+		}
+	}
+
+	/* Matches the image box, not the figure: the figure is usually a bit
+	   taller than the image because row spans quantise to whole rows, so
+	   `inset: 0` would float the caption in the gap below the photo. */
+	.expand-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		aspect-ratio: var(--ar);
+		display: none;
+		pointer-events: none;
+	}
+
+	.item.is-open .expand-overlay {
+		display: block;
+	}
+
+	.expand-link {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 44px;
+		min-height: 44px;
+		border-radius: 50%;
+		background: rgba(0, 0, 0, 0.45);
+		color: #fff;
+		text-decoration: none;
+		font-size: 18px;
+		line-height: 1;
+		pointer-events: auto;
+	}
+
+	.expand-link:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: 2px;
+	}
+
+	.expand-caption {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		margin: 0;
+		padding: 32px 12px 12px;
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+		color: #fff;
+		font-size: 0.875rem;
+		pointer-events: none;
 	}
 </style>

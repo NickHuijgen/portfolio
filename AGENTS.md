@@ -89,6 +89,30 @@ Deployed to Cloudflare Pages.
   which promotes it into its own top-level compositing layer even
   outside an active transition. Fixed-position controls (close/prev/next)
   need an explicit `z-index` or the image paints over them.
+- In-grid expansion (clicking a grid tile expands it in place) is a
+  progressive enhancement layered over `/photo/[id]`; those pages are
+  unchanged and remain the no-JS behaviour. Both span sets are emitted
+  as custom properties at build time, so nothing is measured in JS.
+  `OPEN_COLS` in the frontmatter and the span literals in the
+  `.item.is-open` CSS are the same numbers in two places — Astro
+  `<style>` blocks can't read frontmatter, so keep them in sync.
+- Two ClientRouter traps bit this feature; both apply to any script
+  in this project that intercepts clicks or holds element references:
+  - **Bind to `document`/`window`, never to `#photo-grid` or `.filters`.**
+    ClientRouter replaces those elements on every swap and does not
+    re-execute an already-seen inline script, so an element-bound
+    listener is silently dead after the first trip to `/photo/[id]`
+    and back. Use an init guard so the setup runs once.
+  - **Use the capture phase.** ClientRouter registers its own document
+    click listener from `<head>`, so it runs before any later-added
+    bubble listener and navigates away first. It *does* bail on
+    `ev.defaultPrevented` — you just have to get there first, and
+    document-capture is the earliest point in the propagation path.
+- `onPopState` in ClientRouter does a full fetch + swap for any
+  non-null history state, which would load the real `/photo/[id]` page
+  on Back instead of collapsing. It returns early for `ev.state ===
+  null`, so the expansion pushes null state and recovers the open tile
+  from `location.pathname` instead.
 - Returning to the grid should focus the thumbnail just viewed, not
   the top of the document. Since the close link's href is the fixed
   `/#photos` (not a per-photo fragment), that's done via

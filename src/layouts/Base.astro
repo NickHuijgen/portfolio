@@ -69,10 +69,16 @@ if (!resolvedOgImage) {
 </style>
 
 <style is:global>
-	/* Named view transitions (the grid-to-detail photo morph) are real
-	   browser View Transition API animations, rooted outside the normal
-	   DOM tree — they can't be scoped to a component, so this has to be
-	   global. Reduced motion gets an instant cut: no morph, no fade. */
+	/* Named view transitions (the detail page's photo, and the in-grid
+	   expand/collapse morph) are real browser View Transition API
+	   animations, rooted outside the normal DOM tree — they can't be
+	   scoped to a component, so this has to be global. */
+	::view-transition-group(*) {
+		animation-duration: 400ms;
+		animation-timing-function: ease-out;
+	}
+
+	/* Reduced motion gets an instant cut: no morph, no fade. */
 	@media (prefers-reduced-motion: reduce) {
 		::view-transition-group(*),
 		::view-transition-old(*),
