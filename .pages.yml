@@ -1,0 +1,26 @@
+media:
+  - name: photos
+    label: Photos
+    input: src/content/images
+    output: ./images
+    rename: safe
+    extensions: [jpg, jpeg, webp]
+
+content:
+  - name: photos
+    label: Photos
+    type: file
+    path: src/content/photos.yaml
+    list: true
+    fields:
+      - { name: src, label: Photo, type: image }
+      - { name: alt, label: Alt text, type: string, required: true }
+      - { name: caption, label: Caption, type: string }
+      - { name: date, label: Date, type: date }
+      - name: tags
+        label: Tags
+        type: select
+        options:
+          multiple: true
+          values: [street, landscape, portrait]
+      - { name: feature, label: Feature, type: boolean, default: false }
