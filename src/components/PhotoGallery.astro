@@ -1,0 +1,400 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+interface Props {
+	activeTag?: string;
+}
+
+const { activeTag } = Astro.props;
+
+const GAP = 16;
+const ROW = 8;
+
+// Reference width is the upper edge of each breakpoint's range, so the
+// computed row-span always covers the image at any narrower width within
+// that range (extra whitespace below, never an overflow/crop).
+const TIERS = {
+	lg: { container: 1200, columns: 4 },
+	md: { container: 1000, columns: 3 },
+	sm: { container: 600, columns: 2 },
+};
+
+function columnWidth(container: number, columns: number) {
+	return (container - GAP * (columns - 1)) / columns;
+}
+
+function rowSpan(aspectRatio: number, width: number) {
+	const height = width / aspectRatio;
+	return Math.ceil((height + GAP) / (ROW + GAP));
+}
+
+const photos = await getCollection('photos');
+photos.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
+
+const items = photos.map((photo) => {
+	const { width, height } = photo.data.src;
+	const aspectRatio = width / height;
+
+	const lgColSpan = photo.data.feature ? 2 : 1;
+	const mdColSpan = photo.data.feature ? 2 : 1;
+	const smColSpan = photo.data.feature ? 2 : 1;
+
+	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns);
+	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns);
+	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns);
+
+	const lgWidth = lgColWidth * lgColSpan + GAP * (lgColSpan - 1);
+	const mdWidth = mdColWidth * mdColSpan + GAP * (mdColSpan - 1);
+	const smWidth = smColWidth * smColSpan + GAP * (smColSpan - 1);
+
+	const visible = !activeTag || photo.data.tags.includes(activeTag);
+
+	const formattedDate = photo.data.date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	});
+
+	return {
+		photo,
+		visible,
+		formattedDate,
+		lgColSpan,
+		mdColSpan,
+		smColSpan,
+		lgRows: rowSpan(aspectRatio, lgWidth),
+		mdRows: rowSpan(aspectRatio, mdWidth),
+		smRows: rowSpan(aspectRatio, smWidth),
+		sizesLg: Math.round(lgWidth),
+		sizesMd: Math.round(mdWidth),
+		sizesSm: Math.round(smWidth),
+	};
+});
+
+const visibleCount = items.filter((item) => item.visible).length;
+---
+
+<nav class="filters" aria-label="Filter photos by tag">
+	<a
+		href="/photos"
+		data-tag=""
+		aria-current={!activeTag ? 'page' : undefined}
+		class="filter-link"
+	>
+		All
+	</a>
+	{
+		tags.map((tag) => (
+			<a
+				href={`/photos/${tag}`}
+				data-tag={tag}
+				aria-current={activeTag === tag ? 'page' : undefined}
+				class="filter-link"
+			>
+				{tag}
+			</a>
+		))
+	}
+</nav>
+
+<div class="gallery" aria-live="polite">
+	<p class="visually-hidden" id="photo-count">
+		{visibleCount} photo{visibleCount === 1 ? '' : 's'}
+	</p>
+	<main class="grid" id="photo-grid">
+		{
+			items.map((item) => (
+				<figure
+					class="item"
+					hidden={!item.visible}
+					data-tags={item.photo.data.tags.join(' ')}
+					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
+				>
+					<button
+						type="button"
+						class="thumb"
+						data-caption={item.photo.data.caption ?? ''}
+						data-date={item.formattedDate}
+						data-tags={item.photo.data.tags.join(', ')}
+					>
+						<Image
+							src={item.photo.data.src}
+							alt={item.photo.data.alt}
+							widths={[400, 800, 1600]}
+							sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, ${item.sizesSm}px`}
+						/>
+					</button>
+					{item.photo.data.caption && <figcaption>{item.photo.data.caption}</figcaption>}
+				</figure>
+			))
+		}
+	</main>
+</div>
+
+<dialog id="photo-modal" class="photo-modal">
+	<form method="dialog" class="modal-close-form">
+		<button type="submit" class="modal-close" aria-label="Close">✕</button>
+	</form>
+	<img id="modal-image" alt="" />
+	<div class="modal-info">
+		<p id="modal-caption" hidden></p>
+		<p id="modal-date"></p>
+		<p id="modal-tags" hidden></p>
+	</div>
+</dialog>
+
+<script is:inline>
+	const nav = document.querySelector('.filters');
+	const grid = document.getElementById('photo-grid');
+	const count = document.getElementById('photo-count');
+	const initialTag = nav.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
+	function render(tag) {
+		let visible = 0;
+		grid.querySelectorAll('figure').forEach((fig) => {
+			const match = !tag || (fig.getAttribute('data-tags') ?? '').split(' ').includes(tag);
+			fig.hidden = !match;
+			if (match) visible++;
+		});
+		count.textContent = `${visible} photo${visible === 1 ? '' : 's'}`;
+		nav.querySelectorAll('a').forEach((a) => {
+			if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
+			else a.removeAttribute('aria-current');
+		});
+	}
+	nav.addEventListener('click', (e) => {
+		const a = e.target.closest('a');
+		if (!a) return;
+		e.preventDefault();
+		const tag = a.getAttribute('data-tag') ?? '';
+		render(tag);
+		history.pushState({ tag }, '', a.getAttribute('href'));
+	});
+	window.addEventListener('popstate', (e) => render((e.state && e.state.tag) ?? initialTag));
+</script>
+
+<script is:inline>
+	const modal = document.getElementById('photo-modal');
+	const modalImage = document.getElementById('modal-image');
+	const modalCaption = document.getElementById('modal-caption');
+	const modalDate = document.getElementById('modal-date');
+	const modalTags = document.getElementById('modal-tags');
+	let modalTrigger = null;
+
+	document.querySelectorAll('.thumb').forEach((button) => {
+		button.addEventListener('click', () => {
+			modalTrigger = button;
+			const img = button.querySelector('img');
+			modalImage.src = img.currentSrc || img.src;
+			modalImage.alt = img.alt;
+			modal.setAttribute('aria-label', img.alt);
+			modalCaption.textContent = button.dataset.caption;
+			modalCaption.hidden = !button.dataset.caption;
+			modalDate.textContent = button.dataset.date;
+			modalTags.textContent = button.dataset.tags ? `Tags: ${button.dataset.tags}` : '';
+			modalTags.hidden = !button.dataset.tags;
+			modal.showModal();
+		});
+	});
+
+	modal.addEventListener('click', (e) => {
+		if (e.target === modal) modal.close();
+	});
+
+	modal.addEventListener('close', () => {
+		modalImage.src = '';
+		modalTrigger?.focus();
+	});
+</script>
+
+<style>
+	.filters {
+		--text-secondary: #666;
+		display: flex;
+		flex-wrap: wrap;
+		column-gap: 16px;
+		row-gap: 8px;
+		max-width: 1200px;
+		margin: 0 auto 24px;
+	}
+
+	.filter-link {
+		display: inline-flex;
+		align-items: center;
+		padding-block: 10px;
+		font-size: 16px;
+		line-height: 1.5;
+		color: var(--text-secondary);
+		text-decoration: none;
+		text-transform: capitalize;
+		border-bottom: 2px solid transparent;
+		transition:
+			color 150ms ease,
+			border-color 150ms ease;
+	}
+
+	.filter-link[aria-current='page'] {
+		color: inherit;
+		font-weight: 500;
+		border-bottom-color: currentColor;
+	}
+
+	.filter-link:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.filter-link {
+			transition: none;
+		}
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.grid {
+		display: grid;
+		grid-auto-flow: dense;
+		grid-auto-rows: 8px;
+		gap: 16px;
+		grid-template-columns: repeat(2, 1fr);
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	@media (min-width: 600px) {
+		.grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	.item {
+		margin: 0;
+		grid-column: span var(--cols-sm);
+		grid-row: span var(--rows-sm);
+	}
+
+	@media (min-width: 600px) {
+		.item {
+			grid-column: span var(--cols-md);
+			grid-row: span var(--rows-md);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.item {
+			grid-column: span var(--cols-lg);
+			grid-row: span var(--rows-lg);
+		}
+	}
+
+	.item img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.item figcaption {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+	}
+
+	.thumb {
+		display: block;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: pointer;
+	}
+
+	.thumb:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	.photo-modal {
+		box-sizing: border-box;
+		max-width: min(90vw, 1000px);
+		max-height: 90vh;
+		margin: auto;
+		padding: 20px;
+		border: 0;
+		border-radius: 4px;
+		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+		overflow: auto;
+	}
+
+	.photo-modal::backdrop {
+		background: rgba(0, 0, 0, 0.6);
+	}
+
+	.modal-close-form {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.modal-close {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		margin: -10px -10px 0 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		font-size: 18px;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.modal-close:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	#modal-image {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: 70vh;
+		object-fit: contain;
+	}
+
+	.modal-info {
+		margin-top: 12px;
+	}
+
+	.modal-info p {
+		margin: 0.25rem 0;
+		font-size: 0.875rem;
+	}
+
+	#modal-caption {
+		font-size: 1rem;
+	}
+
+	#modal-tags {
+		color: var(--text-secondary, #666);
+		text-transform: capitalize;
+	}
+</style>
