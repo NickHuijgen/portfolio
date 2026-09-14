@@ -23,16 +23,24 @@ Consult these guides before working on related tasks:
 
 # Photo portfolio
 
-Astro static site. Personal photography portfolio. Deployed to Cloudflare Pages.
+Astro static site. Single-page photo portfolio with tag filtering.
+Deployed to Cloudflare Pages.
 
 ## Constraints
-- Ship zero client-side JavaScript unless a feature genuinely needs it.
-  No React, no client framework. `.astro` components only.
+- `.astro` components only. No React, Vue, or any client framework.
+- Client-side JS only for tag filtering, written as vanilla JS in a
+  single inline script. Everything else renders at build time.
 - All images go through `astro:assets`. Never a raw `<img>` with a
   public/ path.
-- Content lives in `src/content/` as markdown with frontmatter,
-  validated by a Zod schema in `src/content.config.ts`.
+- Content lives in one `src/content/photos.yaml`, validated by a Zod
+  schema in `src/content.config.ts`.
 - Photos: max 2400px long edge, committed to the repo.
+
+## Layout
+- CSS Grid, `grid-auto-flow: dense`, fixed `grid-auto-rows`.
+- Column span is editorial (`feature: true` spans 2). Row span is
+  computed at build time from the image's intrinsic aspect ratio.
+- No cropping. No layout shift.
 
 ## Style
 - Plain CSS in `.astro` files. No Tailwind, no CSS framework.
