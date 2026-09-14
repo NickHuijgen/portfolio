@@ -1,12 +1,28 @@
 ---
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
 import '@fontsource-variable/instrument-sans/wght.css';
 import fontUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 
 interface Props {
 	title: string;
+	description: string;
+	ogImage?: string;
 }
 
-const { title } = Astro.props;
+const { title, description, ogImage } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+let resolvedOgImage = ogImage;
+if (!resolvedOgImage) {
+	const photos = await getCollection('photos');
+	const featured = photos.find((photo) => photo.data.feature);
+	if (featured) {
+		const optimized = await getImage({ src: featured.data.src, width: 1200 });
+		resolvedOgImage = new URL(optimized.src, Astro.site).href;
+	}
+}
 ---
 
 <html lang="en">
@@ -14,10 +30,18 @@ const { title } = Astro.props;
 		<meta charset="utf-8" />
 		<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL} />
+
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		{resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
+		<meta name="twitter:card" content="summary_large_image" />
 	</head>
 	<body>
 		<slot />

@@ -12,6 +12,6 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 ---
 
-<Base title={`Nick Huijgen — ${tag}`}>
+<Base title={`Nick Huijgen — ${tag}`} description={`Photos tagged "${tag}" by Nick Huijgen.`}>
 	<Home activeTag={tag} />
 </Base>
