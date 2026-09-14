@@ -1,0 +1,71 @@
+---
+import PhotoGallery from './PhotoGallery.astro';
+
+interface Props {
+	activeTag?: string;
+}
+
+const { activeTag } = Astro.props;
+
+const LINKEDIN_URL = 'https://www.linkedin.com/in/nickhuijgen/';
+---
+
+<section class="intro">
+	<h1>Nick Huijgen</h1>
+	<p>Photography from wherever I end up.</p>
+	<div class="cta">
+		<a href="#photos" class="button">View photos</a>
+		<a href={LINKEDIN_URL} class="button" target="_blank" rel="noopener">LinkedIn</a>
+	</div>
+</section>
+
+<section id="photos">
+	<PhotoGallery activeTag={activeTag} />
+</section>
+
+<style>
+	.intro {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding-block: 64px 48px;
+	}
+
+	.intro h1 {
+		margin: 0;
+		font-size: 2rem;
+		font-weight: 500;
+	}
+
+	.intro p {
+		margin: 0.5rem 0 0;
+		font-size: 1.125rem;
+	}
+
+	.cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-top: 24px;
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding: 0 20px;
+		border: 1px solid currentColor;
+		border-radius: 4px;
+		color: inherit;
+		font-size: 16px;
+		text-decoration: none;
+	}
+
+	.button:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	#photos {
+		scroll-margin-top: 2rem;
+	}
+</style>

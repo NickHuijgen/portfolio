@@ -51,5 +51,8 @@ Deployed to Cloudflare Pages.
 - Don't scaffold features I didn't ask for.
 
 ## Routes
-- `/` — minimal landing page. Name, one line, links to /photos and LinkedIn.
-- `/photos` — the gallery. Tag filtering lives here.
+- `/` — intro section (name, one line, links to the gallery and
+  LinkedIn) followed by the full photo grid in `<section id="photos">`.
+  Tag filtering lives here.
+- `/tag/[tag]` — static route per distinct tag. Renders the identical
+  homepage with the grid pre-filtered to that tag.

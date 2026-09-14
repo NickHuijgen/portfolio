@@ -79,7 +79,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 
 <nav class="filters" aria-label="Filter photos by tag">
 	<a
-		href="/photos"
+		href="/"
 		data-tag=""
 		aria-current={!activeTag ? 'page' : undefined}
 		class="filter-link"
@@ -89,7 +89,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	{
 		tags.map((tag) => (
 			<a
-				href={`/photos/${tag}`}
+				href={`/tag/${tag}`}
 				data-tag={tag}
 				aria-current={activeTag === tag ? 'page' : undefined}
 				class="filter-link"
@@ -106,7 +106,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	</p>
 	<main class="grid" id="photo-grid">
 		{
-			items.map((item) => (
+			items.map((item, index) => (
 				<figure
 					class="item"
 					hidden={!item.visible}
@@ -125,10 +125,11 @@ const visibleCount = items.filter((item) => item.visible).length;
 							alt={item.photo.data.alt}
 							widths={[400, 800, 1600]}
 							sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, ${item.sizesSm}px`}
+							loading={index < 6 ? 'eager' : 'lazy'}
+							fetchpriority={index < 6 ? 'high' : undefined}
 						/>
 					</button>
-					{item.photo.data.caption && <figcaption>{item.photo.data.caption}</figcaption>}
-				</figure>
+									</figure>
 			))
 		}
 	</main>
@@ -310,11 +311,6 @@ const visibleCount = items.filter((item) => item.visible).length;
 		display: block;
 		width: 100%;
 		height: auto;
-	}
-
-	.item figcaption {
-		margin-top: 0.25rem;
-		font-size: 0.875rem;
 	}
 
 	.thumb {

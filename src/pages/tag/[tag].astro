@@ -1,0 +1,17 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Home from '../../components/Home.astro';
+
+export async function getStaticPaths() {
+	const photos = await getCollection('photos');
+	const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))];
+	return tags.map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+---
+
+<Base title={`Nick Huijgen — ${tag}`}>
+	<Home activeTag={tag} />
+</Base>
