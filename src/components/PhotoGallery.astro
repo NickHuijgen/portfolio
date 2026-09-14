@@ -65,16 +65,9 @@ const items = photos.map((photo) => {
 
 	const visible = !activeTag || photo.data.tags.includes(activeTag);
 
-	const formattedDate = photo.data.date.toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-	});
-
 	return {
 		photo,
 		visible,
-		formattedDate,
 		lgColSpan,
 		mdColSpan,
 		smColSpan,
@@ -126,13 +119,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 					data-tags={item.photo.data.tags.join(' ')}
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
 				>
-					<button
-						type="button"
-						class="thumb"
-						data-caption={item.photo.data.caption ?? ''}
-						data-date={item.formattedDate}
-						data-tags={item.photo.data.tags.join(', ')}
-					>
+					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
 						<Image
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
@@ -140,25 +127,25 @@ const visibleCount = items.filter((item) => item.visible).length;
 							sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, ${item.sizesSm}px`}
 							loading={index < 6 ? 'eager' : 'lazy'}
 							fetchpriority={index < 6 ? 'high' : undefined}
+							transition:name={`photo-${item.photo.id}`}
 						/>
-					</button>
-									</figure>
+					</a>
+				</figure>
 			))
 		}
 	</main>
 </div>
 
-<dialog id="photo-modal" class="photo-modal">
-	<form method="dialog" class="modal-close-form">
-		<button type="submit" class="modal-close" aria-label="Close">✕</button>
-	</form>
-	<img id="modal-image" alt="" />
-	<div class="modal-info">
-		<p id="modal-caption" hidden></p>
-		<p id="modal-date"></p>
-		<p id="modal-tags" hidden></p>
-	</div>
-</dialog>
+<script is:inline>
+	document.addEventListener('astro:page-load', () => {
+		if (!document.getElementById('photo-grid')) return;
+		const id = sessionStorage.getItem('focusPhoto');
+		if (id) {
+			sessionStorage.removeItem('focusPhoto');
+			document.getElementById(id)?.focus();
+		}
+	});
+</script>
 
 <script is:inline>
 	const nav = document.querySelector('.filters');
@@ -190,40 +177,6 @@ const visibleCount = items.filter((item) => item.visible).length;
 	window.addEventListener('popstate', (e) => {
 		if (!e.state || typeof e.state.tag !== 'string') return;
 		render(e.state.tag);
-	});
-</script>
-
-<script is:inline>
-	const modal = document.getElementById('photo-modal');
-	const modalImage = document.getElementById('modal-image');
-	const modalCaption = document.getElementById('modal-caption');
-	const modalDate = document.getElementById('modal-date');
-	const modalTags = document.getElementById('modal-tags');
-	let modalTrigger = null;
-
-	document.querySelectorAll('.thumb').forEach((button) => {
-		button.addEventListener('click', () => {
-			modalTrigger = button;
-			const img = button.querySelector('img');
-			modalImage.src = img.currentSrc || img.src;
-			modalImage.alt = img.alt;
-			modal.setAttribute('aria-label', img.alt);
-			modalCaption.textContent = button.dataset.caption;
-			modalCaption.hidden = !button.dataset.caption;
-			modalDate.textContent = button.dataset.date;
-			modalTags.textContent = button.dataset.tags ? `Tags: ${button.dataset.tags}` : '';
-			modalTags.hidden = !button.dataset.tags;
-			modal.showModal();
-		});
-	});
-
-	modal.addEventListener('click', (e) => {
-		if (e.target === modal) modal.close();
-	});
-
-	modal.addEventListener('close', () => {
-		modalImage.src = '';
-		modalTrigger?.focus();
 	});
 </script>
 
@@ -331,84 +284,13 @@ const visibleCount = items.filter((item) => item.visible).length;
 		height: auto;
 	}
 
-	.thumb {
+	.thumb-link {
 		display: block;
 		width: 100%;
-		padding: 0;
-		border: 0;
-		background: none;
-		cursor: pointer;
 	}
 
-	.thumb:focus-visible {
+	.thumb-link:focus-visible {
 		outline: 2px solid #1a73e8;
 		outline-offset: 2px;
-	}
-
-	.photo-modal {
-		box-sizing: border-box;
-		max-width: min(90vw, 1000px);
-		max-height: 90vh;
-		margin: auto;
-		padding: 20px;
-		border: 0;
-		border-radius: 4px;
-		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
-		overflow: auto;
-	}
-
-	.photo-modal::backdrop {
-		background: rgba(0, 0, 0, 0.6);
-	}
-
-	.modal-close-form {
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	.modal-close {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 44px;
-		height: 44px;
-		margin: -10px -10px 0 0;
-		padding: 0;
-		border: 0;
-		background: none;
-		font-size: 18px;
-		line-height: 1;
-		cursor: pointer;
-	}
-
-	.modal-close:focus-visible {
-		outline: 2px solid #1a73e8;
-		outline-offset: 2px;
-	}
-
-	#modal-image {
-		display: block;
-		width: 100%;
-		height: auto;
-		max-height: 70vh;
-		object-fit: contain;
-	}
-
-	.modal-info {
-		margin-top: 12px;
-	}
-
-	.modal-info p {
-		margin: 0.25rem 0;
-		font-size: 0.875rem;
-	}
-
-	#modal-caption {
-		font-size: 1rem;
-	}
-
-	#modal-tags {
-		color: var(--text-secondary, #666);
-		text-transform: capitalize;
 	}
 </style>

@@ -1,0 +1,206 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+	const photos = await getCollection('photos');
+	return photos.map((photo, index) => {
+		const prev = photos[(index - 1 + photos.length) % photos.length];
+		const next = photos[(index + 1) % photos.length];
+		return {
+			params: { id: photo.id },
+			props: { photo, prevId: prev.id, nextId: next.id },
+		};
+	});
+}
+
+const { photo, prevId, nextId } = Astro.props;
+
+const formattedDate = photo.data.date.toLocaleDateString('en-US', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<Base title={`${photo.data.alt} — Nick Huijgen`} description={photo.data.caption ?? photo.data.alt}>
+	<main class="photo-detail">
+		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
+			✕
+		</a>
+		<a href={`/photo/${prevId}`} id="photo-prev" class="control prev" aria-label="Previous photo">
+			‹
+		</a>
+		<a href={`/photo/${nextId}`} id="photo-next" class="control next" aria-label="Next photo">
+			›
+		</a>
+
+		<figure class="frame">
+			<Image
+				src={photo.data.src}
+				alt={photo.data.alt}
+				widths={[800, 1600, 2400]}
+				sizes="100vw"
+				class="frame-image"
+				transition:name={`photo-${photo.id}`}
+			/>
+			{photo.data.caption && <figcaption>{photo.data.caption}</figcaption>}
+		</figure>
+
+		<div class="meta">
+			<p class="date">{formattedDate}</p>
+			<ul class="tags">
+				{
+					photo.data.tags.map((tag) => (
+						<li>
+							<a href={`/tag/${tag}`}>{tag}</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</main>
+</Base>
+
+<script is:inline define:vars={{ photoId: photo.id }}>
+	sessionStorage.setItem('focusPhoto', photoId);
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') document.getElementById('photo-close').click();
+		if (e.key === 'ArrowLeft') document.getElementById('photo-prev').click();
+		if (e.key === 'ArrowRight') document.getElementById('photo-next').click();
+	});
+</script>
+
+<style>
+	/* Reach the real <body> (rendered by Base.astro, not this page's own
+	   template) to kill its default UA margin — otherwise the browser's
+	   8px body margin leaves a white gutter around this page's full-bleed
+	   dark background. Scoped to this page only, not Base.astro, so
+	   every other page keeps its current spacing. */
+	:global(body) {
+		margin: 0;
+	}
+
+	.photo-detail {
+		position: relative;
+		box-sizing: border-box;
+		min-height: 100vh;
+		padding: 72px 24px 32px;
+		background: #000;
+		color: #fff;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 16px;
+	}
+
+	.control {
+		/* z-index is required here: the large image carries an active
+		   view-transition-name, which promotes it into its own
+		   top-level compositing layer even outside an active
+		   transition — without this, it paints above fixed-position
+		   siblings that have no z-index of their own. */
+		position: fixed;
+		z-index: 10;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 44px;
+		min-height: 44px;
+		padding: 8px;
+		color: #fff;
+		text-decoration: none;
+		font-size: 20px;
+		line-height: 1;
+		border-radius: 50%;
+		background: rgba(0, 0, 0, 0.45);
+	}
+
+	.close {
+		top: 12px;
+		right: 12px;
+		font-size: 18px;
+	}
+
+	.prev {
+		top: 50%;
+		left: 12px;
+		transform: translateY(-50%);
+		font-size: 32px;
+	}
+
+	.next {
+		top: 50%;
+		right: 12px;
+		transform: translateY(-50%);
+		font-size: 32px;
+	}
+
+	.control:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: 2px;
+	}
+
+	.frame {
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		max-width: 100%;
+	}
+
+	.frame-image {
+		display: block;
+		width: auto;
+		height: auto;
+		max-width: 100%;
+		max-height: 90vh;
+	}
+
+	.frame figcaption {
+		font-size: 0.9375rem;
+		color: #ccc;
+	}
+
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 8px 16px;
+	}
+
+	.meta .date {
+		margin: 0;
+		font-size: 0.8125rem;
+		color: #999;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 16px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tags a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		color: #ccc;
+		font-size: 0.8125rem;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		text-transform: capitalize;
+	}
+
+	.tags a:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: 2px;
+	}
+</style>

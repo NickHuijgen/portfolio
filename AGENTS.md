@@ -70,3 +70,31 @@ Deployed to Cloudflare Pages.
   Tag filtering lives here.
 - `/tag/[tag]` — static route per distinct tag. Renders the identical
   homepage with the grid pre-filtered to that tag.
+- `/photo/[id]` — static route per photo, one per collection entry.
+  The lightbox: a real page with a real URL, not a modal/dialog. Large
+  image, caption, date, tags (linking to `/tag/[tag]`), and prev/next
+  links to the adjacent photos in collection order (wrapping at both
+  ends). Close returns to `/#photos`.
+
+## Lightbox / View Transitions
+- Grid thumbnail and detail-page image share
+  `transition:name={`photo-${id}`}` so the browser morphs one into the
+  other. Names come from each photo's (unique) collection id, so
+  uniqueness is structural — verify it stays that way if `id` is ever
+  generated some other way.
+- Reduced motion turns the morph into an instant cut (guarded in
+  `Base.astro`, global — `view-transition-*` pseudo-elements live
+  outside the normal DOM tree and can't be scoped to a component).
+- The detail page's large image carries an active `view-transition-name`,
+  which promotes it into its own top-level compositing layer even
+  outside an active transition. Fixed-position controls (close/prev/next)
+  need an explicit `z-index` or the image paints over them.
+- Returning to the grid should focus the thumbnail just viewed, not
+  the top of the document. Since the close link's href is the fixed
+  `/#photos` (not a per-photo fragment), that's done via
+  `sessionStorage` (set on the detail page, consumed on
+  `astro:page-load`) rather than the URL. The consuming listener must
+  guard on the grid actually being present — it's attached to
+  `document`, which persists across transitions, so it would otherwise
+  also fire (and wrongly consume the flag) on the way *into* the
+  detail page.

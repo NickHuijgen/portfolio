@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
 import '@fontsource-variable/instrument-sans/wght.css';
 import fontUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 
@@ -42,6 +43,7 @@ if (!resolvedOgImage) {
 		<meta property="og:url" content={canonicalURL} />
 		{resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
 		<meta name="twitter:card" content="summary_large_image" />
+		<ClientRouter />
 	</head>
 	<body>
 		<slot />
@@ -63,5 +65,19 @@ if (!resolvedOgImage) {
 			'Segoe UI',
 			Roboto,
 			sans-serif;
+	}
+</style>
+
+<style is:global>
+	/* Named view transitions (the grid-to-detail photo morph) are real
+	   browser View Transition API animations, rooted outside the normal
+	   DOM tree — they can't be scoped to a component, so this has to be
+	   global. Reduced motion gets an instant cut: no morph, no fade. */
+	@media (prefers-reduced-motion: reduce) {
+		::view-transition-group(*),
+		::view-transition-old(*),
+		::view-transition-new(*) {
+			animation: none !important;
+		}
 	}
 </style>
