@@ -10,8 +10,8 @@ const ROW = 8;
 // that range (extra whitespace below, never an overflow/crop).
 const TIERS = {
 	lg: { container: 1200, columns: 4 },
-	md: { container: 1000, columns: 2 },
-	sm: { container: 600, columns: 1 },
+	md: { container: 1000, columns: 3 },
+	sm: { container: 600, columns: 2 },
 };
 
 function columnWidth(container: number, columns: number) {
@@ -32,6 +32,7 @@ const items = photos.map((photo) => {
 
 	const lgColSpan = photo.data.feature ? 2 : 1;
 	const mdColSpan = photo.data.feature ? 2 : 1;
+	const smColSpan = photo.data.feature ? 2 : 1;
 
 	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns);
 	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns);
@@ -39,17 +40,19 @@ const items = photos.map((photo) => {
 
 	const lgWidth = lgColWidth * lgColSpan + GAP * (lgColSpan - 1);
 	const mdWidth = mdColWidth * mdColSpan + GAP * (mdColSpan - 1);
-	const smWidth = smColWidth;
+	const smWidth = smColWidth * smColSpan + GAP * (smColSpan - 1);
 
 	return {
 		photo,
 		lgColSpan,
 		mdColSpan,
+		smColSpan,
 		lgRows: rowSpan(aspectRatio, lgWidth),
 		mdRows: rowSpan(aspectRatio, mdWidth),
 		smRows: rowSpan(aspectRatio, smWidth),
 		sizesLg: Math.round(lgWidth),
 		sizesMd: Math.round(mdWidth),
+		sizesSm: Math.round(smWidth),
 	};
 });
 ---
@@ -68,13 +71,13 @@ const items = photos.map((photo) => {
 			{items.map((item) => (
 				<figure
 					class="item"
-					style={`--cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
+					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
 				>
 					<Image
 						src={item.photo.data.src}
 						alt={item.photo.data.alt}
 						widths={[400, 800, 1600]}
-						sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, 100vw`}
+						sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, ${item.sizesSm}px`}
 					/>
 					{item.photo.data.caption && <figcaption>{item.photo.data.caption}</figcaption>}
 				</figure>
@@ -89,14 +92,14 @@ const items = photos.map((photo) => {
 		grid-auto-flow: dense;
 		grid-auto-rows: 8px;
 		gap: 16px;
-		grid-template-columns: repeat(1, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		max-width: 1200px;
 		margin: 0 auto;
 	}
 
 	@media (min-width: 600px) {
 		.grid {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 
@@ -108,7 +111,7 @@ const items = photos.map((photo) => {
 
 	.item {
 		margin: 0;
-		grid-column: span 1;
+		grid-column: span var(--cols-sm);
 		grid-row: span var(--rows-sm);
 	}
 
