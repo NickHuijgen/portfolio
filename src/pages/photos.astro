@@ -1,0 +1,139 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+const GAP = 16;
+const ROW = 8;
+
+// Reference width is the upper edge of each breakpoint's range, so the
+// computed row-span always covers the image at any narrower width within
+// that range (extra whitespace below, never an overflow/crop).
+const TIERS = {
+	lg: { container: 1200, columns: 4 },
+	md: { container: 1000, columns: 2 },
+	sm: { container: 600, columns: 1 },
+};
+
+function columnWidth(container: number, columns: number) {
+	return (container - GAP * (columns - 1)) / columns;
+}
+
+function rowSpan(aspectRatio: number, width: number) {
+	const height = width / aspectRatio;
+	return Math.ceil((height + GAP) / (ROW + GAP));
+}
+
+const photos = await getCollection('photos');
+photos.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const items = photos.map((photo) => {
+	const { width, height } = photo.data.src;
+	const aspectRatio = width / height;
+
+	const lgColSpan = photo.data.feature ? 2 : 1;
+	const mdColSpan = photo.data.feature ? 2 : 1;
+
+	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns);
+	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns);
+	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns);
+
+	const lgWidth = lgColWidth * lgColSpan + GAP * (lgColSpan - 1);
+	const mdWidth = mdColWidth * mdColSpan + GAP * (mdColSpan - 1);
+	const smWidth = smColWidth;
+
+	return {
+		photo,
+		lgColSpan,
+		mdColSpan,
+		lgRows: rowSpan(aspectRatio, lgWidth),
+		mdRows: rowSpan(aspectRatio, mdWidth),
+		smRows: rowSpan(aspectRatio, smWidth),
+		sizesLg: Math.round(lgWidth),
+		sizesMd: Math.round(mdWidth),
+	};
+});
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Photos</title>
+	</head>
+	<body>
+		<main class="grid">
+			{items.map((item) => (
+				<figure
+					class="item"
+					style={`--cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows};`}
+				>
+					<Image
+						src={item.photo.data.src}
+						alt={item.photo.data.alt}
+						widths={[400, 800, 1600]}
+						sizes={`(min-width: 1000px) ${item.sizesLg}px, (min-width: 600px) ${item.sizesMd}px, 100vw`}
+					/>
+					{item.photo.data.caption && <figcaption>{item.photo.data.caption}</figcaption>}
+				</figure>
+			))}
+		</main>
+	</body>
+</html>
+
+<style>
+	.grid {
+		display: grid;
+		grid-auto-flow: dense;
+		grid-auto-rows: 8px;
+		gap: 16px;
+		grid-template-columns: repeat(1, 1fr);
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	@media (min-width: 600px) {
+		.grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	.item {
+		margin: 0;
+		grid-column: span 1;
+		grid-row: span var(--rows-sm);
+	}
+
+	@media (min-width: 600px) {
+		.item {
+			grid-column: span var(--cols-md);
+			grid-row: span var(--rows-md);
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.item {
+			grid-column: span var(--cols-lg);
+			grid-row: span var(--rows-lg);
+		}
+	}
+
+	.item img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.item figcaption {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+	}
+</style>

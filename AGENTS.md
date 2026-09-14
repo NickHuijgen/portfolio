@@ -49,3 +49,7 @@ Deployed to Cloudflare Pages.
 ## Don't
 - Don't add dependencies without asking.
 - Don't scaffold features I didn't ask for.
+
+## Routes
+- `/` — minimal landing page. Name, one line, links to /photos and LinkedIn.
+- `/photos` — the gallery. Tag filtering lives here.
