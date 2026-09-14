@@ -1,62 +1,177 @@
-- src: images/photo-01.jpg
+- id: photo-01
+  src: images/photo-01.jpg
   alt: Placeholder portrait shot, warm tones
   caption: Quiet corner, late afternoon
   date: 2024-03-12
   tags:
     - street
   feature: false
-- src: images/photo-02.jpg
+- id: photo-02
+  src: images/photo-02.jpg
   alt: Placeholder landscape shot, green tones
   date: 2024-04-02
   tags:
     - landscape
   feature: false
-- src: images/photo-03.jpg
+- id: photo-03
+  src: images/photo-03.jpg
   alt: Placeholder tall portrait shot, blue tones
   caption: Waiting for the light
   date: 2024-04-20
   tags:
     - portrait
   feature: true
-- src: images/photo-04.jpg
+- id: photo-04
+  src: images/photo-04.jpg
   alt: Placeholder wide landscape shot, red tones
   date: 2024-05-15
   tags:
     - landscape
     - street
   feature: false
-- src: images/photo-05.jpg
+- id: photo-05
+  src: images/photo-05.jpg
   alt: Placeholder portrait shot, ochre tones
   caption: Between appointments
   date: 2024-06-01
   tags:
     - portrait
   feature: false
-- src: images/photo-06.jpg
+- id: photo-06
+  src: images/photo-06.jpg
   alt: Placeholder landscape shot, teal tones
   date: 2024-07-09
   tags:
     - landscape
   feature: true
-- src: images/photo-07.jpg
+- id: photo-07
+  src: images/photo-07.jpg
   alt: Placeholder landscape shot, violet tones
   caption: Passing through
   date: 2024-08-22
   tags:
     - street
   feature: false
-- src: images/photo-08.jpg
+- id: photo-08
+  src: images/photo-08.jpg
   alt: Placeholder tall portrait shot, brown tones
   date: 2024-09-30
   tags:
     - portrait
     - street
   feature: false
-- src: images/914a3845.jpeg
-  alt: Tijger
+- id: photo-09
+  src: images/914a3845.jpeg
+  alt: 914a3845
   date: 2026-08-30
+  tags:
+    - wildlife
   feature: false
-- src: ./images/914a3845.jpeg
-  alt: tiger sleeping
-  date: 2026-08-30
+- id: photo-10
+  src: images/914a3132.jpeg
+  alt: 914a3132
+  caption: Napping between exhibits
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: true
+- id: photo-11
+  src: images/914a3202.jpeg
+  alt: 914a3202
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-12
+  src: images/914a3233.jpeg
+  alt: 914a3233
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-13
+  src: images/914a3262.jpeg
+  alt: 914a3262
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-14
+  src: images/914a3268.jpeg
+  alt: 914a3268
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-15
+  src: images/914a3269.jpeg
+  alt: 914a3269
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-16
+  src: images/914a3298.jpeg
+  alt: 914a3298
+  caption: Announcing itself
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: true
+- id: photo-17
+  src: images/914a3324.jpeg
+  alt: 914a3324
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-18
+  src: images/914a3330.jpeg
+  alt: 914a3330
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-19
+  src: images/914a3336.jpeg
+  alt: 914a3336
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-20
+  src: images/914a3346.jpeg
+  alt: 914a3346
+  caption: Closing in
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-21
+  src: images/914a3385.jpeg
+  alt: 914a3385
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-22
+  src: images/914a3389.jpeg
+  alt: 914a3389
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-23
+  src: images/914a3391.jpeg
+  alt: 914a3391
+  date: 2026-09-27
+  tags:
+    - wildlife
+  feature: false
+- id: photo-24
+  src: images/914a3392.jpeg
+  alt: 914a3392
+  date: 2026-09-27
+  tags:
+    - wildlife
   feature: false
