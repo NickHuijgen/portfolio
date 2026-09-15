@@ -131,28 +131,37 @@ Deployed to Cloudflare Pages.
     bubble listener and navigates away first. It *does* bail on
     `ev.defaultPrevented` — you just have to get there first, and
     document-capture is the earliest point in the propagation path.
+- In-grid expansion and the real `/photo/[id]` page are deliberately
+  different URLs: opening a tile pushes a hash onto the *current* page
+  (`/#photo-09`, or `/tag/wildlife#photo-09` on a filtered page), never
+  the real `/photo/[id]` path. Refreshing or sharing that hash URL
+  reopens the tile in place in the grid; the plain path is reserved for
+  the standalone lightbox page. `astro:page-load` checks
+  `location.hash` on every load and reopens the matching tile instantly
+  (no transition — there's no prior on-screen state to animate from,
+  since this is a load, not a click). The thumbnail's actual `href`
+  stays `/photo/[id]` throughout, for no-JS.
 - `onPopState` in ClientRouter does a full fetch + swap for any
   non-null history state, which would load the real `/photo/[id]` page
   on Back instead of collapsing. It returns early for `ev.state ===
   null`, so the expansion pushes null state and recovers the open tile
-  from `location.pathname` instead.
-- Opening a tile also centers it in the viewport
-  (`centerOnceSettled` in `PhotoGallery.astro`), so a thumbnail clicked
-  low on the page doesn't expand mostly below the fold. This has to wait
-  for `transition.finished`, not just `updateCallbackDone` (which is
-  what `setOpen`'s return value resolves on, for early focus) — with
-  `grid-auto-flow: dense`, growing a tile's column-span doesn't grow it
-  in place, dense packing can relocate it anywhere once the wider span
-  no longer fits where the thumbnail was, so there's no reliable
-  "final position" to scroll to until the transition has actually
-  settled into its new layout. Scrolling earlier — before the
-  transition, or synchronously inside its update callback — also fights
-  the transition's own old/new snapshots, which are captured at fixed
-  viewport coordinates: any scroll that lands between those two
-  captures reads as content misaligning mid-crossfade for every tile
-  that isn't individually named. A guard on `openId` in
-  `centerOnceSettled` drops the scroll if the user has already toggled
-  to a different tile by the time this one's transition settles.
+  from `location.hash` instead.
+- Opening a tile also centers it in the viewport, so a thumbnail
+  clicked low on the page doesn't expand mostly below the fold. The
+  `scrollIntoView` call sits *inside* `setOpen`'s `apply()` (the view
+  transition's update callback), not after — with `grid-auto-flow:
+  dense`, growing a tile's column-span doesn't grow it in place, dense
+  packing can relocate it anywhere once the wider span no longer fits
+  where the thumbnail was, so there's no correct scroll target until
+  this toggle has committed. Scrolling there rather than afterward is
+  also what makes the grow and the scroll read as one motion: every
+  currently-visible tile already gets its own `view-transition-name`
+  (see `visibleIds()`), so the transition interpolates each of them
+  from its old viewport position to its new (already-scrolled) one,
+  instead of cross-fading the whole page at a fixed scroll offset.
+  `behavior: 'auto'` (instant) is deliberate — the smoothness comes
+  from the transition's own animation, not a second scroll animation
+  racing it.
 - Returning to the grid should focus the thumbnail just viewed, not
   the top of the document. Since the close link's href is the fixed
   `/#photos` (not a per-photo fragment), that's done via

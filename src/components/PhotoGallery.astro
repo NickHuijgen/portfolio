@@ -337,13 +337,19 @@ const visibleCount = items.filter((item) => item.visible).length;
 				e.preventDefault();
 				const id = a.id;
 				const next = openId === id ? null : id;
-				// Null state on purpose: ClientRouter's popstate handler
-				// returns early for `ev.state === null`, so back/forward
-				// between expanded tiles collapses in place instead of
-				// ClientRouter fetching /photo/[id] and swapping the whole
-				// document. The open tile is recovered from the URL below.
-				if (next) history.pushState(null, '', `/photo/${next}`);
-				else history.replaceState(null, '', '/');
+				const base = location.pathname + location.search;
+				// A hash on *this* page's URL, not the real /photo/[id]
+				// path — deliberately distinct from it, so refreshing or
+				// sharing this URL reopens the tile in place here instead
+				// of landing on the standalone lightbox page. (The `<a>`'s
+				// real href is still /photo/[id], for no-JS.) Null state
+				// on purpose: ClientRouter's popstate handler returns
+				// early for `ev.state === null`, so back/forward between
+				// expanded tiles collapses in place instead of
+				// ClientRouter fetching a page and swapping the whole
+				// document. The open tile is recovered from the hash below.
+				if (next) history.pushState(null, '', `${base}#${next}`);
+				else history.replaceState(null, '', base);
 				setOpen(next).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
 			},
 			true,
@@ -352,7 +358,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 		document.addEventListener('keydown', (e) => {
 			if (e.key !== 'Escape' || !openId) return;
 			const id = openId;
-			history.replaceState(null, '', '/');
+			history.replaceState(null, '', location.pathname + location.search);
 			setOpen(null).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
 		});
 
@@ -360,15 +366,25 @@ const visibleCount = items.filter((item) => item.visible).length;
 			// Only meaningful while the grid is on screen; if ClientRouter
 			// swapped us elsewhere the fresh page starts collapsed anyway.
 			if (!document.getElementById('photo-grid')) return;
-			const match = location.pathname.match(/^\/photo\/([^/]+)\/?$/);
-			const target = match && tileFor(match[1]) ? match[1] : null;
+			const id = location.hash.slice(1);
+			const target = id && tileFor(id) ? id : null;
 			if (target === openId) return;
 			setOpen(target);
 		});
 
-		// A swap hands us a fresh grid with nothing expanded.
+		// A swap hands us a fresh grid with nothing expanded — except when
+		// the URL itself names one (a shared link, or a refresh while a
+		// tile was open): reopen it instantly, no transition, since this
+		// is a page load rather than a click and there's no prior on-screen
+		// state to animate from.
 		document.addEventListener('astro:page-load', () => {
 			openId = null;
+			const id = location.hash.slice(1);
+			const fig = id && tileFor(id);
+			if (!fig) return;
+			setTileOpen(fig, true);
+			openId = id;
+			fig.scrollIntoView({ block: 'center', behavior: 'auto' });
 		});
 	})();
 </script>
