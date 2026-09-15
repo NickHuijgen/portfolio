@@ -143,22 +143,45 @@ const visibleCount = items.filter((item) => item.visible).length;
 					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
 						{
 							/*
-							  A single-column sm tile computes to ~138 CSS px in `sizes`
-							  (columnWidth(430,3,8)) — on a 3x-DPR phone that's a ~414px
-							  physical need, just past a 400w candidate, so the browser
-							  has to jump to the next one up. With only [400, 800, 1600]
-							  that next one was 800 — 2x the actual need — which is what
-							  Lighthouse's image-delivery audit flagged as ~2.1MB wasted
-							  across the grid. The extra steps here close that gap so a
-							  retina phone lands within ~1.3x of what it needs instead of
-							  up to 4x (a feature/open tile at high DPR can otherwise
-							  land two tiers up).
+							  Picking srcset widths for this grid is unforgiving: the
+							  browser fetches the *smallest* candidate that's still >=
+							  the physical pixel need (CSS `sizes` value x devicePixelRatio),
+							  so any candidate landing even slightly under a real need is
+							  wasted — the browser skips straight to the next one up,
+							  often 2x the bytes. Two earlier attempts at this array both
+							  fell into that trap by picking round numbers without
+							  re-deriving them against the actual need — each fix just
+							  moved the shortfall up one tier (measured via Lighthouse
+							  against the live site, full page scrolled so lazy tiles were
+							  included in the trace: ~2.1MB wasted, then ~1.8MB).
+
+							  This set is instead derived from two deliberate decisions:
+							  1. Compute the physical-pixel need for every (breakpoint x
+							     column-span) combination this grid produces — closed and
+							     in-grid-open state both, since `sizesOpen` reuses the same
+							     srcset — then pick candidates with headroom *over* each
+							     one, not the nearest round number under it.
+							  2. Cap the quality target at 2x device-pixel-ratio, not 3x.
+							     Chasing full 3x (true native sharpness on the newest
+							     phones) roughly doubles bytes again for a difference
+							     that's imperceptible on a photo at normal viewing
+							     distance — a real quality/bytes trade, not free, but a
+							     well-established one. (This also matches Chrome DevTools'
+							     "Improve image delivery" trace insight, which — verified
+							     directly against `window.devicePixelRatio` while emulating
+							     3x — scores as if DPR were ~1 regardless of the real
+							     value, so it will keep flagging *some* residual "waste"
+							     here no matter what; that residual is the 2x-vs-3x
+							     sharpness this grid deliberately still pays for.)
+
+							  Re-derive this (or re-run a full-page-scrolled trace) if
+							  TIERS, OPEN_COLS, or the grid's gaps ever change.
 							*/
 						}
 						<Image
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
-							widths={[400, 700, 1100, 1600]}
+							widths={[150, 300, 450, 650, 900, 1300, 1800]}
 							sizes={item.sizes}
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}
