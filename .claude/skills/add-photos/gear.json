@@ -1,0 +1,15 @@
+{
+  "_comment": "Maps raw EXIF Model/LensModel strings (from inspect_photo.py's camera_raw/lens_raw) to the clean display strings used in photos.yaml's exif.camera/exif.lens fields. Extend this file when a photo uses gear not listed here — see SKILL.md step 4.",
+  "cameras": {
+    "Canon EOS R6m2": "Canon EOS R6 Mark II",
+    "Canon EOS 6D Mark II": "Canon EOS 6D Mark II",
+    "Canon EOS 750D": "Canon EOS 750D"
+  },
+  "lenses": {
+    "EF300mm f/2.8L IS USM": "Canon EF 300mm f/2.8L IS USM",
+    "EF300mm f/2.8L IS USM +1.4x": "Canon EF 300mm f/2.8L IS USM + 1.4x",
+    "EF300mm f/2.8L IS USM +2x": "Canon EF 300mm f/2.8L IS USM + 2x",
+    "EF24-105mm f/4L IS USM": "Canon EF 24-105mm f/4L IS USM",
+    "150-600mm F5-6.3 DG OS HSM | Contemporary 015": "Sigma 150-600mm F5-6.3 DG OS HSM Contemporary"
+  }
+}
