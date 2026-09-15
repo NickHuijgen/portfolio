@@ -1,12 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Home from '../components/Home.astro';
 import { gallerySchema } from '../lib/schema.ts';
+import { getSortedPhotos } from '../lib/photos.ts';
 
 // Every photo in the collection, so a newly added one is picked up here
 // automatically — no separate list to update.
-const photos = await getCollection('photos');
+const photos = await getSortedPhotos();
 const structuredData = await gallerySchema(photos, 'https://nickhuijgen.nl/', 'Nick Huijgen — Photography');
 ---
 

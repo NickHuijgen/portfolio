@@ -1,11 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { photoPageSchema } from '../../lib/schema.ts';
+import { getSortedPhotos } from '../../lib/photos.ts';
 
 export async function getStaticPaths() {
-	const photos = await getCollection('photos');
+	const photos = await getSortedPhotos();
 	return photos.map((photo, index) => {
 		const prev = photos[(index - 1 + photos.length) % photos.length];
 		const next = photos[(index + 1) % photos.length];

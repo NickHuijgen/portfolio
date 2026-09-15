@@ -35,6 +35,13 @@ Deployed to Cloudflare Pages.
 - Content lives in one `src/content/photos.yaml`, validated by a Zod
   schema in `src/content.config.ts`.
 - Photos: max 2400px long edge, committed to the repo.
+- Photos are always ordered newest-to-oldest by `date` (the date taken,
+  not the date added to the repo or the entry's position in the YAML).
+  `src/lib/photos.ts` exports `getSortedPhotos()`, the single sort
+  implementation — every page that lists or paginates through photos
+  (the grid, `/tag/[tag]`, and `/photo/[id]`'s prev/next) calls it
+  instead of `getCollection('photos')` directly, so the grid order and
+  the lightbox's prev/next order never diverge.
 
 ## Layout
 - CSS Grid, `grid-auto-flow: dense`, fixed `grid-auto-rows`.
@@ -73,8 +80,8 @@ Deployed to Cloudflare Pages.
 - `/photo/[id]` — static route per photo, one per collection entry.
   The lightbox: a real page with a real URL, not a modal/dialog. Large
   image, caption, date, tags (linking to `/tag/[tag]`), and prev/next
-  links to the adjacent photos in collection order (wrapping at both
-  ends). Close returns to `/#photos`.
+  links to the adjacent photos in date order (newest-to-oldest, wrapping
+  at both ends). Close returns to `/#photos`.
 
 ## SEO / structured data
 - `public/robots.txt` allows all crawlers, including the named AI

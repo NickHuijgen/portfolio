@@ -1,6 +1,6 @@
 ---
-import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
+import { getSortedPhotos } from '../lib/photos.ts';
 
 interface Props {
 	activeTag?: string;
@@ -50,8 +50,7 @@ function rowSpan(aspectRatio: number, width: number, gap: number) {
 // neighbouring grid visible rather than also going full width.
 const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns };
 
-const photos = await getCollection('photos');
-photos.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const photos = await getSortedPhotos();
 
 const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
 

@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Home from '../../components/Home.astro';
 import { gallerySchema } from '../../lib/schema.ts';
+import { getSortedPhotos } from '../../lib/photos.ts';
 
 export async function getStaticPaths() {
 	const photos = await getCollection('photos');
@@ -14,7 +15,7 @@ const { tag } = Astro.params;
 
 // Filtered to this tag, but still driven by the full collection — a newly
 // tagged photo shows up here with no extra step.
-const photos = await getCollection('photos');
+const photos = await getSortedPhotos();
 const taggedPhotos = photos.filter((photo) => photo.data.tags.includes(tag));
 const structuredData = await gallerySchema(
 	taggedPhotos,
