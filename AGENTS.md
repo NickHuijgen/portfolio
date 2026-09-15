@@ -26,6 +26,13 @@ Consult these guides before working on related tasks:
 Astro static site. Single-page photo portfolio with tag filtering.
 Deployed to Cloudflare Pages.
 
+Design and build mobile-first and accessibility-first: most traffic is
+on phones, and the photos should work for everyone. When a layout or
+interaction choice has a mobile/accessible default and a
+desktop/visual-only default, pick the former. Verify on a real mobile
+viewport width (see the `sm`/`xs` device references below), not just
+by shrinking a desktop browser window.
+
 ## Constraints
 - `.astro` components only. No React, Vue, or any client framework.
 - Client-side JS only for tag filtering, written as vanilla JS in a

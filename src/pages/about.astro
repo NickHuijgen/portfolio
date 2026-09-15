@@ -19,6 +19,7 @@ const ogImage = about.portrait
 
 <Base title="About — Nick Huijgen" description={about.homeIntro} ogImage={ogImage}>
 	<main class="about">
+		<h1 class="heading">{about.heading}</h1>
 		<div class="portrait-col">
 			{
 				about.portrait ? (
@@ -36,7 +37,6 @@ const ogImage = about.portrait
 			}
 		</div>
 		<div class="content-col">
-			<h1>{about.heading}</h1>
 			{paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 			<dl class="facts">
 				{
@@ -66,24 +66,57 @@ const ogImage = about.portrait
 		padding-block: 32px 64px;
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 32px;
+		/* Heading before the portrait: landing on the page (mobile especially,
+		   where these stack) shouldn't show a photo with no context before
+		   any text. Desktop reflows the same three pieces into a
+		   portrait-left/text-right layout via named areas, independent of
+		   this source order. */
+		grid-template-areas:
+			'heading'
+			'portrait'
+			'content';
+		gap: 24px;
 	}
 
 	@media (min-width: 700px) {
 		.about {
 			grid-template-columns: minmax(240px, 320px) 1fr;
-			gap: 48px;
+			grid-template-areas:
+				'portrait heading'
+				'portrait content';
+			column-gap: 48px;
+			row-gap: 16px;
 			align-items: start;
 		}
 	}
 
+	.heading {
+		grid-area: heading;
+		margin: 0;
+		font-size: 1.75rem;
+		font-weight: 500;
+	}
+
 	.portrait-col {
+		grid-area: portrait;
 		max-width: 320px;
+	}
+
+	.content-col {
+		grid-area: content;
 	}
 
 	.portrait {
 		display: block;
 		width: 100%;
+		/* Explicit (not just relying on the initial value) — with both the
+		   `width`/`height` HTML attributes astro:assets sets (from the
+		   source image's own dimensions, which don't match this 3:4 crop)
+		   present, at least one Chromium build renders the box at the
+		   attribute height verbatim instead of deriving it from
+		   `aspect-ratio`, unless `height: auto` is authored explicitly.
+		   Confirmed via a minimal repro image outside this page/grid. */
+		height: auto;
 		aspect-ratio: 3 / 4;
 		object-fit: cover;
 		border-radius: 4px;
@@ -96,12 +129,6 @@ const ogImage = about.portrait
 		background: #eee;
 		color: #666;
 		font-size: 1.5rem;
-		font-weight: 500;
-	}
-
-	.content-col h1 {
-		margin: 0 0 16px;
-		font-size: 1.75rem;
 		font-weight: 500;
 	}
 
