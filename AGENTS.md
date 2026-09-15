@@ -195,11 +195,27 @@ Deployed to Cloudflare Pages.
   from the transition's own animation, not a second scroll animation
   racing it.
 - Returning to the grid should focus the thumbnail just viewed, not
-  the top of the document. Since the close link's href is the fixed
-  `/#photos` (not a per-photo fragment), that's done via
-  `sessionStorage` (set on the detail page, consumed on
-  `astro:page-load`) rather than the URL. The consuming listener must
-  guard on the grid actually being present — it's attached to
-  `document`, which persists across transitions, so it would otherwise
+  the top of the document. Since the close link's href doesn't carry a
+  per-photo fragment, that's done via `sessionStorage` (set on the detail
+  page, consumed on `astro:page-load`) rather than the URL. The consuming
+  listener must guard on the grid actually being present — it's attached
+  to `document`, which persists across transitions, so it would otherwise
   also fire (and wrongly consume the flag) on the way *into* the
   detail page.
+- The close link's href also isn't static for a different reason: it
+  needs to return to whichever tag filter was active, not always the
+  unfiltered grid. `/photo/[id]` is a separate static route with no way
+  to know the filter at render time (arriving there doesn't even have to
+  come from the grid — a shared link, a search result), and the filter
+  itself is purely client-side state (`PhotoGallery.astro`'s `render()`
+  toggles `hidden` on figures, it doesn't re-render from the server) —
+  so there's no URL segment to read it from either. `render()` mirrors
+  the active tag into `sessionStorage.activeTag` on every change (and
+  on load, for landing directly on `/tag/[tag]`); `/photo/[id]`'s inline
+  script reads it back and rewrites `#photo-close`'s href to
+  `/tag/<tag>#photos` before the user can click it. The **same** gap
+  used to lose the filter on the `.expand-overlay` "⤢" link too — unlike
+  the grid's own thumbnails, that link is a plain, un-intercepted
+  navigation straight to `/photo/[id]` (see the ClientRouter capture-phase
+  note above), so it couldn't carry client-side filter state through any
+  other way.

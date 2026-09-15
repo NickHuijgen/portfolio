@@ -128,6 +128,17 @@ const structuredData = await photoPageSchema(photo);
 
 <script is:inline define:vars={{ photoId: photo.id }}>
 	sessionStorage.setItem('focusPhoto', photoId);
+	// Close should return to whichever tag filter was active on the grid
+	// this photo was opened from, not always the unfiltered "All" view —
+	// this page is a separate static route with no way to know that at
+	// render time (arriving here doesn't have to come from the grid at
+	// all — a shared link, a search result), so it's read back out of
+	// sessionStorage instead. PhotoGallery.astro keeps that in sync
+	// whenever the filter changes or a /tag/[tag] page loads directly.
+	const activeTag = sessionStorage.getItem('activeTag');
+	if (activeTag) {
+		document.getElementById('photo-close').href = `/tag/${encodeURIComponent(activeTag)}#photos`;
+	}
 	document.addEventListener('keydown', (e) => {
 		if (e.key === 'Escape') document.getElementById('photo-close').click();
 		if (e.key === 'ArrowLeft') document.getElementById('photo-prev').click();

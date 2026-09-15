@@ -239,6 +239,14 @@ const visibleCount = items.filter((item) => item.visible).length;
 				if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
 				else a.removeAttribute('aria-current');
 			});
+			// So /photo/[id]'s Close link can send you back to the filtered
+			// view you actually came from instead of always the unfiltered
+			// grid — that page is a separate static route with no way to
+			// know this at render time, so it reads this back out of
+			// sessionStorage instead. Kept in sync here rather than only
+			// when the "⤢" expand-full-photo link is clicked, since that's
+			// a plain, un-intercepted navigation this script can't hook.
+			sessionStorage.setItem('activeTag', tag);
 		}
 
 		// Capture phase — see the note in the expansion script below:
@@ -267,6 +275,10 @@ const visibleCount = items.filter((item) => item.visible).length;
 			if (!nav) return;
 			const initialTag = nav.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
 			history.replaceState({ ...history.state, tag: initialTag }, '', location.href);
+			// Covers landing directly on /tag/[tag] (already server-filtered,
+			// so render()'s own sessionStorage write below never fires
+			// unless a filter tab is actually clicked).
+			sessionStorage.setItem('activeTag', initialTag);
 		});
 	})();
 </script>
