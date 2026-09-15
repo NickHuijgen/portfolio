@@ -61,11 +61,19 @@ const formattedExif =
 	].join(' · ');
 
 const structuredData = await photoPageSchema(photo);
+
+// Base.astro falls back to the collection's single `feature: true` photo
+// for og:image when no ogImage is given — fine for the homepage/tag pages,
+// but every /photo/[id] page shares one photo, so sharing this URL (e.g. on
+// WhatsApp) always previewed that same featured photo instead of this one.
+const ogImageAsset = await getImage({ src: photo.data.src, width: 1200 });
+const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
 
 <Base
 	title={`${photo.data.alt} — Nick Huijgen`}
 	description={photo.data.caption ?? photo.data.alt}
+	ogImage={ogImage}
 	structuredData={structuredData}
 	preloadImages={preloadImages}
 >
