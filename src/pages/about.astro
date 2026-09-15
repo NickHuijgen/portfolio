@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { getAbout } from '../lib/about.ts';
 
@@ -8,9 +8,16 @@ const paragraphs = about.body.split(/\n{2,}/);
 
 const LINKEDIN_URL = 'https://www.linkedin.com/in/nickhuijgen/';
 const INSTAGRAM_URL = 'https://www.instagram.com/nickhuijgen/';
+
+// Base.astro's og:image fallback is the collection's single feature:true
+// photo (a wildlife shot) — fine elsewhere, but wrong for a page about
+// Nick himself. Use the portrait instead, when one's set.
+const ogImage = about.portrait
+	? new URL((await getImage({ src: about.portrait, width: 1200 })).src, Astro.site).href
+	: undefined;
 ---
 
-<Base title="About — Nick Huijgen" description={about.homeIntro}>
+<Base title="About — Nick Huijgen" description={about.homeIntro} ogImage={ogImage}>
 	<main class="about">
 		<div class="portrait-col">
 			{

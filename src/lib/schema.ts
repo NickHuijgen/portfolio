@@ -29,7 +29,7 @@ export function personSchema() {
 
 export async function imageObjectSchema(photo: CollectionEntry<'photos'>) {
 	const optimized = await getImage({ src: photo.data.src, width: 1600 });
-	const pageUrl = `${SITE_URL}/photo/${photo.id}`;
+	const pageUrl = `${SITE_URL}/photo/${photo.id}/`;
 
 	return {
 		'@type': 'ImageObject',

@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://nickhuijgen.nl',
+  trailingSlash: 'always',
   integrations: [sitemap()],
   build: {
     // The site's only external stylesheet (~4.3kB, all pages share it) sits

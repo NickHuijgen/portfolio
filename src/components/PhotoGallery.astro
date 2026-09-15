@@ -160,7 +160,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 					data-tags={item.photo.data.tags.join(' ')}
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
 				>
-					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
+					<a href={`/photo/${item.photo.id}/`} id={item.photo.id} class="thumb-link">
 						{
 							/*
 							  Picking srcset widths for this grid is unforgiving: the
@@ -210,7 +210,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 						/>
 					</a>
 					<div class="expand-overlay">
-						<a href={`/photo/${item.photo.id}`} class="expand-link" aria-label="View full photo">
+						<a href={`/photo/${item.photo.id}/`} class="expand-link" aria-label="View full photo">
 							⤢
 						</a>
 						{item.photo.data.caption && <p class="expand-caption">{item.photo.data.caption}</p>}
