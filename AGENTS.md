@@ -67,6 +67,26 @@ Deployed to Cloudflare Pages.
 - Plain CSS in `.astro` files. No Tailwind, no CSS framework.
 - Typography and whitespace do the work. The photos are the design.
 
+## Performance
+- `build.inlineStylesheets: 'always'` in `astro.config.mjs`. The site's
+  one shared stylesheet was ~4.3kB — just over Vite's 4kB auto-inline
+  threshold — so it shipped as a separate render-blocking request on
+  every page. A Lighthouse trace under throttled mobile conditions
+  showed that request alone delaying first paint by ~550ms; inlining it
+  removes the request entirely. Safe to force on for this project
+  specifically because there's only ever the one bundle (no per-route
+  CSS explosion to worry about duplicating).
+- The grid's thumbnail `<Image>` uses `widths={[400, 700, 1100, 1600]}`,
+  not a coarser 3-step array — see the comment above it in
+  `PhotoGallery.astro` for the exact math. Short version: a `sizes`
+  breakpoint value times a phone's device-pixel-ratio very easily lands
+  just past one width candidate, forcing the browser to the *next*
+  candidate up; with widths spaced 2x apart that means fetching up to
+  4x the bytes actually needed. This was measured directly — Lighthouse
+  flagged ~2.1MB of oversized images on the homepage before this was
+  tightened. Re-check this math (or re-run a throttled Lighthouse trace)
+  if the grid's tier sizes, gaps, or column counts ever change.
+
 ## Don't
 - Don't add dependencies without asking.
 - Don't scaffold features I didn't ask for.

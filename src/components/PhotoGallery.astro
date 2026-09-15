@@ -141,10 +141,24 @@ const visibleCount = items.filter((item) => item.visible).length;
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
 				>
 					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
+						{
+							/*
+							  A single-column sm tile computes to ~138 CSS px in `sizes`
+							  (columnWidth(430,3,8)) — on a 3x-DPR phone that's a ~414px
+							  physical need, just past a 400w candidate, so the browser
+							  has to jump to the next one up. With only [400, 800, 1600]
+							  that next one was 800 — 2x the actual need — which is what
+							  Lighthouse's image-delivery audit flagged as ~2.1MB wasted
+							  across the grid. The extra steps here close that gap so a
+							  retina phone lands within ~1.3x of what it needs instead of
+							  up to 4x (a feature/open tile at high DPR can otherwise
+							  land two tiers up).
+							*/
+						}
 						<Image
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
-							widths={[400, 800, 1600]}
+							widths={[400, 700, 1100, 1600]}
 							sizes={item.sizes}
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}
