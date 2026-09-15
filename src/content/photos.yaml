@@ -354,3 +354,145 @@
     aperture: 2.8
     shutterSpeed: 0.0025
     iso: 500
+- id: photo-34
+  src: images/mg6620.jpeg
+  alt: Prairie dog standing upright at its burrow entrance, forepaws raised
+  date: 2026-04-07
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 3.5
+    shutterSpeed: 0.001
+    iso: 100
+- id: photo-35
+  src: images/mg6625.jpeg
+  alt: Prairie dog standing upright, looking off to the side with forepaws raised
+  date: 2026-04-07
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 3.5
+    shutterSpeed: 0.001
+    iso: 100
+- id: photo-36
+  src: images/mg6637.jpeg
+  alt: Close-up profile of a prairie dog chewing on a clump of dirt, dust flying from its paws
+  date: 2026-04-07
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.00125
+    iso: 100
+- id: photo-37
+  src: images/mg6645.jpeg
+  alt: Prairie dog holding a clump of food in both paws while eating
+  date: 2026-04-07
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.0015625
+    iso: 100
+- id: photo-38
+  src: images/mg6686.jpeg
+  alt: Prairie dog standing upright on a dirt mound, looking up and to the side
+  date: 2026-04-07
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 100
+- id: photo-39
+  src: images/mg6722.jpeg
+  alt: Juvenile prairie dog peering over the edge of a dirt mound
+  date: 2026-04-28
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.0008
+    iso: 100
+- id: photo-40
+  src: images/mg6723.jpeg
+  alt: Juvenile prairie dog cresting a mound with its mouth slightly open
+  date: 2026-04-28
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.0008
+    iso: 100
+- id: photo-41
+  src: images/mg6753.jpeg
+  alt: Young prairie dog chewing on a strand of dried grass
+  caption: Grass for lunch
+  date: 2026-04-28
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 8
+    shutterSpeed: 0.004
+    iso: 200
+- id: photo-42
+  src: images/mg6827.jpeg
+  alt: Juvenile prairie dog standing upright, nibbling a strand of grass held in both paws
+  date: 2026-04-28
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 6.3
+    shutterSpeed: 0.003125
+    iso: 125
+- id: photo-43
+  src: images/mg6978.jpeg
+  alt: Two prairie dog pups resting together, one's head draped over the other's
+  caption: Pile of two
+  date: 2026-04-28
+  tags:
+    - wildlife
+  feature: true
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 6.3
+    shutterSpeed: 0.0025
+    iso: 100
