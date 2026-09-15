@@ -282,6 +282,22 @@ const visibleCount = items.filter((item) => item.visible).length;
 				if (openId && openId !== id) setTileOpen(tileFor(openId), false);
 				if (id) setTileOpen(tileFor(id), true);
 				openId = id;
+				// Scrolling here, inside the update callback, rather than
+				// after — grid-auto-flow: dense doesn't grow a tile in
+				// place, it can relocate it anywhere once its column-span
+				// changes, so there's no correct "center the tile" target
+				// until this toggle has committed. Doing it here (not
+				// after transition.finished) is what makes the grow and
+				// the scroll read as one motion instead of two: every
+				// currently-visible tile is individually named below, so
+				// the transition interpolates *each of them* from its old
+				// viewport position to its new (already-scrolled)
+				// position, rather than cross-fading the whole page at a
+				// fixed scroll offset. `behavior: 'auto'` (instant) is
+				// deliberate — the smoothness comes from the transition's
+				// own animation, not from a second, separate scroll
+				// animation racing it.
+				if (id) tileFor(id)?.scrollIntoView({ block: 'center', behavior: 'auto' });
 			}
 
 			const canAnimate =

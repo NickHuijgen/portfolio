@@ -136,6 +136,23 @@ Deployed to Cloudflare Pages.
   on Back instead of collapsing. It returns early for `ev.state ===
   null`, so the expansion pushes null state and recovers the open tile
   from `location.pathname` instead.
+- Opening a tile also centers it in the viewport
+  (`centerOnceSettled` in `PhotoGallery.astro`), so a thumbnail clicked
+  low on the page doesn't expand mostly below the fold. This has to wait
+  for `transition.finished`, not just `updateCallbackDone` (which is
+  what `setOpen`'s return value resolves on, for early focus) — with
+  `grid-auto-flow: dense`, growing a tile's column-span doesn't grow it
+  in place, dense packing can relocate it anywhere once the wider span
+  no longer fits where the thumbnail was, so there's no reliable
+  "final position" to scroll to until the transition has actually
+  settled into its new layout. Scrolling earlier — before the
+  transition, or synchronously inside its update callback — also fights
+  the transition's own old/new snapshots, which are captured at fixed
+  viewport coordinates: any scroll that lands between those two
+  captures reads as content misaligning mid-crossfade for every tile
+  that isn't individually named. A guard on `openId` in
+  `centerOnceSettled` drops the scroll if the user has already toggled
+  to a different tile by the time this one's transition settles.
 - Returning to the grid should focus the thumbnail just viewed, not
   the top of the document. Since the close link's href is the fixed
   `/#photos` (not a per-photo fragment), that's done via
