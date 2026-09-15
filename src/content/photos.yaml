@@ -723,3 +723,202 @@
     aperture: 2.8
     shutterSpeed: 0.003125
     iso: 400
+- id: photo-60
+  src: images/img2358.jpeg
+  alt: Prairie dog nibbling a piece of straw, another prairie dog blurred beside it
+  date: 2025-07-31
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 750D
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 8
+    shutterSpeed: 0.001
+    iso: 3200
+- id: photo-61
+  src: images/img2360.jpeg
+  alt: Prairie dog holding a wisp of straw in both paws while eating
+  date: 2025-07-31
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 750D
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 8
+    shutterSpeed: 0.001
+    iso: 3200
+- id: photo-62
+  src: images/img2371.jpeg
+  alt: Prairie dog in profile, chewing something held in its paws
+  date: 2025-07-31
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 750D
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 8
+    shutterSpeed: 0.001
+    iso: 2500
+- id: photo-63
+  src: images/mg3366.jpeg
+  alt: Pallas's cat peering through leaves, its round face framed by thick fur
+  caption: Peekaboo
+  date: 2025-08-23
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.0015625
+    iso: 1000
+- id: photo-64
+  src: images/mg3595.jpeg
+  alt: Kangaroo resting on the ground, eyes half closed
+  date: 2025-08-23
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.0015625
+    iso: 1600
+- id: photo-65
+  src: images/mg3647.jpeg
+  alt: Highland cattle calf standing in a wildflower meadow, its fringe covering its eyes
+  date: 2025-08-26
+  tags:
+    - portrait
+  feature: true
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 451
+    aperture: 6.3
+    shutterSpeed: 0.0025
+    iso: 400
+- id: photo-66
+  src: images/mg3967.jpeg
+  alt: Close-up profile of a prairie dog, whiskers catching the light
+  date: 2025-09-02
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 516
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 1000
+- id: photo-67
+  src: images/mg4221.jpeg
+  alt: Two ring-tailed lemurs sitting close together, one with its tongue out
+  date: 2025-09-02
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.0015625
+    iso: 1250
+- id: photo-68
+  src: images/mg4309.jpeg
+  alt: Ring-tailed lemur eating a piece of red fruit, tongue out
+  caption: Fruit break
+  date: 2025-09-02
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 421
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 1000
+- id: photo-69
+  src: images/mg4310.jpeg
+  alt: Ring-tailed lemur with mouth open mid-bite of red fruit
+  date: 2025-09-02
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 421
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 1000
+- id: photo-70
+  src: images/mg4632.jpeg
+  alt: Prairie dog eating with its mouth open, other prairie dogs blurred behind
+  date: 2025-09-08
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.0015625
+    iso: 2500
+- id: photo-71
+  src: images/mg4636.jpeg
+  alt: Prairie dog hunched over, nibbling food held in its paws
+  date: 2025-09-08
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 2000
+- id: photo-72
+  src: images/mg4675.jpeg
+  alt: Prairie dog eating with its mouth open, close-up against a blurred background
+  date: 2025-09-08
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.002
+    iso: 3200
+- id: photo-73
+  src: images/mg4829.jpeg
+  alt: Two baboons sitting together with their arms wrapped around each other
+  caption: A quiet hug
+  date: 2025-09-08
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
+    focalLength: 600
+    aperture: 6.3
+    shutterSpeed: 0.0015625
+    iso: 500
