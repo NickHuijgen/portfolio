@@ -11,6 +11,16 @@ const photos = defineCollection({
       date: z.coerce.date(),
       tags: z.array(z.string()),
       feature: z.boolean().default(false),
+      exif: z
+        .object({
+          camera: z.string(),
+          lens: z.string(),
+          focalLength: z.number(),
+          aperture: z.number(),
+          shutterSpeed: z.number(),
+          iso: z.number(),
+        })
+        .optional(),
     }),
 });
 

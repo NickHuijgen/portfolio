@@ -5,6 +5,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.03333333333333333
+    iso: 100
 - id: photo-10
   src: images/914a3132.jpeg
   alt: Clouded leopard sleeping on a wooden platform
@@ -13,6 +20,13 @@
   tags:
     - wildlife
   feature: true
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 4
+    shutterSpeed: 0.002
+    iso: 250
 - id: photo-11
   src: images/914a3202.jpeg
   alt: Tiger's eye and muzzle glimpsed through tall grass while feeding
@@ -20,6 +34,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 2x
+    focalLength: 600
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 3200
 - id: photo-12
   src: images/914a3233.jpeg
   alt: Snow leopard perched on a log, eyeing a hanging rabbit carcass
@@ -27,6 +48,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0008
+    iso: 640
 - id: photo-13
   src: images/914a3262.jpeg
   alt: Snow leopard biting into a rabbit carcass hanging from a rope
@@ -34,6 +62,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0008
+    iso: 1000
 - id: photo-14
   src: images/914a3268.jpeg
   alt: Snow leopard reaching a paw up toward a hanging rabbit carcass
@@ -41,6 +76,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0008
+    iso: 1000
 - id: photo-15
   src: images/914a3269.jpeg
   alt: Snow leopard licking its lips beside a hanging rabbit carcass
@@ -48,6 +90,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0008
+    iso: 1000
 - id: photo-16
   src: images/914a3298.jpeg
   alt: Snow leopard snarling as it emerges from a rock den
@@ -56,6 +105,13 @@
   tags:
     - wildlife
   feature: true
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 800
 - id: photo-17
   src: images/914a3324.jpeg
   alt: Close-up of a snow leopard's face as it looks upward
@@ -63,6 +119,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 320
 - id: photo-18
   src: images/914a3330.jpeg
   alt: Snow leopard holding a hanging rabbit carcass with one paw
@@ -70,6 +133,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 250
 - id: photo-19
   src: images/914a3336.jpeg
   alt: Snow leopard gripping a hanging rabbit carcass in its jaws
@@ -77,6 +147,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 400
 - id: photo-20
   src: images/914a3346.jpeg
   alt: Snow leopard looking upward with rocks in the background
@@ -85,6 +162,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 400
 - id: photo-21
   src: images/914a3385.jpeg
   alt: Snow leopard prowling over rocks toward the camera with fur in its mouth
@@ -92,6 +176,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 500
 - id: photo-22
   src: images/914a3389.jpeg
   alt: Snow leopard licking its lips while looking at the camera
@@ -99,6 +190,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 320
 - id: photo-23
   src: images/914a3391.jpeg
   alt: Snow leopard standing among rocks, looking upward
@@ -106,6 +204,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 320
 - id: photo-24
   src: images/914a3392.jpeg
   alt: Snow leopard reaching a paw up toward a dangling rabbit carcass
@@ -113,6 +218,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 320
 - id: photo-25
   src: images/914a3336-1.jpeg
   alt: Snow leopard biting a hanging rabbit carcass, one paw raised
@@ -120,6 +232,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 400
 - id: photo-26
   src: images/914a3391-1.jpeg
   alt: Snow leopard standing among rocks, looking upward
@@ -127,6 +246,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
+    focalLength: 420
+    aperture: 5.6
+    shutterSpeed: 0.001
+    iso: 320
 - id: photo-27
   src: images/914a2688.jpeg
   alt: Prairie dog sitting upright, holding a bone in its paws
@@ -134,6 +260,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.0025
+    iso: 200
 - id: photo-28
   src: images/914a2695.jpeg
   alt: Prairie dog holding a bone up to its mouth
@@ -141,6 +274,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.003125
+    iso: 160
 - id: photo-29
   src: images/914a2711.jpeg
   alt: Prairie dog nibbling on a bone held in its paws
@@ -148,6 +288,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.0025
+    iso: 320
 - id: photo-30
   src: images/914a2721.jpeg
   alt: Prairie dog standing upright and alert
@@ -156,6 +303,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 9
+    shutterSpeed: 0.0025
+    iso: 1000
 - id: photo-31
   src: images/914a2818.jpeg
   alt: Pelican in profile, showing its long bill and throat pouch
@@ -163,6 +317,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4.5
+    shutterSpeed: 0.0025
+    iso: 160
 - id: photo-32
   src: images/914a2879.jpeg
   alt: Young baboon sitting cross-legged on the ground, looking at the camera
@@ -171,6 +332,13 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 5
+    shutterSpeed: 0.0025
+    iso: 400
 - id: photo-33
   src: images/914a2912.jpeg
   alt: Snowy owl perched on a stump, looking over its shoulder
@@ -179,3 +347,10 @@
   tags:
     - wildlife
   feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.0025
+    iso: 500

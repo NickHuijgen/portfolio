@@ -22,6 +22,18 @@ const formattedDate = photo.data.date.toLocaleDateString('en-US', {
 	month: 'long',
 	day: 'numeric',
 });
+
+const exif = photo.data.exif;
+const formattedExif =
+	exif &&
+	[
+		exif.camera,
+		exif.lens,
+		`${exif.focalLength}mm`,
+		`f/${exif.aperture}`,
+		exif.shutterSpeed >= 1 ? `${exif.shutterSpeed}s` : `1/${Math.round(1 / exif.shutterSpeed)}s`,
+		`ISO ${exif.iso}`,
+	].join(' · ');
 ---
 
 <Base title={`${photo.data.alt} — Nick Huijgen`} description={photo.data.caption ?? photo.data.alt}>
@@ -45,7 +57,14 @@ const formattedDate = photo.data.date.toLocaleDateString('en-US', {
 				class="frame-image"
 				transition:name={`photo-${photo.id}`}
 			/>
-			{photo.data.caption && <figcaption>{photo.data.caption}</figcaption>}
+			{
+				(photo.data.caption || exif) && (
+					<div class="frame-caption">
+						{photo.data.caption && <figcaption>{photo.data.caption}</figcaption>}
+						{exif && <p class="exif">{formattedExif}</p>}
+					</div>
+				)
+			}
 		</figure>
 
 		<div class="meta">
@@ -160,9 +179,26 @@ const formattedDate = photo.data.date.toLocaleDateString('en-US', {
 		max-height: 90vh;
 	}
 
+	.frame-caption {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		column-gap: 16px;
+		row-gap: 4px;
+		width: 100%;
+	}
+
 	.frame figcaption {
+		margin: 0;
 		font-size: 0.9375rem;
 		color: #ccc;
+	}
+
+	.exif {
+		margin: 0;
+		font-size: 0.75rem;
+		color: #888;
 	}
 
 	.meta {
