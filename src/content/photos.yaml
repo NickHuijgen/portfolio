@@ -799,7 +799,7 @@
   alt: Highland cattle calf standing in a wildflower meadow, its fringe covering its eyes
   date: 2025-08-26
   tags:
-    - portrait
+    - wildlife
   feature: true
   exif:
     camera: Canon EOS 6D Mark II
@@ -922,3 +922,18 @@
     aperture: 6.3
     shutterSpeed: 0.0015625
     iso: 500
+- id: photo-74
+  src: images/mg3150.jpeg
+  alt: Silhouette of a person standing on a hilltop against a setting sun
+  caption: Golden hour
+  date: 2025-08-20
+  tags:
+    - portrait
+  feature: true
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 24-105mm f/4L IS USM
+    focalLength: 32
+    aperture: 4
+    shutterSpeed: 0.00025
+    iso: 100
