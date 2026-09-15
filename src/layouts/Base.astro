@@ -9,9 +9,11 @@ interface Props {
 	title: string;
 	description: string;
 	ogImage?: string;
+	/** JSON-LD object (or @graph-wrapped object) — see src/lib/schema.ts. */
+	structuredData?: Record<string, unknown>;
 }
 
-const { title, description, ogImage } = Astro.props;
+const { title, description, ogImage, structuredData } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
@@ -43,6 +45,11 @@ if (!resolvedOgImage) {
 		<meta property="og:url" content={canonicalURL} />
 		{resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
 		<meta name="twitter:card" content="summary_large_image" />
+		{
+			structuredData && (
+				<script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />
+			)
+		}
 		<ClientRouter />
 	</head>
 	<body>
