@@ -20,10 +20,10 @@ const TIERS = {
 	// anywhere near that wide. Using 600 as the reference here reserved
 	// rows sized for a much wider viewport than any phone actually
 	// renders at, leaving a lot of dead space below every image on an
-	// actual phone (e.g. an iPhone 16 at 390px). 430px is the widest
-	// mainstream phone (iPhone 16 Pro Max) — it's still a safe upper
-	// bound (no overflow on any real device), but fits rows far
-	// tighter on the phones people actually browse on.
+	// actual phone. 430px is the widest mainstream phone (iPhone 16 Pro
+	// Max) — it's still a safe upper bound (no overflow on any real
+	// device), but fits rows far tighter on the phones people actually
+	// browse on.
 	//
 	// The gap is also tighter here: grid-auto-rows + gap sets the
 	// row-quantization granularity, so every spanned row internally
@@ -31,6 +31,20 @@ const TIERS = {
 	// A smaller gap on mobile both tightens the visible spacing
 	// between photos and shrinks that rounding slack.
 	sm: { container: 430, columns: 3, gap: 8 },
+	// Same reasoning as sm, one more time: 430px is a safe upper bound
+	// for *that* tier, but it's the widest end of it — a Pro Max/Plus
+	// -class phone. A genuinely slim phone (an SE, a mini, most compact
+	// Android phones, ~360-393px) still renders every image ~10-20%
+	// shorter than sm's math reserves for it, which reads as "a lot of
+	// spacing" on exactly those devices. Splitting sm at 400px (below:
+	// xs, above: sm) gives narrow phones their own tighter reference —
+	// 393px covers the standard-width iPhones and most Android phones,
+	// without ballooning back up to cover the Plus/Pro Max tier that
+	// doesn't exist below 400px anyway. Column count and gap are
+	// unchanged from sm — only the row-height math gets tighter, so
+	// there's no matching `@media` breakpoint for `.grid` itself, only
+	// for `.item`'s `grid-row` (see below).
+	xs: { container: 393, columns: 3, gap: 8 },
 };
 
 function columnWidth(container: number, columns: number, gap: number) {
@@ -45,10 +59,10 @@ function rowSpan(aspectRatio: number, width: number, gap: number) {
 // In-grid expansion target column span per breakpoint. These numbers
 // are duplicated as literals in the `.item.is-open` CSS below (Astro
 // `<style>` blocks can't reference frontmatter values) — keep them in
-// sync if either changes. sm goes to the tier's full column count
+// sync if either changes. sm/xs go to the tier's full column count
 // (true full width); lg/md deliberately leave one column of
 // neighbouring grid visible rather than also going full width.
-const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns };
+const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns, xs: TIERS.xs.columns };
 
 const photos = await getSortedPhotos();
 
@@ -61,14 +75,17 @@ const items = photos.map((photo) => {
 	const lgColSpan = photo.data.feature ? 2 : 1;
 	const mdColSpan = photo.data.feature ? 2 : 1;
 	const smColSpan = photo.data.feature ? 2 : 1;
+	const xsColSpan = photo.data.feature ? 2 : 1;
 
 	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns, TIERS.lg.gap);
 	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns, TIERS.md.gap);
 	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns, TIERS.sm.gap);
+	const xsColWidth = columnWidth(TIERS.xs.container, TIERS.xs.columns, TIERS.xs.gap);
 
 	const lgWidth = lgColWidth * lgColSpan + TIERS.lg.gap * (lgColSpan - 1);
 	const mdWidth = mdColWidth * mdColSpan + TIERS.md.gap * (mdColSpan - 1);
 	const smWidth = smColWidth * smColSpan + TIERS.sm.gap * (smColSpan - 1);
+	const xsWidth = xsColWidth * xsColSpan + TIERS.xs.gap * (xsColSpan - 1);
 
 	// Expanded (in-grid open) widths — same column-width math, just at
 	// the wider OPEN_COLS span, so the recomputed row span actually
@@ -77,11 +94,12 @@ const items = photos.map((photo) => {
 	const lgOpenWidth = lgColWidth * OPEN_COLS.lg + TIERS.lg.gap * (OPEN_COLS.lg - 1);
 	const mdOpenWidth = mdColWidth * OPEN_COLS.md + TIERS.md.gap * (OPEN_COLS.md - 1);
 	const smOpenWidth = smColWidth * OPEN_COLS.sm + TIERS.sm.gap * (OPEN_COLS.sm - 1);
+	const xsOpenWidth = xsColWidth * OPEN_COLS.xs + TIERS.xs.gap * (OPEN_COLS.xs - 1);
 
 	const visible = !activeTag || photo.data.tags.includes(activeTag);
 
-	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, ${Math.round(smWidth)}px`;
-	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, ${Math.round(smOpenWidth)}px`;
+	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, (min-width: 400px) ${Math.round(smWidth)}px, ${Math.round(xsWidth)}px`;
+	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
 
 	return {
 		photo,
@@ -95,9 +113,11 @@ const items = photos.map((photo) => {
 		lgRows: rowSpan(aspectRatio, lgWidth, TIERS.lg.gap),
 		mdRows: rowSpan(aspectRatio, mdWidth, TIERS.md.gap),
 		smRows: rowSpan(aspectRatio, smWidth, TIERS.sm.gap),
+		xsRows: rowSpan(aspectRatio, xsWidth, TIERS.xs.gap),
 		lgOpenRows: rowSpan(aspectRatio, lgOpenWidth, TIERS.lg.gap),
 		mdOpenRows: rowSpan(aspectRatio, mdOpenWidth, TIERS.md.gap),
 		smOpenRows: rowSpan(aspectRatio, smOpenWidth, TIERS.sm.gap),
+		xsOpenRows: rowSpan(aspectRatio, xsOpenWidth, TIERS.xs.gap),
 	};
 });
 
@@ -138,7 +158,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 					class="item"
 					hidden={!item.visible}
 					data-tags={item.photo.data.tags.join(' ')}
-					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
+					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
 				>
 					<a href={`/photo/${item.photo.id}`} id={item.photo.id} class="thumb-link">
 						{
@@ -499,14 +519,40 @@ const visibleCount = items.filter((item) => item.visible).length;
 		grid-auto-rows: 8px;
 		gap: 8px;
 		grid-template-columns: repeat(3, 1fr);
-		max-width: 1200px;
+		/* Must match TIERS.xs.container in the frontmatter (Astro <style>
+		   blocks can't read frontmatter values — see the OPEN_COLS note
+		   above for the same constraint). xs/sm's row-height math assumes
+		   the column width never exceeds that reference, on the premise
+		   that no real *phone* gets that wide. True for phones, false for
+		   a desktop or tablet browser window resized into this range —
+		   nothing stops a window from being e.g. 595px wide, which
+		   otherwise renders columns wider than the row math assumed and
+		   the image overflows its grid cell (confirmed: every tile
+		   overflowing by up to 119px at 595px before this cap existed).
+		   Capping the grid itself here makes that premise actually true
+		   instead of merely assumed — an oversized window gets a
+		   centered, capped-width grid with side margins, not stretched
+		   (and now too-short) columns. */
+		max-width: 393px;
 		margin: 0 auto;
+	}
+
+	@media (min-width: 400px) {
+		.grid {
+			/* Must match TIERS.sm.container. */
+			max-width: 430px;
+		}
 	}
 
 	@media (min-width: 600px) {
 		.grid {
 			gap: 16px;
 			grid-template-columns: repeat(3, 1fr);
+			/* md/lg don't need this cap: their JS reference widths (1000,
+			   1200 in TIERS) already equal or exceed their own tier's true
+			   upper edge, so they're safe by construction — see the TIERS
+			   comment in the frontmatter. */
+			max-width: 1200px;
 		}
 	}
 
@@ -519,8 +565,17 @@ const visibleCount = items.filter((item) => item.visible).length;
 	.item {
 		position: relative;
 		margin: 0;
+		/* --cols-sm is shared with the xs range below 400px too — column
+		   count doesn't change there, only the row-height reference
+		   width does (see the TIERS.xs comment in the frontmatter). */
 		grid-column: span var(--cols-sm);
-		grid-row: span var(--rows-sm);
+		grid-row: span var(--rows-xs);
+	}
+
+	@media (min-width: 400px) {
+		.item {
+			grid-row: span var(--rows-sm);
+		}
 	}
 
 	@media (min-width: 600px) {
@@ -558,7 +613,13 @@ const visibleCount = items.filter((item) => item.visible).length;
 	   frontmatter values, so this is the one place they're duplicated. */
 	.item.is-open {
 		grid-column: span 3;
-		grid-row: span var(--rows-sm-open);
+		grid-row: span var(--rows-xs-open);
+	}
+
+	@media (min-width: 400px) {
+		.item.is-open {
+			grid-row: span var(--rows-sm-open);
+		}
 	}
 
 	@media (min-width: 600px) {

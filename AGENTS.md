@@ -55,8 +55,42 @@ Deployed to Cloudflare Pages.
   600px wide, so reserving rows for a 600px column massively
   overshoots on an actual phone. Use the widest mainstream device in
   that range instead (currently 430px, iPhone 16 Pro Max, for `sm`).
-  It's still a safe upper bound (no overflow on any real device), but
-  fits rows far tighter on the phones people actually use.
+  It's still a safe upper bound (no overflow on any real device) —
+  **only for actual phones, not for the CSS breakpoint itself.** A
+  browser window (desktop or tablet, resized narrower, split-screened,
+  whatever) can genuinely be any width up to the true breakpoint edge,
+  phone-shaped or not, and once it exceeds the reference — nothing
+  about that 0-600px CSS bucket stops it from being e.g. 595px wide —
+  the actual column renders wider than the row math assumed and every
+  image overflows its grid cell (this happened: confirmed images
+  overflowing their cells by up to 119px at 595px, before `.grid`
+  itself was capped — see below). Any tier whose reference is smaller
+  than its own tier's true upper edge needs its own matching
+  `max-width` on `.grid` (see the next bullet) or it's not actually a
+  safe upper bound, just a safe-for-phones one.
+- That single reference is still one number covering a wide range of
+  real phones (roughly 360-430px), and it's picked as a safe upper
+  bound — so it's *correct* for the widest phones in range and
+  increasingly loose the narrower the actual device gets. A genuinely
+  slim phone (an SE, a mini, most compact Android phones, ~360-393px)
+  visibly under-fills its reserved row height as a result. `TIERS` in
+  `PhotoGallery.astro` splits `sm` again at 400px into `xs`
+  (reference 393, covers standard-width iPhones and most Android
+  phones) and `sm` proper (reference 430, the Plus/Pro Max tier that
+  only exists above 400px anyway) for exactly this reason. Column count
+  and gap don't change at that split, only the row-height reference
+  does — but `.grid`'s `max-width` *does* need a matching breakpoint at
+  400px (393 below, 430 above), per the previous bullet: xs and sm each
+  introduced their own too-small-for-their-own-range reference, so each
+  needs its own cap. md/lg never needed this — their references (1000,
+  1200) already meet or exceed their own tier's true upper edge, and
+  the pre-existing `max-width: 1200px` (unconditional from the base
+  rule) already covered them. If the "too much space on slim phones"
+  complaint resurfaces, the fix is the same move again: measure the
+  actual gap on the narrowest real device it's happening on, decide
+  whether that's another split, and remember the new tier needs both a
+  tighter row reference *and* a matching `.grid` max-width — the first
+  without the second is how this overflow bug happened.
 - `grid-auto-rows` + `gap` also sets the row-quantization granularity:
   every spanned row internally "pays" one full `gap` even inside a
   single image's reserved box, so a smaller `gap` on mobile both
