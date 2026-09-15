@@ -4,7 +4,7 @@
   date: 2026-08-30
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 300mm f/2.8L IS USM
@@ -19,7 +19,7 @@
   date: 2026-07-27
   tags:
     - wildlife
-  feature: true
+  feature: false
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 300mm f/2.8L IS USM + 1.4x
@@ -29,11 +29,11 @@
     iso: 250
 - id: photo-11
   src: images/914a3202.jpeg
-  alt: Tiger's eye and muzzle glimpsed through tall grass while feeding
+  alt: Clouded leopard's eye and muzzle glimpsed through tall grass while feeding
   date: 2026-07-27
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 300mm f/2.8L IS USM + 2x
@@ -175,7 +175,7 @@
   date: 2026-07-27
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 300mm f/2.8L IS USM + 1.4x
@@ -658,7 +658,7 @@
   date: 2025-09-27
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS 6D Mark II
     lens: Canon EF 300mm f/2.8L IS USM
@@ -672,7 +672,7 @@
   date: 2025-09-28
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS 6D Mark II
     lens: Canon EF 300mm f/2.8L IS USM
@@ -715,7 +715,7 @@
   date: 2025-10-14
   tags:
     - wildlife
-  feature: true
+  feature: false
   exif:
     camera: Canon EOS 6D Mark II
     lens: Canon EF 300mm f/2.8L IS USM
@@ -824,11 +824,11 @@
     iso: 1000
 - id: photo-67
   src: images/mg4221.jpeg
-  alt: Two ring-tailed lemurs sitting close together, one with its tongue out
+  alt: Two ring-tailed lemurs sitting close together
   date: 2025-09-02
   tags:
     - wildlife
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS 6D Mark II
     lens: Sigma 150-600mm F5-6.3 DG OS HSM Contemporary
