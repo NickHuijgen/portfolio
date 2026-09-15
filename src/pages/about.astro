@@ -1,0 +1,187 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { getAbout } from '../lib/about.ts';
+
+const about = await getAbout();
+const paragraphs = about.body.split(/\n{2,}/);
+
+const LINKEDIN_URL = 'https://www.linkedin.com/in/nickhuijgen/';
+const INSTAGRAM_URL = 'https://www.instagram.com/nickhuijgen/';
+---
+
+<Base title="About — Nick Huijgen" description={about.homeIntro}>
+	<main class="about">
+		<div class="portrait-col">
+			{
+				about.portrait ? (
+					<Image
+						src={about.portrait}
+						alt={about.portraitAlt ?? 'Nick Huijgen'}
+						width={800}
+						class="portrait"
+					/>
+				) : (
+					<div class="portrait portrait-placeholder" aria-hidden="true">
+						NH
+					</div>
+				)
+			}
+		</div>
+		<div class="content-col">
+			<h1>{about.heading}</h1>
+			{paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+			<dl class="facts">
+				{
+					about.facts.map((fact) => (
+						<div class="fact">
+							<dt>{fact.label}</dt>
+							<dd>{fact.value}</dd>
+						</div>
+					))
+				}
+			</dl>
+			<div class="cta">
+				<a href="/#photos" class="button">View photos</a>
+				<div class="social-links">
+					<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="noopener">LinkedIn</a>
+					<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="noopener">Instagram</a>
+				</div>
+			</div>
+		</div>
+	</main>
+</Base>
+
+<style>
+	.about {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding-block: 32px 64px;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 32px;
+	}
+
+	@media (min-width: 700px) {
+		.about {
+			grid-template-columns: minmax(240px, 320px) 1fr;
+			gap: 48px;
+			align-items: start;
+		}
+	}
+
+	.portrait-col {
+		max-width: 320px;
+	}
+
+	.portrait {
+		display: block;
+		width: 100%;
+		aspect-ratio: 3 / 4;
+		object-fit: cover;
+		border-radius: 4px;
+	}
+
+	.portrait-placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #eee;
+		color: #666;
+		font-size: 1.5rem;
+		font-weight: 500;
+	}
+
+	.content-col h1 {
+		margin: 0 0 16px;
+		font-size: 1.75rem;
+		font-weight: 500;
+	}
+
+	.content-col p {
+		margin: 0 0 16px;
+		font-size: 1.0625rem;
+		line-height: 1.6;
+		max-width: 40em;
+	}
+
+	.facts {
+		margin: 24px 0 0;
+		padding-top: 24px;
+		border-top: 1px solid #eee;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20px 24px;
+		max-width: 40em;
+	}
+
+	.fact {
+		margin: 0;
+	}
+
+	.fact dt {
+		margin: 0 0 2px;
+		font-size: 0.8125rem;
+		color: #666;
+	}
+
+	.fact dd {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.cta {
+		--text-secondary: #666;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-top: 32px;
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding: 0 20px;
+		border: 1px solid currentColor;
+		border-radius: 4px;
+		color: inherit;
+		font-size: 16px;
+		text-decoration: none;
+	}
+
+	.button:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	@media (max-width: 599px) {
+		.button {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+
+	.social-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 16px;
+	}
+
+	.social-link {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		color: var(--text-secondary);
+		font-size: 16px;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.social-link:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+</style>

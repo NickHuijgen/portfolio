@@ -24,4 +24,22 @@ const photos = defineCollection({
     }),
 });
 
-export const collections = { photos };
+const about = defineCollection({
+  loader: file('src/content/about.yaml'),
+  schema: ({ image }) =>
+    z.object({
+      portrait: image().optional(),
+      portraitAlt: z.string().optional(),
+      homeIntro: z.string(),
+      heading: z.string(),
+      body: z.string(),
+      facts: z.array(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        }),
+      ),
+    }),
+});
+
+export const collections = { photos, about };

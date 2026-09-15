@@ -24,3 +24,23 @@ content:
           multiple: true
           values: [street, landscape, portrait]
       - { name: feature, label: Feature, type: boolean, default: false }
+
+  - name: about
+    label: About
+    type: file
+    path: src/content/about.yaml
+    list: true
+    fields:
+      - { name: id, label: ID, type: string }
+      - { name: portrait, label: Portrait photo, type: image }
+      - { name: portraitAlt, label: Portrait alt text, type: string }
+      - { name: homeIntro, label: Homepage intro text, type: text }
+      - { name: heading, label: About page heading, type: string, required: true }
+      - { name: body, label: About page body, type: text, required: true }
+      - name: facts
+        label: Facts
+        type: object
+        list: true
+        fields:
+          - { name: label, type: string, required: true }
+          - { name: value, type: string, required: true }

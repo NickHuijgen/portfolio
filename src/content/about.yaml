@@ -1,0 +1,24 @@
+# Single-entry "file" collection (see src/lib/about.ts) — same list-of-one
+# convention as photos.yaml, so Pages CMS can edit it the same way.
+- id: main
+  portrait: images/mg3097.jpeg
+  portraitAlt: Nick Huijgen smiling on a grassy heathland path, pine trees in the background
+  homeIntro: >-
+    Software developer by day, usually found standing very still next to a
+    prairie dog enclosure. Lately I'm pointing the camera at people too.
+  heading: About
+  body: |-
+    Hi, I'm Nick. By day I'm a software developer (I built this site too); the rest of the time I'm usually standing very still next to a prairie dog enclosure.
+
+    I've been taking photos for as long as I can remember, but only bought a proper camera two years ago. Most of what you see here comes from zoos and animal parks in the Netherlands. What I'm after isn't the perfect species shot but a bit of personality: a stare, a snack, two pups falling asleep on top of each other.
+
+    Lately I've been pointing the camera at people too. If you'd like portraits taken, send me a message.
+  facts:
+    - label: Based near
+      value: Amersfoort
+    - label: Mostly shooting
+      value: Zoo and park animals
+    - label: Camera
+      value: Canon EOS R6 Mark II
+    - label: Next up
+      value: Portraits
