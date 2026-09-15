@@ -652,3 +652,74 @@
     aperture: 4
     shutterSpeed: 0.003125
     iso: 500
+- id: photo-55
+  src: images/mg5323.jpeg
+  alt: Baboon sitting on the edge of a wooden roof, looking out into the trees
+  date: 2025-09-27
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.003125
+    iso: 100
+- id: photo-56
+  src: images/mg5352.jpeg
+  alt: Prairie dog eating a twig while sitting in scattered hay
+  date: 2025-09-28
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 4
+    shutterSpeed: 0.002
+    iso: 100
+- id: photo-57
+  src: images/mg5526.jpeg
+  alt: Prairie dog standing upright on a branch, its face dusted with dirt
+  date: 2025-10-14
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.003125
+    iso: 400
+- id: photo-58
+  src: images/mg5537.jpeg
+  alt: Close-up of a pelican's shaggy head and long bill, another pelican behind
+  date: 2025-10-14
+  tags:
+    - wildlife
+  feature: false
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.002
+    iso: 100
+- id: photo-59
+  src: images/mg5560.jpeg
+  alt: Two ring-tailed lemurs sitting together in a rope hammock
+  caption: Hammock buddies
+  date: 2025-10-14
+  tags:
+    - wildlife
+  feature: true
+  exif:
+    camera: Canon EOS 6D Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 2.8
+    shutterSpeed: 0.003125
+    iso: 400
