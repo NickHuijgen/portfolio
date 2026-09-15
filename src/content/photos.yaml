@@ -225,34 +225,6 @@
     aperture: 5.6
     shutterSpeed: 0.001
     iso: 320
-- id: photo-25
-  src: images/914a3336-1.jpeg
-  alt: Snow leopard biting a hanging rabbit carcass, one paw raised
-  date: 2026-07-27
-  tags:
-    - wildlife
-  feature: false
-  exif:
-    camera: Canon EOS R6 Mark II
-    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
-    focalLength: 420
-    aperture: 5.6
-    shutterSpeed: 0.0015625
-    iso: 400
-- id: photo-26
-  src: images/914a3391-1.jpeg
-  alt: Snow leopard standing among rocks, looking upward
-  date: 2026-07-27
-  tags:
-    - wildlife
-  feature: false
-  exif:
-    camera: Canon EOS R6 Mark II
-    lens: Canon EF 300mm f/2.8L IS USM + 1.4x
-    focalLength: 420
-    aperture: 5.6
-    shutterSpeed: 0.001
-    iso: 320
 - id: photo-27
   src: images/914a2688.jpeg
   alt: Prairie dog sitting upright, holding a bone in its paws
