@@ -11,9 +11,11 @@ interface Props {
 	ogImage?: string;
 	/** JSON-LD object (or @graph-wrapped object) — see src/lib/schema.ts. */
 	structuredData?: Record<string, unknown>;
+	/** Responsive image variants to warm the cache for before they're needed — e.g. the lightbox's prev/next photos. */
+	preloadImages?: { href: string; imagesrcset: string; imagesizes: string }[];
 }
 
-const { title, description, ogImage, structuredData } = Astro.props;
+const { title, description, ogImage, structuredData, preloadImages } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
@@ -45,6 +47,11 @@ if (!resolvedOgImage) {
 		<meta property="og:url" content={canonicalURL} />
 		{resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
 		<meta name="twitter:card" content="summary_large_image" />
+		{
+			preloadImages?.map((p) => (
+				<link rel="preload" as="image" href={p.href} imagesrcset={p.imagesrcset} imagesizes={p.imagesizes} />
+			))
+		}
 		{
 			structuredData && (
 				<script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />

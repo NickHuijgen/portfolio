@@ -82,6 +82,18 @@ Deployed to Cloudflare Pages.
   image, caption, date, tags (linking to `/tag/[tag]`), and prev/next
   links to the adjacent photos in date order (newest-to-oldest, wrapping
   at both ends). Close returns to `/#photos`.
+- Prev/next both warm the cache for the *next* page on load, not on
+  hover/tap — touch has no hover, so on mobile that's otherwise the
+  difference between an instant flip and a cold fetch. Two separate
+  mechanisms, both in `photo/[id].astro`: `data-astro-prefetch="load"`
+  on the controls fetches the adjacent page's HTML; a `<link
+  rel="preload" as="image" imagesrcset=… imagesizes=…>` (passed to
+  `Base.astro`'s `preloadImages` prop) fetches the adjacent photo's
+  actual image, since a prefetched page's own images aren't pulled in
+  by prefetching it. The preload's `widths`/`sizes` (`FRAME_IMAGE_WIDTHS`
+  / `FRAME_IMAGE_SIZES`) must stay pixel-identical to the frame `<Image>`
+  below it — if they drift, the browser treats the preload as a
+  different request and fetches the real image again anyway.
 
 ## SEO / structured data
 - `public/robots.txt` allows all crawlers, including the named AI

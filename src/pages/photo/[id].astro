@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { photoPageSchema } from '../../lib/schema.ts';
 import { getSortedPhotos } from '../../lib/photos.ts';
@@ -11,12 +11,36 @@ export async function getStaticPaths() {
 		const next = photos[(index + 1) % photos.length];
 		return {
 			params: { id: photo.id },
-			props: { photo, prevId: prev.id, nextId: next.id },
+			props: { photo, prev, next },
 		};
 	});
 }
 
-const { photo, prevId, nextId } = Astro.props;
+const { photo, prev, next } = Astro.props;
+const prevId = prev.id;
+const nextId = next.id;
+
+// The Left/Right controls are the most likely next tap, especially on
+// mobile — but touch has nothing equivalent to the hover that would
+// otherwise prefetch them (see the `data-astro-prefetch="load"` below for
+// the HTML side of that). Warming the *image* cache matters more than the
+// HTML: it's the large asset, and a prefetched page doesn't pull in the
+// images it references. widths/sizes here must mirror the frame-image
+// <Image> below exactly, or the browser won't recognize this as the same
+// request and will fetch it again anyway.
+const FRAME_IMAGE_WIDTHS = [800, 1600, 2400];
+const FRAME_IMAGE_SIZES = '100vw';
+const adjacentPhotos = prev.id === next.id ? [prev] : [prev, next];
+const preloadImages = await Promise.all(
+	adjacentPhotos.map(async (adjacent) => {
+		const optimized = await getImage({ src: adjacent.data.src, widths: FRAME_IMAGE_WIDTHS });
+		return {
+			href: optimized.src,
+			imagesrcset: optimized.srcSet.attribute,
+			imagesizes: FRAME_IMAGE_SIZES,
+		};
+	}),
+);
 
 const formattedDate = photo.data.date.toLocaleDateString('en-US', {
 	year: 'numeric',
@@ -43,15 +67,28 @@ const structuredData = await photoPageSchema(photo);
 	title={`${photo.data.alt} — Nick Huijgen`}
 	description={photo.data.caption ?? photo.data.alt}
 	structuredData={structuredData}
+	preloadImages={preloadImages}
 >
 	<main class="photo-detail">
 		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
 			✕
 		</a>
-		<a href={`/photo/${prevId}`} id="photo-prev" class="control prev" aria-label="Previous photo">
+		<a
+			href={`/photo/${prevId}`}
+			id="photo-prev"
+			class="control prev"
+			aria-label="Previous photo"
+			data-astro-prefetch="load"
+		>
 			‹
 		</a>
-		<a href={`/photo/${nextId}`} id="photo-next" class="control next" aria-label="Next photo">
+		<a
+			href={`/photo/${nextId}`}
+			id="photo-next"
+			class="control next"
+			aria-label="Next photo"
+			data-astro-prefetch="load"
+		>
 			›
 		</a>
 
@@ -59,8 +96,8 @@ const structuredData = await photoPageSchema(photo);
 			<Image
 				src={photo.data.src}
 				alt={photo.data.alt}
-				widths={[800, 1600, 2400]}
-				sizes="100vw"
+				widths={FRAME_IMAGE_WIDTHS}
+				sizes={FRAME_IMAGE_SIZES}
 				class="frame-image"
 				transition:name={`photo-${photo.id}`}
 			/>
