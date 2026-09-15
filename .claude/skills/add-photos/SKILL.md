@@ -153,14 +153,21 @@ never infer content from the filename or EXIF alone.
   and editorial ("Announcing itself", "Golden hour"), never a restatement
   of the alt text. Roughly a quarter of existing entries have one; don't
   force every new photo to get one just because it can.
+- **If you're not confident what you're looking at, ask — don't guess.**
+  Wrong alt text is worse than no alt text: it's a factual claim (species,
+  location, what's actually happening in the frame) that a screen-reader
+  user has no way to double-check. If you can tell it's "a bird of prey"
+  but aren't sure which species, or the scene is ambiguous, say what
+  you're unsure about and ask the user rather than picking your best
+  guess silently.
 
 ### 8. Tags
 
 Use `known_tags` from step 1. Prefer an existing tag over inventing a new
 one — the site's tag vocabulary is deliberately small (currently just
 `wildlife` and `portrait`). If a photo genuinely doesn't fit anything
-existing, ask the user before adding a new tag rather than growing the
-vocabulary unilaterally.
+existing, or it's genuinely ambiguous which existing tag fits best, ask
+the user rather than guessing or growing the vocabulary unilaterally.
 
 ### 9. Feature flag
 
@@ -239,9 +246,12 @@ if that doesn't resolve cleanly, stop and ask rather than force-pushing.
 
 ### 13. Report
 
-Summarize: what was added (id + filename + one-line description each)
-and confirmed pushed, what was skipped as a duplicate (and of what), and
-anything that needed a judgment call along the way (new gear added to
-`gear.json`, a new tag, GPS present, missing EXIF) — including anything
-still sitting unprocessed because of one of those judgment calls, since
+Summarize: for each photo added, show its id, filename, **the exact alt
+text and caption you wrote for it** (verbatim, not paraphrased — the
+user should be able to read and correct them without opening the file),
+and its tags. Confirm it's pushed. Also report what was skipped as a
+duplicate (and of what), and anything that needed a judgment call along
+the way (new gear added to `gear.json`, a new tag, GPS present, missing
+EXIF) — including anything still sitting unprocessed because of one of
+those judgment calls, since
 those photos weren't part of the commit and will need a follow-up.
