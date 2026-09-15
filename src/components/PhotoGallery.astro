@@ -136,7 +136,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	{
 		tags.map((tag) => (
 			<a
-				href={`/tag/${tag}`}
+				href={`/tag/${tag}/`}
 				data-tag={tag}
 				aria-current={activeTag === tag ? 'page' : undefined}
 				class="filter-link"
