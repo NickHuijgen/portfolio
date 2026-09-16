@@ -6,7 +6,10 @@ const photos = defineCollection({
   schema: ({ image }) =>
     z.object({
       src: image(),
-      alt: z.string(),
+      // .min(1): enforces the documented alt-text convention (real,
+      // descriptive text for every photo, never empty) at build time
+      // instead of only by review — see the alt-text convention note.
+      alt: z.string().min(1),
       caption: z.string().optional(),
       date: z.coerce.date(),
       tags: z.array(z.string()),

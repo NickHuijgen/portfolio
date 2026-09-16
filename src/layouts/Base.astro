@@ -60,6 +60,7 @@ if (!resolvedOgImage) {
 		<ClientRouter />
 	</head>
 	<body>
+		<a href="#main" class="skip-link">Skip to main content</a>
 		<slot />
 	</body>
 </html>
@@ -72,6 +73,11 @@ if (!resolvedOgImage) {
 	}
 
 	body {
+		/* Chrome on Android auto-dark-modes a page with no declared
+		   color-scheme, inverting the chrome while leaving the (already
+		   correctly-colored) photos untouched. */
+		color-scheme: light;
+		background-color: #fff;
 		font-family:
 			'Instrument Sans Variable',
 			system-ui,
@@ -79,6 +85,28 @@ if (!resolvedOgImage) {
 			'Segoe UI',
 			Roboto,
 			sans-serif;
+	}
+
+	/* Standard skip-link pattern: off-screen until focused, so a keyboard
+	   user's first Tab lands here instead of working through the intro,
+	   social links and every filter tab before reaching the photos. Every
+	   page's own top-level landmark needs a matching id="main". */
+	.skip-link {
+		position: absolute;
+		top: -100%;
+		left: 8px;
+		z-index: 100;
+		padding: 12px 16px;
+		background: #fff;
+		color: #000;
+		font-size: 16px;
+		text-decoration: none;
+		border-radius: 4px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.skip-link:focus {
+		top: 8px;
 	}
 </style>
 

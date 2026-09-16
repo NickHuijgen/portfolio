@@ -18,7 +18,7 @@ const ogImage = about.portrait
 ---
 
 <Base title="About — Nick Huijgen" description={about.homeIntro} ogImage={ogImage}>
-	<main class="about">
+	<main class="about" id="main" tabindex="-1">
 		<h1 class="heading">{about.heading}</h1>
 		<div class="portrait-col">
 			{
@@ -51,8 +51,12 @@ const ogImage = about.portrait
 			<div class="cta">
 				<a href="/#photos" class="button">View photos</a>
 				<div class="social-links">
-					<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="noopener">LinkedIn</a>
-					<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="noopener">Instagram</a>
+					<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="noopener">
+						LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+					</a>
+					<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="noopener">
+						Instagram<span class="visually-hidden"> (opens in a new tab)</span>
+					</a>
 				</div>
 			</div>
 		</div>
@@ -60,6 +64,26 @@ const ogImage = about.portrait
 </Base>
 
 <style>
+	/* See Home.astro's identical rule: #main is a skip-link jump target,
+	   not an interactive control — a default focus ring around the whole
+	   page is noise for sighted users; assistive tech still announces
+	   the landing regardless of visual styling. */
+	#main:focus-visible {
+		outline: none;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
 	.about {
 		max-width: 1200px;
 		margin: 0 auto;

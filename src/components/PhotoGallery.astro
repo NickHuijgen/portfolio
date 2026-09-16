@@ -191,11 +191,17 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	}
 </nav>
 
-<div class="gallery" aria-live="polite">
-	<p class="visually-hidden" id="photo-count">
+<div class="gallery">
+	<!-- role=status/aria-live scoped to the counter only, not the whole
+	     64-figure grid below: default aria-relevant is "additions text",
+	     so with aria-live on .gallery, un-hiding ~58 figures on a filter
+	     switch queued every one's long descriptive alt text for
+	     announcement — a multi-minute queue on NVDA/JAWS. This element is
+	     also reused to announce in-grid expand/collapse (see setTileOpen). -->
+	<p class="visually-hidden" id="photo-count" role="status" aria-live="polite" aria-atomic="true">
 		{visibleCount} photo{visibleCount === 1 ? '' : 's'}
 	</p>
-	<main class={`grid${activeTag === 'featured' ? ' is-featured' : ''}`} id="photo-grid">
+	<div class={`grid${activeTag === 'featured' ? ' is-featured' : ''}`} id="photo-grid">
 		{
 			items.map((item, index) => (
 				<figure
@@ -206,7 +212,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					)}
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --rows-xs-flat:${item.xsFlatRows}; --rows-sm-flat:${item.smFlatRows}; --rows-md-flat:${item.mdFlatRows}; --ar:${item.aspectRatio};`}
 				>
-					<a href={`/photo/${item.photo.id}/`} id={item.photo.id} class="thumb-link">
+					<a
+						href={`/photo/${item.photo.id}/`}
+						id={item.photo.id}
+						class="thumb-link"
+						aria-expanded="false"
+					>
 						{
 							/*
 							  Picking srcset widths for this grid is unforgiving: the
@@ -260,35 +271,185 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						<a href={`/photo/${item.photo.id}/`} class="expand-link" aria-label="View full photo">
 							⤢
 						</a>
-						{item.photo.data.caption && <p class="expand-caption">{item.photo.data.caption}</p>}
 					</div>
+					{
+						item.photo.data.caption && (
+							// A figcaption must be a direct child of its figure for the
+							// figure/figcaption relationship (and the accessible name it
+							// gives the figure) to apply — it can't live inside
+							// .expand-overlay like the old <p> did. .expand-caption below
+							// reproduces .expand-overlay's aspect-ratio box independently
+							// (see the comment there) so it still anchors to the image's
+							// bottom edge rather than the figure's, which can be taller.
+							<figcaption class="expand-caption">{item.photo.data.caption}</figcaption>
+						)
+					}
 				</figure>
 			))
 		}
-	</main>
+	</div>
 </div>
 
 <script is:inline>
 	document.addEventListener('astro:page-load', () => {
 		if (!document.getElementById('photo-grid')) return;
-		const id = sessionStorage.getItem('focusPhoto');
-		if (id) {
+		let raw;
+		try {
+			raw = sessionStorage.getItem('focusPhoto');
 			sessionStorage.removeItem('focusPhoto');
-			document.getElementById(id)?.focus();
+		} catch {
+			return;
 		}
+		if (!raw) return;
+		try {
+			const { id, ts } = JSON.parse(raw);
+			// Only honor this if it's fresh — set as { id, ts } (not a bare
+			// id) by /photo/[id].astro specifically so this expires. A bare
+			// id would keep pointing at whatever photo was last viewed
+			// indefinitely: visit a photo, browse to /about/, come back to
+			// / much later, and focus/scroll would get yanked to a photo
+			// the user didn't just come from.
+			if (id && Date.now() - ts < 5000) document.getElementById(id)?.focus();
+		} catch {}
 	});
 </script>
 
 <script is:inline>
 	(() => {
-		// Filtering logic below is unchanged; only the binding changed.
-		// It used to hold `.filters` / `#photo-grid` in closure variables
-		// and bind the click listener to the nav element — both of which
-		// ClientRouter replaces on every swap, leaving the filters dead
-		// after a trip to /photo/[id] and back. Listeners now live on
-		// `document`/`window`, and elements are looked up per call.
-		if (window.__photoFilterInit) return;
-		window.__photoFilterInit = true;
+		// Filtering (tag nav clicks) and in-grid expansion used to be two
+		// separate closures with no shared state — but expanding a tile
+		// and then switching filters left the expanded tile's `is-open`
+		// state and `openId` stale: a figure that doesn't match the new
+		// tag could go `hidden` while still `is-open`, so filtering back
+		// to a tag it does match brought it back already expanded with no
+		// user action, and Escape there wrote a *filter* history entry
+		// through the expand script's own null-state bug (see the
+		// pushState/replaceState comment below). Merged into one IIFE so
+		// the filter click handler can collapse any open tile first.
+		//
+		// Everything below still binds to `document`/`window`, never to
+		// `.filters`/`#photo-grid` directly — ClientRouter replaces both
+		// elements on every swap and does not re-execute an already-seen
+		// inline script, so an element-bound listener would go stale the
+		// first time you come back from /photo/[id].
+		if (window.__photoGalleryInit) return;
+		window.__photoGalleryInit = true;
+
+		let openId = null;
+
+		function tileFor(id) {
+			return document.getElementById(id)?.closest('figure') ?? null;
+		}
+
+		function setTileOpen(fig, open) {
+			if (!fig) return;
+			fig.classList.toggle('is-open', open);
+			const img = fig.querySelector('img');
+			// Closing back into the featured view must restore the
+			// flattened `sizes` candidate, not the unfiltered one — see the
+			// `.is-open` skip in applyFilter, which leaves this as the sole
+			// owner of `sizes` while a tile is open.
+			const featured = fig.closest('.grid')?.classList.contains('is-featured');
+			img.sizes = open ? img.dataset.sizesOpen : featured ? img.dataset.sizesFlat : img.dataset.sizes;
+			fig.querySelector('.thumb-link')?.setAttribute('aria-expanded', String(open));
+		}
+
+		// The thumbnail is a plain link to /photo/[id]/ that JS turns into
+		// a disclosure — visually obvious once it grows, but invisible to
+		// AT otherwise (aria-expanded above covers the persistent state;
+		// this covers the moment it changes). #photo-count is otherwise a
+		// filter-count announcer (visually-hidden either way), reused here
+		// rather than adding a second live region.
+		function announce(message) {
+			const count = document.getElementById('photo-count');
+			if (!count) return;
+			const prev = count.textContent;
+			count.textContent = message;
+			setTimeout(() => {
+				if (count.textContent === message) count.textContent = prev;
+			}, 1000);
+		}
+
+		// Only the figures currently on screen, so the reflow around the
+		// toggled tile animates too — not every figure in the grid.
+		function visibleIds() {
+			const ids = [];
+			const grid = document.getElementById('photo-grid');
+			if (!grid) return ids;
+			grid.querySelectorAll('figure:not([hidden])').forEach((fig) => {
+				const r = fig.getBoundingClientRect();
+				if (r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth) {
+					ids.push(fig.querySelector('.thumb-link').id);
+				}
+			});
+			return ids;
+		}
+
+		function setOpen(id) {
+			const affected = new Set(visibleIds());
+			if (openId) affected.add(openId);
+			if (id) affected.add(id);
+
+			function apply() {
+				const previousOpenId = openId;
+				if (previousOpenId && previousOpenId !== id) setTileOpen(tileFor(previousOpenId), false);
+				if (id) setTileOpen(tileFor(id), true);
+				openId = id;
+				// Scrolling here, inside the update callback, rather than
+				// after — grid-auto-flow: dense doesn't grow a tile in
+				// place, it can relocate it anywhere once its column-span
+				// changes, so there's no correct "center the tile" target
+				// until this toggle has committed. Doing it here (not
+				// after transition.finished) is what makes the grow and
+				// the scroll read as one motion instead of two: every
+				// currently-visible tile is individually named below, so
+				// the transition interpolates *each of them* from its old
+				// viewport position to its new (already-scrolled)
+				// position, rather than cross-fading the whole page at a
+				// fixed scroll offset. `behavior: 'auto'` (instant) is
+				// deliberate — the smoothness comes from the transition's
+				// own animation, not from a second, separate scroll
+				// animation racing it.
+				//
+				// A pure collapse (id is null) still needs a scroll target
+				// — the tile that just closed, not the one that opened —
+				// or dense packing can leave focus (see the callers below,
+				// which focus with preventScroll: true) sitting off-screen
+				// once the tile relocates back to its 1-column slot.
+				const target = id ? tileFor(id) : previousOpenId ? tileFor(previousOpenId) : null;
+				target?.scrollIntoView({ block: 'center', behavior: 'auto' });
+			}
+
+			const canAnimate =
+				!matchMedia('(prefers-reduced-motion: reduce)').matches && document.startViewTransition;
+			if (!canAnimate) {
+				apply();
+				return Promise.resolve();
+			}
+
+			// Names are id-derived and only ever live on one figure each,
+			// assigned here and cleared below — never all up front, so no
+			// figure can end up sharing a name with another.
+			affected.forEach((tid) => {
+				const fig = tileFor(tid);
+				if (fig) fig.style.viewTransitionName = `photo-${tid}`;
+			});
+			const transition = document.startViewTransition(apply);
+			// All three of a transition's promises reject if the document goes
+			// hidden mid-transition (tab backgrounded, app-switched away from
+			// on mobile) — expected, not an error, but left uncaught it's an
+			// unhandled rejection on every one of them.
+			transition.ready.catch(() => {});
+			transition.finished.catch(() => {}).finally(() => {
+				affected.forEach((tid) => {
+					const fig = tileFor(tid);
+					if (fig) fig.style.viewTransitionName = '';
+				});
+			});
+			return transition.updateCallbackDone.catch(() => {});
+		}
+
+		// ---- tag filtering ----
 
 		function applyFilter(tag) {
 			const nav = document.querySelector('.filters');
@@ -372,7 +533,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			});
 		}
 
-		// Capture phase — see the note in the expansion script below:
+		// Capture phase — see the note by the expand click handler below:
 		// ClientRouter's own document click listener is registered first
 		// and would navigate before a bubble-phase preventDefault landed.
 		document.addEventListener(
@@ -381,9 +542,23 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				const a = e.target.closest?.('.filters a');
 				if (!a) return;
 				e.preventDefault();
+				// Close any open tile before switching filters. Without
+				// this, a figure that doesn't match the new tag could go
+				// `hidden` while still `is-open` (openId untouched, sizes
+				// still the expanded candidate) — filtering back to a tag
+				// it does match then brought it back already expanded with
+				// no user action, and the URL had already lost its
+				// #photo-xx hash (this click's own pushState below never
+				// carries one), so a refresh silently lost the open state
+				// too. No transition/scroll needed for this collapse: the
+				// filter's own render() below already animates the switch.
+				if (openId) {
+					setTileOpen(tileFor(openId), false);
+					openId = null;
+				}
 				const tag = a.getAttribute('data-tag') ?? '';
 				render(tag);
-				history.pushState({ ...history.state, tag }, '', a.getAttribute('href'));
+				history.pushState({ ...history.state, tag, photoOpen: null }, '', a.getAttribute('href'));
 			},
 			true,
 		);
@@ -403,108 +578,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// unless a filter tab is actually clicked).
 			sessionStorage.setItem('activeTag', initialTag);
 		});
-	})();
-</script>
 
-<script is:inline>
-	(() => {
-		// Every listener below is bound to `document`/`window`, never to
-		// `#photo-grid`. ClientRouter replaces the grid element on each
-		// swap and does not re-execute an already-seen inline script, so
-		// anything bound to the grid goes stale the first time you come
-		// back from /photo/[id] — clicks would then fall through to a
-		// real navigation instead of expanding.
-		if (window.__photoExpandInit) return;
-		window.__photoExpandInit = true;
-
-		let openId = null;
-
-		function tileFor(id) {
-			return document.getElementById(id)?.closest('figure') ?? null;
-		}
-
-		function setTileOpen(fig, open) {
-			if (!fig) return;
-			fig.classList.toggle('is-open', open);
-			const img = fig.querySelector('img');
-			// Closing back into the featured view must restore the
-			// flattened `sizes` candidate, not the unfiltered one — see the
-			// `.is-open` skip in applyFilter, which leaves this as the sole
-			// owner of `sizes` while a tile is open.
-			const featured = fig.closest('.grid')?.classList.contains('is-featured');
-			img.sizes = open ? img.dataset.sizesOpen : featured ? img.dataset.sizesFlat : img.dataset.sizes;
-		}
-
-		// Only the figures currently on screen, so the reflow around the
-		// toggled tile animates too — not every figure in the grid.
-		function visibleIds() {
-			const ids = [];
-			const grid = document.getElementById('photo-grid');
-			if (!grid) return ids;
-			grid.querySelectorAll('figure:not([hidden])').forEach((fig) => {
-				const r = fig.getBoundingClientRect();
-				if (r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth) {
-					ids.push(fig.querySelector('.thumb-link').id);
-				}
-			});
-			return ids;
-		}
-
-		function setOpen(id) {
-			const affected = new Set(visibleIds());
-			if (openId) affected.add(openId);
-			if (id) affected.add(id);
-
-			function apply() {
-				if (openId && openId !== id) setTileOpen(tileFor(openId), false);
-				if (id) setTileOpen(tileFor(id), true);
-				openId = id;
-				// Scrolling here, inside the update callback, rather than
-				// after — grid-auto-flow: dense doesn't grow a tile in
-				// place, it can relocate it anywhere once its column-span
-				// changes, so there's no correct "center the tile" target
-				// until this toggle has committed. Doing it here (not
-				// after transition.finished) is what makes the grow and
-				// the scroll read as one motion instead of two: every
-				// currently-visible tile is individually named below, so
-				// the transition interpolates *each of them* from its old
-				// viewport position to its new (already-scrolled)
-				// position, rather than cross-fading the whole page at a
-				// fixed scroll offset. `behavior: 'auto'` (instant) is
-				// deliberate — the smoothness comes from the transition's
-				// own animation, not from a second, separate scroll
-				// animation racing it.
-				if (id) tileFor(id)?.scrollIntoView({ block: 'center', behavior: 'auto' });
-			}
-
-			const canAnimate =
-				!matchMedia('(prefers-reduced-motion: reduce)').matches && document.startViewTransition;
-			if (!canAnimate) {
-				apply();
-				return Promise.resolve();
-			}
-
-			// Names are id-derived and only ever live on one figure each,
-			// assigned here and cleared below — never all up front, so no
-			// figure can end up sharing a name with another.
-			affected.forEach((tid) => {
-				const fig = tileFor(tid);
-				if (fig) fig.style.viewTransitionName = `photo-${tid}`;
-			});
-			const transition = document.startViewTransition(apply);
-			// All three of a transition's promises reject if the document goes
-			// hidden mid-transition (tab backgrounded, app-switched away from
-			// on mobile) — expected, not an error, but left uncaught it's an
-			// unhandled rejection on every one of them.
-			transition.ready.catch(() => {});
-			transition.finished.catch(() => {}).finally(() => {
-				affected.forEach((tid) => {
-					const fig = tileFor(tid);
-					if (fig) fig.style.viewTransitionName = '';
-				});
-			});
-			return transition.updateCallbackDone.catch(() => {});
-		}
+		// ---- in-grid expansion ----
+		// (openId, tileFor, setTileOpen, visibleIds, setOpen are declared
+		// above, shared with the filter click handler's collapse-on-filter
+		// fix.)
 
 		// Capture phase, not bubble: ClientRouter registers its own
 		// document-level click listener from <head>, so it would other-
@@ -545,7 +623,10 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				// costs nothing over the old approach.
 				if (next) history.pushState({ ...history.state, photoOpen: next }, '', `${base}#${next}`);
 				else history.replaceState({ ...history.state, photoOpen: null }, '', base);
-				setOpen(next).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
+				setOpen(next).then(() => {
+					document.getElementById(id)?.focus({ preventScroll: true });
+					announce(next ? 'Photo expanded' : 'Photo collapsed');
+				});
 			},
 			true,
 		);
@@ -557,7 +638,10 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// never write a literal `null` state here either, or Back stops
 			// working for this entry the same way.
 			history.replaceState({ ...history.state, photoOpen: null }, '', location.pathname + location.search);
-			setOpen(null).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
+			setOpen(null).then(() => {
+				document.getElementById(id)?.focus({ preventScroll: true });
+				announce('Photo collapsed');
+			});
 		});
 
 		window.addEventListener('popstate', () => {
@@ -821,7 +905,9 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		min-width: 44px;
 		min-height: 44px;
 		border-radius: 50%;
-		background: rgba(0, 0, 0, 0.45);
+		/* 0.45 composited over a bright photo (sky, snow, blown highlights)
+		   measured 3.36:1 for the white glyph — fails AA. 0.65 -> 7.00:1. */
+		background: rgba(0, 0, 0, 0.65);
 		color: #fff;
 		text-decoration: none;
 		font-size: 18px;
@@ -834,16 +920,55 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		outline-offset: 2px;
 	}
 
+	/* Windows High Contrast strips background colors (including this
+	   rgba scrim), leaving the "⤢" glyph with no visible boundary
+	   against the photo. A forced-colors-safe outline keeps it legible. */
+	@media (forced-colors: active) {
+		.expand-link {
+			outline: 1px solid CanvasText;
+		}
+	}
+
+	/* Independently reproduces .expand-overlay's "match the image box, not
+	   the figure" sizing (see the comment there) now that this is a
+	   sibling rather than a child of it — needed so `top: 0` +
+	   `aspect-ratio` anchor this to the image's real bottom edge instead
+	   of the figure's, which can be taller once row spans quantise to
+	   whole rows. flex + justify-content: flex-end then bottom-aligns
+	   the caption text within that box, matching the old bottom-anchored
+	   <p>'s position pixel-for-pixel. */
 	.expand-caption {
 		position: absolute;
+		top: 0;
 		left: 0;
-		right: 0;
-		bottom: 0;
+		width: 100%;
+		aspect-ratio: var(--ar);
+		display: none;
+		flex-direction: column;
+		justify-content: flex-end;
 		margin: 0;
 		padding: 32px 12px 12px;
-		background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+		/* Fixed pixel stops, not percentages: percentages would scale the
+		   gradient's shape with the box height above (tiny on a closed
+		   thumbnail, huge on an open tile), while the text always sits in
+		   a fixed-height strip at the very bottom regardless. The old
+		   `rgba(0,0,0,0.7) -> transparent` fade measured ~35% alpha right
+		   where the first line of text sits (~2.4:1, fails badly) — this
+		   keeps a solid floor under the text itself and only fades above
+		   it, independent of box height. 0.65 matches .control/.expand-link
+		   above (7.00:1 for white text). */
+		background: linear-gradient(
+			to top,
+			rgba(0, 0, 0, 0.65) 0,
+			rgba(0, 0, 0, 0.65) 56px,
+			transparent 120px
+		);
 		color: #fff;
 		font-size: 0.875rem;
 		pointer-events: none;
+	}
+
+	.item.is-open .expand-caption {
+		display: flex;
 	}
 </style>

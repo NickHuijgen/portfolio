@@ -15,46 +15,61 @@ const INSTAGRAM_URL = 'https://www.instagram.com/nickhuijgen/';
 const about = await getAbout();
 ---
 
-<section class="intro">
-	<div class="who">
-		<span class="avatar-frame">
-			{
-				about.portrait ? (
-					<Image
-						src={about.portrait}
-						alt={about.portraitAlt ?? 'Nick Huijgen'}
-						width={512}
-						class="avatar"
-					/>
-				) : (
-					<div class="avatar-placeholder" aria-hidden="true">
-						NH
-					</div>
-				)
-			}
-		</span>
-		<h1>Nick Huijgen</h1>
-	</div>
-	<p>Photography from wherever I end up.</p>
-	<p class="bio">
-		{about.homeIntro} <a href="/about/" class="more-link">More about me</a>
-	</p>
-	<div class="cta">
-		<a href="#photos" class="button">View photos</a>
-		<div class="social-links">
-			<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="noopener">LinkedIn</a>
-			<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="noopener">Instagram</a>
+<main id="main" tabindex="-1">
+	<section class="intro">
+		<div class="who">
+			<span class="avatar-frame">
+				{
+					about.portrait ? (
+						<Image
+							src={about.portrait}
+							alt={about.portraitAlt ?? 'Nick Huijgen'}
+							width={512}
+							class="avatar"
+						/>
+					) : (
+						<div class="avatar-placeholder" aria-hidden="true">
+							NH
+						</div>
+					)
+				}
+			</span>
+			<h1>Nick Huijgen</h1>
 		</div>
-	</div>
-</section>
+		<p>Photography from wherever I end up.</p>
+		<p class="bio">
+			{about.homeIntro} <a href="/about/" class="more-link">More about me</a>
+		</p>
+		<div class="cta">
+			<a href="#photos" class="button">View photos</a>
+			<div class="social-links">
+				<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="noopener">
+					LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+				</a>
+				<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="noopener">
+					Instagram<span class="visually-hidden"> (opens in a new tab)</span>
+				</a>
+			</div>
+		</div>
+	</section>
 
-<section id="photos">
-	<PhotoGallery activeTag={activeTag} />
-</section>
+	<section id="photos" tabindex="-1">
+		<PhotoGallery activeTag={activeTag} />
+	</section>
+</main>
 
 <footer class="site-footer">© 2026 Nick Huijgen. All rights reserved.</footer>
 
 <style>
+	/* Skip-link and "View photos" jump targets (#main, #photos below) are
+	   sections, not interactive controls — a default focus ring around
+	   the whole intro or all 64 photos is more noise than signal for
+	   sighted users, while assistive tech still announces landing here
+	   regardless of visual styling. */
+	#main:focus-visible {
+		outline: none;
+	}
+
 	.intro {
 		--text-secondary: #666;
 		max-width: 1200px;
@@ -189,6 +204,22 @@ const about = await getAbout();
 
 	#photos {
 		scroll-margin-top: 2rem;
+	}
+
+	#photos:focus-visible {
+		outline: none;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.site-footer {

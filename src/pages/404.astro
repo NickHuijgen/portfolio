@@ -3,16 +3,27 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title="Page not found — Nick Huijgen" description="This page doesn't exist.">
-	<section class="intro">
-		<p>Page not found. <a href="/">Back to the homepage</a>.</p>
-	</section>
+	<main class="intro" id="main" tabindex="-1">
+		<h1>Page not found</h1>
+		<p>This page doesn't exist. <a href="/">Back to the homepage</a>.</p>
+	</main>
 </Base>
 
 <style>
+	#main:focus-visible {
+		outline: none;
+	}
+
 	.intro {
 		max-width: 1200px;
 		margin: 0 auto;
 		padding-block: 64px 48px;
+	}
+
+	.intro h1 {
+		margin: 0 0 0.5rem;
+		font-size: 2rem;
+		font-weight: 500;
 	}
 
 	.intro p {

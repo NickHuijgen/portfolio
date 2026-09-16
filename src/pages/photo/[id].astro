@@ -77,7 +77,8 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	structuredData={structuredData}
 	preloadImages={preloadImages}
 >
-	<main class="photo-detail" data-photo-id={photo.id}>
+	<main class="photo-detail" id="main" tabindex="-1" data-photo-id={photo.id}>
+		<h1 class="visually-hidden">{photo.data.alt}</h1>
 		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
 			✕
 		</a>
@@ -124,7 +125,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 
 		<div class="meta">
 			<p class="date">{formattedDate}</p>
-			<ul class="tags">
+			<ul class="tags" role="list">
 				{
 					photo.data.tags.map((tag) => (
 						<li>
@@ -154,7 +155,22 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		const main = document.querySelector('.photo-detail');
 		const closeLink = document.getElementById('photo-close');
 		if (!main || !closeLink) return;
-		sessionStorage.setItem('focusPhoto', main.dataset.photoId);
+		try {
+			// { id, ts } rather than a bare id: PhotoGallery.astro's consumer
+			// only honors this if it's fresh (see the comment there) — a
+			// bare id would keep pointing at whatever photo was last viewed
+			// indefinitely, yanking focus to it on a much later, unrelated
+			// visit to the grid.
+			sessionStorage.setItem(
+				'focusPhoto',
+				JSON.stringify({ id: main.dataset.photoId, ts: Date.now() }),
+			);
+		} catch {
+			// Blocked cookies/storage, enterprise policy, sandboxed frame —
+			// this is a nice-to-have (focus restoration on the grid), not
+			// essential, and it's wrapped so a SecurityError here can't
+			// abort the rest of this handler (close-href rewrite below).
+		}
 		// Close should return to whichever tag filter was active on the grid
 		// this photo was opened from, not always the unfiltered "All" view —
 		// this page is a separate static route with no way to know that at
@@ -162,10 +178,21 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		// all — a shared link, a search result), so it's read back out of
 		// sessionStorage instead. PhotoGallery.astro keeps that in sync
 		// whenever the filter changes or a /tag/[tag] page loads directly.
-		const activeTag = sessionStorage.getItem('activeTag');
+		let activeTag;
+		try {
+			activeTag = sessionStorage.getItem('activeTag');
+		} catch {}
 		if (activeTag) {
 			closeLink.href = `/tag/${encodeURIComponent(activeTag)}/#photos`;
 		}
+		// `autofocus` only applies during the browser's initial parse of a
+		// fresh Document — ClientRouter swaps this page's content into the
+		// existing Document rather than loading a new one, so the
+		// autofocus-processed flag stays set after the very first load and
+		// the attribute is silently ignored on every later arrival here
+		// (clicking a grid thumbnail, prev/next, back/forward). Focus
+		// explicitly instead so a keyboard user always lands on Close.
+		closeLink.focus();
 	});
 
 	if (!window.__photoDetailKeysInit) {
@@ -195,6 +222,12 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		position: relative;
 		box-sizing: border-box;
 		min-height: 100vh;
+		/* 100dvh accounts for mobile browser chrome (e.g. iOS Safari's URL
+		   bar) that 100vh doesn't — without it the flex-centered content
+		   can center within a box taller than what's actually visible,
+		   pushing the caption/EXIF/tags under the URL bar. Kept as a
+		   fallback for browsers without dvh support. */
+		min-height: 100dvh;
 		padding: 72px 24px 32px;
 		background: #000;
 		color: #fff;
@@ -203,6 +236,22 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		align-items: center;
 		justify-content: center;
 		gap: 16px;
+	}
+
+	#main:focus-visible {
+		outline: none;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.control {
@@ -224,7 +273,9 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		font-size: 20px;
 		line-height: 1;
 		border-radius: 50%;
-		background: rgba(0, 0, 0, 0.45);
+		/* 0.45 composited over a bright photo (sky, snow, blown highlights)
+		   measured 3.36:1 for the white glyph — fails AA. 0.65 -> 7.00:1. */
+		background: rgba(0, 0, 0, 0.65);
 	}
 
 	.close {
@@ -250,6 +301,15 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	.control:focus-visible {
 		outline: 2px solid #fff;
 		outline-offset: 2px;
+	}
+
+	/* Windows High Contrast strips background colors (including this
+	   rgba scrim), leaving ✕/‹/› with no visible boundary against the
+	   photo. A forced-colors-safe outline keeps them legible. */
+	@media (forced-colors: active) {
+		.control {
+			outline: 1px solid CanvasText;
+		}
 	}
 
 	.frame {
