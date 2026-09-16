@@ -278,6 +278,11 @@ const visibleCount = items.filter((item) => item.visible).length;
 				if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
 				else a.removeAttribute('aria-current');
 			});
+			// Filtering is a pushState, not a real navigation, so ClientRouter
+			// never swaps in the tag page's own <title> — without this the
+			// tab title stays whatever it was on load (e.g. "— wildlife")
+			// no matter which tag is actually showing, until a manual refresh.
+			document.title = tag ? `Nick Huijgen — ${tag}` : 'Nick Huijgen';
 			// So /photo/[id]'s Close link can send you back to the filtered
 			// view you actually came from instead of always the unfiltered
 			// grid — that page is a separate static route with no way to
