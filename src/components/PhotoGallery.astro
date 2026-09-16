@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { getSortedPhotos } from '../lib/photos.ts';
+import { getSortedPhotos, photoMatchesTag } from '../lib/photos.ts';
 
 interface Props {
 	activeTag?: string;
@@ -67,6 +67,11 @@ const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns, xs: TIERS.xs.columns };
 const photos = await getSortedPhotos();
 
 const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
+// Pinned right after "All", ahead of the alphabetical tags, rather than
+// sorted in among them — "featured" isn't a real tag (see photoMatchesTag),
+// and its whole point is to be the quick, always-in-the-same-place way to
+// see the highlight reel, not something you hunt for next to "wildlife".
+const hasFeatured = photos.some((photo) => photo.data.feature);
 
 const items = photos.map((photo) => {
 	const { width, height } = photo.data.src;
@@ -96,7 +101,7 @@ const items = photos.map((photo) => {
 	const smOpenWidth = smColWidth * OPEN_COLS.sm + TIERS.sm.gap * (OPEN_COLS.sm - 1);
 	const xsOpenWidth = xsColWidth * OPEN_COLS.xs + TIERS.xs.gap * (OPEN_COLS.xs - 1);
 
-	const visible = !activeTag || photo.data.tags.includes(activeTag);
+	const visible = !activeTag || photoMatchesTag(photo, activeTag);
 
 	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, (min-width: 400px) ${Math.round(smWidth)}px, ${Math.round(xsWidth)}px`;
 	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
@@ -134,6 +139,18 @@ const visibleCount = items.filter((item) => item.visible).length;
 		All
 	</a>
 	{
+		hasFeatured && (
+			<a
+				href="/tag/featured/"
+				data-tag="featured"
+				aria-current={activeTag === 'featured' ? 'page' : undefined}
+				class="filter-link"
+			>
+				featured
+			</a>
+		)
+	}
+	{
 		tags.map((tag) => (
 			<a
 				href={`/tag/${tag}/`}
@@ -157,7 +174,9 @@ const visibleCount = items.filter((item) => item.visible).length;
 				<figure
 					class="item"
 					hidden={!item.visible}
-					data-tags={item.photo.data.tags.join(' ')}
+					data-tags={[...item.photo.data.tags, ...(item.photo.data.feature ? ['featured'] : [])].join(
+						' ',
+					)}
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --ar:${item.aspectRatio};`}
 				>
 					<a href={`/photo/${item.photo.id}/`} id={item.photo.id} class="thumb-link">

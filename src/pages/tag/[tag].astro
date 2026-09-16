@@ -3,11 +3,15 @@ import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Home from '../../components/Home.astro';
 import { gallerySchema } from '../../lib/schema.ts';
-import { getSortedPhotos } from '../../lib/photos.ts';
+import { getSortedPhotos, photoMatchesTag } from '../../lib/photos.ts';
 
 export async function getStaticPaths() {
 	const photos = await getCollection('photos');
 	const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))];
+	// "featured" isn't a real tag (see photoMatchesTag) — only emit the
+	// route for it when a photo actually has feature: true, same as any
+	// other tag only getting a route when a photo carries it.
+	if (photos.some((photo) => photo.data.feature)) tags.push('featured');
 	return tags.map((tag) => ({ params: { tag } }));
 }
 
@@ -16,7 +20,7 @@ const { tag } = Astro.params;
 // Filtered to this tag, but still driven by the full collection — a newly
 // tagged photo shows up here with no extra step.
 const photos = await getSortedPhotos();
-const taggedPhotos = photos.filter((photo) => photo.data.tags.includes(tag));
+const taggedPhotos = photos.filter((photo) => photoMatchesTag(photo, tag));
 const structuredData = await gallerySchema(
 	taggedPhotos,
 	`https://nickhuijgen.nl/tag/${tag}/`,
