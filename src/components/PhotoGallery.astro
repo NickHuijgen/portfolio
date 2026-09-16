@@ -13,9 +13,41 @@ const ROW = 8;
 // Reference width is the upper edge of each breakpoint's range, so the
 // computed row-span always covers the image at any narrower width within
 // that range (extra whitespace below, never an overflow/crop).
+//
+// md and lg are each split into two reference sub-tiers (md/md2,
+// lg/lg2) for the same reason xs/sm are split below: a single reference
+// at the *top* of a wide range massively overshoots for any real
+// viewport nearer the bottom of it. Unlike xs/sm, though, md/lg's
+// problem was never a too-wide-viewport overflow (the pre-existing
+// `.grid` max-width: 1200px already caps that, safely, for anything
+// >=1200px) — it was the opposite: a *reference* far above the range's
+// *lower* edge, reserving rows sized for a 1000px or 1200px column on
+// viewports as narrow as 600px or 1000px. Measured live (resizing the
+// actual grid, not just replaying the math) before this split: 81%
+// dead space below every image at a 600px window, 27% at 1000px,
+// dropping to a ~5% quantization-rounding floor (see the ROW/gap
+// comment below) only once the real viewport neared each old single
+// reference. An iPad in portrait (768px) or landscape (1024px), a
+// split-screen window, or any resized desktop browser routinely lands
+// in these ranges.
+//
+// Splitting the reference (not just adding a `.grid` max-width, which
+// only helps the too-wide case) is what actually fixes this: each new
+// sub-tier's reference is set to its own CSS breakpoint's upper edge
+// (800 for md's 600-799px range, 1000 for md2's 800-999px range, 1100
+// for lg's 1000-1099px range, 1200 for lg2's 1100px+ range — the last
+// still backstopped by the pre-existing `.grid` max-width), so each is
+// safe by construction the same way xs/sm already are — no additional
+// `.grid` max-width breakpoints needed for md/md2/lg/lg2, only new
+// `@media` blocks below switching which row-height reference is active
+// at each width. Column count and gap are unchanged within each
+// original tier (md2 still shares md's 3 columns/16px gap; lg2 still
+// shares lg's 4 columns/16px gap) — only the row-height math changes.
 const TIERS = {
-	lg: { container: 1200, columns: 4, gap: 16 },
-	md: { container: 1000, columns: 3, gap: 16 },
+	lg2: { container: 1200, columns: 4, gap: 16 },
+	lg: { container: 1100, columns: 4, gap: 16 },
+	md2: { container: 1000, columns: 3, gap: 16 },
+	md: { container: 800, columns: 3, gap: 16 },
 	// The sm breakpoint spans 0-600px in CSS, but no real phone is
 	// anywhere near that wide. Using 600 as the reference here reserved
 	// rows sized for a much wider viewport than any phone actually
@@ -60,9 +92,19 @@ function rowSpan(aspectRatio: number, width: number, gap: number) {
 // are duplicated as literals in the `.item.is-open` CSS below (Astro
 // `<style>` blocks can't reference frontmatter values) — keep them in
 // sync if either changes. sm/xs go to the tier's full column count
-// (true full width); lg/md deliberately leave one column of
-// neighbouring grid visible rather than also going full width.
-const OPEN_COLS = { lg: 3, md: 2, sm: TIERS.sm.columns, xs: TIERS.xs.columns };
+// (true full width); lg/lg2/md/md2 deliberately leave one column of
+// neighbouring grid visible rather than also going full width. lg2/md2
+// match lg/md respectively — the md/lg split above only changes which
+// row-height reference is active, not the column count or the
+// in-grid-open behaviour.
+const OPEN_COLS = {
+	lg2: 3,
+	lg: 3,
+	md2: 2,
+	md: 2,
+	sm: TIERS.sm.columns,
+	xs: TIERS.xs.columns,
+};
 
 const photos = await getSortedPhotos();
 
@@ -99,17 +141,25 @@ const items = photos.map((photo) => {
 	const { width, height } = (photo.data.src as unknown as { clone: typeof photo.data.src }).clone;
 	const aspectRatio = width / height;
 
+	// md2/lg2 share md/lg's column span — the split only changes which
+	// row-height reference is active, not how many columns a tile spans.
+	const lg2ColSpan = photo.data.feature ? 2 : 1;
 	const lgColSpan = photo.data.feature ? 2 : 1;
+	const md2ColSpan = photo.data.feature ? 2 : 1;
 	const mdColSpan = photo.data.feature ? 2 : 1;
 	const smColSpan = photo.data.feature ? 2 : 1;
 	const xsColSpan = photo.data.feature ? 2 : 1;
 
+	const lg2ColWidth = columnWidth(TIERS.lg2.container, TIERS.lg2.columns, TIERS.lg2.gap);
 	const lgColWidth = columnWidth(TIERS.lg.container, TIERS.lg.columns, TIERS.lg.gap);
+	const md2ColWidth = columnWidth(TIERS.md2.container, TIERS.md2.columns, TIERS.md2.gap);
 	const mdColWidth = columnWidth(TIERS.md.container, TIERS.md.columns, TIERS.md.gap);
 	const smColWidth = columnWidth(TIERS.sm.container, TIERS.sm.columns, TIERS.sm.gap);
 	const xsColWidth = columnWidth(TIERS.xs.container, TIERS.xs.columns, TIERS.xs.gap);
 
+	const lg2Width = lg2ColWidth * lg2ColSpan + TIERS.lg2.gap * (lg2ColSpan - 1);
 	const lgWidth = lgColWidth * lgColSpan + TIERS.lg.gap * (lgColSpan - 1);
+	const md2Width = md2ColWidth * md2ColSpan + TIERS.md2.gap * (md2ColSpan - 1);
 	const mdWidth = mdColWidth * mdColSpan + TIERS.md.gap * (mdColSpan - 1);
 	const smWidth = smColWidth * smColSpan + TIERS.sm.gap * (smColSpan - 1);
 	const xsWidth = xsColWidth * xsColSpan + TIERS.xs.gap * (xsColSpan - 1);
@@ -118,26 +168,28 @@ const items = photos.map((photo) => {
 	// the wider OPEN_COLS span, so the recomputed row span actually
 	// matches the aspect ratio at the width the tile will render at
 	// once open. No JS measurement needed at click time because of this.
+	const lg2OpenWidth = lg2ColWidth * OPEN_COLS.lg2 + TIERS.lg2.gap * (OPEN_COLS.lg2 - 1);
 	const lgOpenWidth = lgColWidth * OPEN_COLS.lg + TIERS.lg.gap * (OPEN_COLS.lg - 1);
+	const md2OpenWidth = md2ColWidth * OPEN_COLS.md2 + TIERS.md2.gap * (OPEN_COLS.md2 - 1);
 	const mdOpenWidth = mdColWidth * OPEN_COLS.md + TIERS.md.gap * (OPEN_COLS.md - 1);
 	const smOpenWidth = smColWidth * OPEN_COLS.sm + TIERS.sm.gap * (OPEN_COLS.sm - 1);
 	const xsOpenWidth = xsColWidth * OPEN_COLS.xs + TIERS.xs.gap * (OPEN_COLS.xs - 1);
 
 	const visible = !activeTag || photoMatchesTag(photo, activeTag);
 
-	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, (min-width: 400px) ${Math.round(smWidth)}px, ${Math.round(xsWidth)}px`;
-	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
+	const sizes = `(min-width: 1100px) ${Math.round(lg2Width)}px, (min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 800px) ${Math.round(md2Width)}px, (min-width: 600px) ${Math.round(mdWidth)}px, (min-width: 400px) ${Math.round(smWidth)}px, ${Math.round(xsWidth)}px`;
+	const sizesOpen = `(min-width: 1100px) ${Math.round(lg2OpenWidth)}px, (min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 800px) ${Math.round(md2OpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
 	// The "featured" view shows only feature:true photos, so the editorial
 	// 2-column span has nothing left to stand out against — at the
-	// 3-column tiers (xs/sm/md) every tile would be 2-of-3 wide with a
+	// 3-column tiers (xs/sm/md/md2) every tile would be 2-of-3 wide with a
 	// dense-pack gap beside it that nothing can fill. Feature photos should
 	// still show wide under their *other* tags (a featured wildlife photo
 	// stays big on /tag/wildlife/) — only the featured view itself flattens
 	// them. "Flat" is that view's alternative: every photo forced to its
 	// plain 1-column span, computed here (not measured) same as the *Open
-	// numbers above. lg is untouched (2-of-4 already divides evenly, so
-	// "featured" never breaks it there).
-	const sizesFlat = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdColWidth)}px, (min-width: 400px) ${Math.round(smColWidth)}px, ${Math.round(xsColWidth)}px`;
+	// numbers above. lg/lg2 are untouched (2-of-4 already divides evenly,
+	// so "featured" never breaks it there).
+	const sizesFlat = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 800px) ${Math.round(md2ColWidth)}px, (min-width: 600px) ${Math.round(mdColWidth)}px, (min-width: 400px) ${Math.round(smColWidth)}px, ${Math.round(xsColWidth)}px`;
 
 	return {
 		photo,
@@ -149,14 +201,19 @@ const items = photos.map((photo) => {
 		lgColSpan,
 		mdColSpan,
 		smColSpan,
+		lg2Rows: rowSpan(aspectRatio, lg2Width, TIERS.lg2.gap),
 		lgRows: rowSpan(aspectRatio, lgWidth, TIERS.lg.gap),
+		md2Rows: rowSpan(aspectRatio, md2Width, TIERS.md2.gap),
 		mdRows: rowSpan(aspectRatio, mdWidth, TIERS.md.gap),
 		smRows: rowSpan(aspectRatio, smWidth, TIERS.sm.gap),
 		xsRows: rowSpan(aspectRatio, xsWidth, TIERS.xs.gap),
+		lg2OpenRows: rowSpan(aspectRatio, lg2OpenWidth, TIERS.lg2.gap),
 		lgOpenRows: rowSpan(aspectRatio, lgOpenWidth, TIERS.lg.gap),
+		md2OpenRows: rowSpan(aspectRatio, md2OpenWidth, TIERS.md2.gap),
 		mdOpenRows: rowSpan(aspectRatio, mdOpenWidth, TIERS.md.gap),
 		smOpenRows: rowSpan(aspectRatio, smOpenWidth, TIERS.sm.gap),
 		xsOpenRows: rowSpan(aspectRatio, xsOpenWidth, TIERS.xs.gap),
+		md2FlatRows: rowSpan(aspectRatio, md2ColWidth, TIERS.md2.gap),
 		mdFlatRows: rowSpan(aspectRatio, mdColWidth, TIERS.md.gap),
 		smFlatRows: rowSpan(aspectRatio, smColWidth, TIERS.sm.gap),
 		xsFlatRows: rowSpan(aspectRatio, xsColWidth, TIERS.xs.gap),
@@ -232,7 +289,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					data-tags={[...item.photo.data.tags, ...(item.photo.data.feature ? ['featured'] : [])].join(
 						' ',
 					)}
-					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-lg:${item.lgRows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-lg-open:${item.lgOpenRows}; --rows-xs-flat:${item.xsFlatRows}; --rows-sm-flat:${item.smFlatRows}; --rows-md-flat:${item.mdFlatRows}; --ar:${item.aspectRatio};`}
+					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-md2:${item.md2Rows}; --rows-lg:${item.lgRows}; --rows-lg2:${item.lg2Rows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-md2-open:${item.md2OpenRows}; --rows-lg-open:${item.lgOpenRows}; --rows-lg2-open:${item.lg2OpenRows}; --rows-xs-flat:${item.xsFlatRows}; --rows-sm-flat:${item.smFlatRows}; --rows-md-flat:${item.mdFlatRows}; --rows-md2-flat:${item.md2FlatRows}; --ar:${item.aspectRatio};`}
 				>
 					<a
 						href={`/photo/${item.photo.id}/`}
@@ -783,10 +840,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		.grid {
 			gap: 16px;
 			grid-template-columns: repeat(3, 1fr);
-			/* md/lg don't need this cap: their JS reference widths (1000,
-			   1200 in TIERS) already equal or exceed their own tier's true
-			   upper edge, so they're safe by construction — see the TIERS
-			   comment in the frontmatter. */
+			/* md/md2/lg/lg2 don't need a tighter cap here: their JS
+			   reference widths (800, 1000, 1100, 1200 in TIERS) each equal
+			   or exceed their own sub-tier's true upper edge, so they're
+			   safe by construction — see the TIERS comment in the
+			   frontmatter. 1200 (lg2's reference, and the widest of all
+			   four) is still the right cap for this whole 600px+ range. */
 			max-width: 1200px;
 		}
 	}
@@ -820,10 +879,30 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		}
 	}
 
+	/* md2: same column count/gap as md (only the row-height reference
+	   changes) — see the TIERS comment in the frontmatter for why this
+	   split exists. No matching `.grid` max-width breakpoint needed here,
+	   same reasoning as the xs/sm split: 1000 is md2's own true upper
+	   edge (this range ends at 999px), so it's already safe. */
+	@media (min-width: 800px) {
+		.item {
+			grid-row: span var(--rows-md2);
+		}
+	}
+
 	@media (min-width: 1000px) {
 		.item {
 			grid-column: span var(--cols-lg);
 			grid-row: span var(--rows-lg);
+		}
+	}
+
+	/* lg2: same column count/gap as lg (only the row-height reference
+	   changes). No matching `.grid` max-width breakpoint needed here
+	   either — 1200 is already the cap applied from 600px up. */
+	@media (min-width: 1100px) {
+		.item {
+			grid-row: span var(--rows-lg2);
 		}
 	}
 
@@ -853,6 +932,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	@media (min-width: 600px) {
 		:where(.grid.is-featured) .item {
 			grid-row: span var(--rows-md-flat);
+		}
+	}
+
+	@media (min-width: 800px) {
+		:where(.grid.is-featured) .item {
+			grid-row: span var(--rows-md2-flat);
 		}
 	}
 
@@ -893,10 +978,26 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		}
 	}
 
+	/* md2 keeps md's column span (2, matches OPEN_COLS.md2 in the
+	   frontmatter) — only the row-height reference changes. */
+	@media (min-width: 800px) {
+		.item.is-open {
+			grid-row: span var(--rows-md2-open);
+		}
+	}
+
 	@media (min-width: 1000px) {
 		.item.is-open {
 			grid-column: span 3;
 			grid-row: span var(--rows-lg-open);
+		}
+	}
+
+	/* lg2 keeps lg's column span (3, matches OPEN_COLS.lg2 in the
+	   frontmatter) — only the row-height reference changes. */
+	@media (min-width: 1100px) {
+		.item.is-open {
+			grid-row: span var(--rows-lg2-open);
 		}
 	}
 
