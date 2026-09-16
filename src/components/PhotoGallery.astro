@@ -105,14 +105,16 @@ const items = photos.map((photo) => {
 
 	const sizes = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdWidth)}px, (min-width: 400px) ${Math.round(smWidth)}px, ${Math.round(xsWidth)}px`;
 	const sizesOpen = `(min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
-	// A tag-filtered view (including "featured" itself) shows only photos
-	// that already share whatever made them visible, so a feature photo's
-	// editorial 2-column span has nothing left to stand out against — at
-	// the 3-column tiers (xs/sm/md) every tile would be 2-of-3 wide with a
-	// dense-pack gap beside it that nothing can fill. "Flat" is that view's
-	// alternative: every photo forced to its plain 1-column span, computed
-	// here (not measured) same as the *Open numbers above. lg is untouched
-	// (2-of-4 already divides evenly, so filtering never breaks it there).
+	// The "featured" view shows only feature:true photos, so the editorial
+	// 2-column span has nothing left to stand out against — at the
+	// 3-column tiers (xs/sm/md) every tile would be 2-of-3 wide with a
+	// dense-pack gap beside it that nothing can fill. Feature photos should
+	// still show wide under their *other* tags (a featured wildlife photo
+	// stays big on /tag/wildlife/) — only the featured view itself flattens
+	// them. "Flat" is that view's alternative: every photo forced to its
+	// plain 1-column span, computed here (not measured) same as the *Open
+	// numbers above. lg is untouched (2-of-4 already divides evenly, so
+	// "featured" never breaks it there).
 	const sizesFlat = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 600px) ${Math.round(mdColWidth)}px, (min-width: 400px) ${Math.round(smColWidth)}px, ${Math.round(xsColWidth)}px`;
 
 	return {
@@ -181,7 +183,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 	<p class="visually-hidden" id="photo-count">
 		{visibleCount} photo{visibleCount === 1 ? '' : 's'}
 	</p>
-	<main class={`grid${activeTag ? ' is-filtered' : ''}`} id="photo-grid">
+	<main class={`grid${activeTag === 'featured' ? ' is-featured' : ''}`} id="photo-grid">
 		{
 			items.map((item, index) => (
 				<figure
@@ -234,7 +236,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
 							widths={[150, 300, 450, 650, 900, 1300, 1800]}
-							sizes={activeTag ? item.sizesFlat : item.sizes}
+							sizes={activeTag === 'featured' ? item.sizesFlat : item.sizes}
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}
 							data-sizes-flat={item.sizesFlat}
@@ -281,13 +283,15 @@ const visibleCount = items.filter((item) => item.visible).length;
 			const grid = document.getElementById('photo-grid');
 			const count = document.getElementById('photo-count');
 			if (!nav || !grid || !count) return;
-			// See the CSS comment on `.grid.is-filtered` — a filtered view
+			// See the CSS comment on `.grid.is-featured` — the featured view
 			// flattens feature photos' editorial 2-column span back to 1 so
 			// the 3-column tiers don't dense-pack an unfillable gap next to
-			// every tile. That's driven by this class rather than a full
-			// re-render, so it has to be kept in sync here alongside hidden/
-			// aria-current/etc. — same reasoning as the title update below.
-			grid.classList.toggle('is-filtered', !!tag);
+			// every tile. Only that view: a feature photo stays wide under
+			// its other tags. That's driven by this class rather than a
+			// full re-render, so it has to be kept in sync here alongside
+			// hidden/aria-current/etc. — same reasoning as the title update
+			// below.
+			grid.classList.toggle('is-featured', tag === 'featured');
 			let visible = 0;
 			grid.querySelectorAll('figure').forEach((fig) => {
 				const match = !tag || (fig.getAttribute('data-tags') ?? '').split(' ').includes(tag);
@@ -300,7 +304,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 				// tile: its `sizes` is owned by setTileOpen and must win.
 				const img = fig.querySelector('img');
 				if (img && !fig.classList.contains('is-open')) {
-					img.sizes = tag ? img.dataset.sizesFlat : img.dataset.sizes;
+					img.sizes = tag === 'featured' ? img.dataset.sizesFlat : img.dataset.sizes;
 				}
 			});
 			count.textContent = `${visible} photo${visible === 1 ? '' : 's'}`;
@@ -411,12 +415,12 @@ const visibleCount = items.filter((item) => item.visible).length;
 			if (!fig) return;
 			fig.classList.toggle('is-open', open);
 			const img = fig.querySelector('img');
-			// Closing back into a filtered grid must restore the flattened
-			// `sizes` candidate, not the unfiltered one — see the `.is-open`
-			// skip in applyFilter, which leaves this as the sole owner of
-			// `sizes` while a tile is open.
-			const filtered = fig.closest('.grid')?.classList.contains('is-filtered');
-			img.sizes = open ? img.dataset.sizesOpen : filtered ? img.dataset.sizesFlat : img.dataset.sizes;
+			// Closing back into the featured view must restore the
+			// flattened `sizes` candidate, not the unfiltered one — see the
+			// `.is-open` skip in applyFilter, which leaves this as the sole
+			// owner of `sizes` while a tile is open.
+			const featured = fig.closest('.grid')?.classList.contains('is-featured');
+			img.sizes = open ? img.dataset.sizesOpen : featured ? img.dataset.sizesFlat : img.dataset.sizes;
 		}
 
 		// Only the figures currently on screen, so the reflow around the
@@ -689,29 +693,31 @@ const visibleCount = items.filter((item) => item.visible).length;
 		}
 	}
 
-	/* A tag-filtered grid (.is-filtered, including "featured" itself) shows
-	   only photos that already share whatever made them visible, so a
-	   feature photo's 2-column span has nothing left to stand out against —
-	   at the 3-column tiers below every tile would be 2-of-3 wide with an
-	   unfillable dense-pack gap beside it. Flattened to span 1 here instead,
-	   using the *-flat row numbers computed alongside the *Open ones in the
-	   frontmatter. lg is untouched: 2-of-4 already divides evenly, so
-	   filtering never breaks it there. `:where()` keeps this at the same
-	   specificity as the unfiltered `.item` rules above, so `.is-open`
-	   (in-grid expansion, below) still wins regardless of filter state. */
-	:where(.grid.is-filtered) .item {
+	/* The featured view (.is-featured) shows only feature:true photos, so
+	   their 2-column span has nothing left to stand out against — at the
+	   3-column tiers below every tile would be 2-of-3 wide with an
+	   unfillable dense-pack gap beside it. Feature photos still show wide
+	   under their *other* tags (a featured wildlife photo stays big on
+	   /tag/wildlife/) — this only applies to the featured view itself.
+	   Flattened to span 1 here instead, using the *-flat row numbers
+	   computed alongside the *Open ones in the frontmatter. lg is
+	   untouched: 2-of-4 already divides evenly, so "featured" never breaks
+	   it there. `:where()` keeps this at the same specificity as the
+	   unfiltered `.item` rules above, so `.is-open` (in-grid expansion,
+	   below) still wins regardless of filter state. */
+	:where(.grid.is-featured) .item {
 		grid-column: span 1;
 		grid-row: span var(--rows-xs-flat);
 	}
 
 	@media (min-width: 400px) {
-		:where(.grid.is-filtered) .item {
+		:where(.grid.is-featured) .item {
 			grid-row: span var(--rows-sm-flat);
 		}
 	}
 
 	@media (min-width: 600px) {
-		:where(.grid.is-filtered) .item {
+		:where(.grid.is-featured) .item {
 			grid-row: span var(--rows-md-flat);
 		}
 	}
