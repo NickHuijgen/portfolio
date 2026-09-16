@@ -243,7 +243,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 		if (window.__photoFilterInit) return;
 		window.__photoFilterInit = true;
 
-		function render(tag) {
+		function applyFilter(tag) {
 			const nav = document.querySelector('.filters');
 			const grid = document.getElementById('photo-grid');
 			const count = document.getElementById('photo-count');
@@ -267,6 +267,39 @@ const visibleCount = items.filter((item) => item.visible).length;
 			// when the "⤢" expand-full-photo link is clicked, since that's
 			// a plain, un-intercepted navigation this script can't hook.
 			sessionStorage.setItem('activeTag', tag);
+		}
+
+		// Fades departing/arriving tiles and slides the rest into their new
+		// dense-packed slots when the filter changes. Only tiles on screen
+		// get a view-transition-name (same trick as the expand script
+		// below) — naming the whole library would scale the animation's
+		// cost with photo count instead of viewport size, and off-screen
+		// tiles don't need to visibly move anyway.
+		function render(tag) {
+			const grid = document.getElementById('photo-grid');
+			const canAnimate =
+				grid && !matchMedia('(prefers-reduced-motion: reduce)').matches && document.startViewTransition;
+			if (!canAnimate) {
+				applyFilter(tag);
+				return;
+			}
+			const visibleFigs = [...grid.querySelectorAll('figure:not([hidden])')].filter((fig) => {
+				const r = fig.getBoundingClientRect();
+				return r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth;
+			});
+			visibleFigs.forEach((fig) => {
+				fig.style.viewTransitionName = `photo-${fig.querySelector('.thumb-link').id}`;
+			});
+			const transition = document.startViewTransition(() => applyFilter(tag));
+			// All three of a transition's promises reject if the document goes
+			// hidden mid-transition (tab backgrounded, app-switched away from
+			// on mobile) — expected, not an error, but left uncaught it's an
+			// unhandled rejection on every one of them.
+			transition.ready.catch(() => {});
+			transition.updateCallbackDone.catch(() => {});
+			transition.finished.catch(() => {}).finally(() => {
+				visibleFigs.forEach((fig) => (fig.style.viewTransitionName = ''));
+			});
 		}
 
 		// Capture phase — see the note in the expansion script below:
@@ -384,13 +417,18 @@ const visibleCount = items.filter((item) => item.visible).length;
 				if (fig) fig.style.viewTransitionName = `photo-${tid}`;
 			});
 			const transition = document.startViewTransition(apply);
-			transition.finished.finally(() => {
+			// All three of a transition's promises reject if the document goes
+			// hidden mid-transition (tab backgrounded, app-switched away from
+			// on mobile) — expected, not an error, but left uncaught it's an
+			// unhandled rejection on every one of them.
+			transition.ready.catch(() => {});
+			transition.finished.catch(() => {}).finally(() => {
 				affected.forEach((tid) => {
 					const fig = tileFor(tid);
 					if (fig) fig.style.viewTransitionName = '';
 				});
 			});
-			return transition.updateCallbackDone;
+			return transition.updateCallbackDone.catch(() => {});
 		}
 
 		// Capture phase, not bubble: ClientRouter registers its own
