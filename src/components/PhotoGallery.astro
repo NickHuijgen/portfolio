@@ -142,6 +142,18 @@ const items = photos.map((photo) => {
 });
 
 const visibleCount = items.filter((item) => item.visible).length;
+
+// Eager-load/high-priority slots must be keyed on position *among visible
+// figures*, not position in the unfiltered collection — tag pages
+// server-render all 64 figures and merely set `hidden` on non-matching
+// ones (`hidden` doesn't stop an eager fetch), so keying on the raw
+// collection index wastes eager slots on hidden figures while the
+// actually-visible photos load `lazy`. On a narrow tag (e.g. a single
+// matching photo sitting at collection index 60) that starves the one
+// visible image entirely. -1 for hidden figures so they never match
+// either check below.
+let visibleIndex = -1;
+const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1));
 ---
 
 <nav class="filters" aria-label="Filter photos by tag">
@@ -240,8 +252,8 @@ const visibleCount = items.filter((item) => item.visible).length;
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}
 							data-sizes-flat={item.sizesFlat}
-							loading={index < 6 ? 'eager' : 'lazy'}
-							fetchpriority={index < 6 ? 'high' : undefined}
+							loading={visibleIndexOf[index] >= 0 && visibleIndexOf[index] < 6 ? 'eager' : 'lazy'}
+							fetchpriority={visibleIndexOf[index] === 0 ? 'high' : undefined}
 						/>
 					</a>
 					<div class="expand-overlay">
@@ -512,14 +524,27 @@ const visibleCount = items.filter((item) => item.visible).length;
 				// path — deliberately distinct from it, so refreshing or
 				// sharing this URL reopens the tile in place here instead
 				// of landing on the standalone lightbox page. (The `<a>`'s
-				// real href is still /photo/[id], for no-JS.) Null state
-				// on purpose: ClientRouter's popstate handler returns
-				// early for `ev.state === null`, so back/forward between
-				// expanded tiles collapses in place instead of
-				// ClientRouter fetching a page and swapping the whole
-				// document. The open tile is recovered from the hash below.
-				if (next) history.pushState(null, '', `${base}#${next}`);
-				else history.replaceState(null, '', base);
+				// real href is still /photo/[id], for no-JS.) The open tile
+				// is recovered from the hash below, on our own popstate
+				// listener (further down), which fires regardless of what
+				// state ClientRouter stores.
+				//
+				// State must NOT be a literal `null`, though — ClientRouter
+				// keeps its own bookkeeping on every entry ({ index,
+				// scrollX, scrollY }, see router.js) and never repairs an
+				// entry whose state was overwritten. Writing `null` here
+				// used to permanently corrupt that entry: ClientRouter's
+				// onPopState bails early on `ev.state === null`, and it
+				// keeps bailing for *any future arrival* at this entry, not
+				// just the same-page back/forward this was meant for —
+				// e.g. expand a tile, navigate to /about/, then Back would
+				// silently no-op instead of returning here. Spreading
+				// `...history.state` preserves that bookkeeping; same-page
+				// hash transitions still avoid a fetch via ClientRouter's
+				// own same-page/hash fast path (moveToLocation), so this
+				// costs nothing over the old approach.
+				if (next) history.pushState({ ...history.state, photoOpen: next }, '', `${base}#${next}`);
+				else history.replaceState({ ...history.state, photoOpen: null }, '', base);
 				setOpen(next).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
 			},
 			true,
@@ -528,7 +553,10 @@ const visibleCount = items.filter((item) => item.visible).length;
 		document.addEventListener('keydown', (e) => {
 			if (e.key !== 'Escape' || !openId) return;
 			const id = openId;
-			history.replaceState(null, '', location.pathname + location.search);
+			// See the pushState/replaceState comment above the click handler:
+			// never write a literal `null` state here either, or Back stops
+			// working for this entry the same way.
+			history.replaceState({ ...history.state, photoOpen: null }, '', location.pathname + location.search);
 			setOpen(null).then(() => document.getElementById(id)?.focus({ preventScroll: true }));
 		});
 

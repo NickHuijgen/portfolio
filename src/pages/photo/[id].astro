@@ -77,7 +77,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	structuredData={structuredData}
 	preloadImages={preloadImages}
 >
-	<main class="photo-detail">
+	<main class="photo-detail" data-photo-id={photo.id}>
 		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
 			✕
 		</a>
@@ -107,6 +107,9 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				widths={FRAME_IMAGE_WIDTHS}
 				sizes={FRAME_IMAGE_SIZES}
 				class="frame-image"
+				style={`aspect-ratio: ${photo.data.src.width} / ${photo.data.src.height};`}
+				loading="eager"
+				fetchpriority="high"
 				transition:name={`photo-${photo.id}`}
 			/>
 			{
@@ -134,24 +137,48 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	</main>
 </Base>
 
-<script is:inline define:vars={{ photoId: photo.id }}>
-	sessionStorage.setItem('focusPhoto', photoId);
-	// Close should return to whichever tag filter was active on the grid
-	// this photo was opened from, not always the unfiltered "All" view —
-	// this page is a separate static route with no way to know that at
-	// render time (arriving here doesn't have to come from the grid at
-	// all — a shared link, a search result), so it's read back out of
-	// sessionStorage instead. PhotoGallery.astro keeps that in sync
-	// whenever the filter changes or a /tag/[tag] page loads directly.
-	const activeTag = sessionStorage.getItem('activeTag');
-	if (activeTag) {
-		document.getElementById('photo-close').href = `/tag/${encodeURIComponent(activeTag)}/#photos`;
-	}
-	document.addEventListener('keydown', (e) => {
-		if (e.key === 'Escape') document.getElementById('photo-close').click();
-		if (e.key === 'ArrowLeft') document.getElementById('photo-prev').click();
-		if (e.key === 'ArrowRight') document.getElementById('photo-next').click();
+<script is:inline>
+	// No define:vars here on purpose — it made this script's text unique
+	// per photo (`const photoId = "photo-09"` vs `"photo-10"`), which
+	// defeats Astro's inline-script dedup (keyed on exact textContent:
+	// see swap-functions.js). `document` survives ClientRouter swaps —
+	// only `document.body` is replaced — so a re-run on every distinct
+	// photo page visited left one extra `keydown` listener behind each
+	// time (up to 64/session), each later throwing on the grid (where
+	// #photo-close doesn't exist) and, worse, firing N stale `.click()`s
+	// per arrow key once N photos had been visited. The photo id now
+	// comes from a `data-photo-id` attribute (read fresh from the
+	// swapped-in DOM) instead, so this script's text is identical on
+	// every photo page and only ever runs once per session.
+	document.addEventListener('astro:page-load', () => {
+		const main = document.querySelector('.photo-detail');
+		const closeLink = document.getElementById('photo-close');
+		if (!main || !closeLink) return;
+		sessionStorage.setItem('focusPhoto', main.dataset.photoId);
+		// Close should return to whichever tag filter was active on the grid
+		// this photo was opened from, not always the unfiltered "All" view —
+		// this page is a separate static route with no way to know that at
+		// render time (arriving here doesn't have to come from the grid at
+		// all — a shared link, a search result), so it's read back out of
+		// sessionStorage instead. PhotoGallery.astro keeps that in sync
+		// whenever the filter changes or a /tag/[tag] page loads directly.
+		const activeTag = sessionStorage.getItem('activeTag');
+		if (activeTag) {
+			closeLink.href = `/tag/${encodeURIComponent(activeTag)}/#photos`;
+		}
 	});
+
+	if (!window.__photoDetailKeysInit) {
+		window.__photoDetailKeysInit = true;
+		document.addEventListener('keydown', (e) => {
+			// Cmd+Left (macOS) / Alt+Left (Windows/Linux) are browser Back;
+			// don't also step to the previous photo on top of that.
+			if (e.metaKey || e.altKey || e.ctrlKey) return;
+			if (e.key === 'Escape') document.getElementById('photo-close')?.click();
+			else if (e.key === 'ArrowLeft') document.getElementById('photo-prev')?.click();
+			else if (e.key === 'ArrowRight') document.getElementById('photo-next')?.click();
+		});
+	}
 </script>
 
 <style>
