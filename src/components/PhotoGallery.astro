@@ -74,7 +74,29 @@ const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
 const hasFeatured = photos.some((photo) => photo.data.feature);
 
 const items = photos.map((photo) => {
-	const { width, height } = photo.data.src;
+	// `.clone` (not `photo.data.src.width` directly): astro:content wraps
+	// every image() asset in a Proxy that marks it "referenced outside of
+	// image processing" the moment ANY property is read off it directly
+	// (see astro/dist/assets/utils/proxy.js) — and Astro's own build only
+	// deletes the original, untransformed copy it writes to dist/_astro/
+	// for images that AREN'T marked referenced (generate.js). `<Image>`/
+	// getImage() read width/height too, but via this same `.clone` escape
+	// hatch internally, specifically so their own metadata reads don't
+	// trip that marking. Reading `.width`/`.height` straight off
+	// `photo.data.src` here defeated that cleanup for every one of the 64
+	// photos (all of them touch this line), leaving a 50MB orphaned
+	// original per build that nothing ever links to. `.clone` returns a
+	// plain (non-proxied) structuredClone of the same metadata, so
+	// reading off it doesn't mark anything referenced.
+	//
+	// This isn't public API — Astro's own source comments it as "a
+	// private, hidden prop" — so it could change on an Astro upgrade
+	// without notice. If a future Astro version breaks this (orphaned
+	// JPEGs reappear in `dist/_astro/`, checkable after `astro build`),
+	// that's the first thing to check. It's also why this needs a cast:
+	// `clone` isn't part of the public ImageMetadata type TypeScript
+	// knows about, even though it exists at runtime.
+	const { width, height } = (photo.data.src as unknown as { clone: typeof photo.data.src }).clone;
 	const aspectRatio = width / height;
 
 	const lgColSpan = photo.data.feature ? 2 : 1;

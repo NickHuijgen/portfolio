@@ -20,6 +20,18 @@ const { photo, prev, next } = Astro.props;
 const prevId = prev.id;
 const nextId = next.id;
 
+// `.clone`, not photo.data.src.width/height directly — see the matching
+// comment in PhotoGallery.astro. Reading a property straight off an
+// image() asset marks it "referenced outside of image processing" and
+// defeats Astro's own build-time cleanup of the untransformed original
+// it writes to dist/_astro/, which is otherwise unused (only the <Image>
+// srcset variants are ever linked). `.clone` is a structuredClone, not
+// the proxied object, so reading off it doesn't trip that marking. It's
+// not part of the public ImageMetadata type, hence the cast.
+const { width: photoWidth, height: photoHeight } = (
+	photo.data.src as unknown as { clone: typeof photo.data.src }
+).clone;
+
 // The Left/Right controls are the most likely next tap, especially on
 // mobile — but touch has nothing equivalent to the hover that would
 // otherwise prefetch them (see the `data-astro-prefetch="load"` below for
@@ -108,7 +120,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				widths={FRAME_IMAGE_WIDTHS}
 				sizes={FRAME_IMAGE_SIZES}
 				class="frame-image"
-				style={`aspect-ratio: ${photo.data.src.width} / ${photo.data.src.height};`}
+				style={`aspect-ratio: ${photoWidth} / ${photoHeight};`}
 				loading="eager"
 				fetchpriority="high"
 				transition:name={`photo-${photo.id}`}
