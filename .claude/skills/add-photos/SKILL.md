@@ -1,6 +1,6 @@
 ---
 name: add-photos
-description: Turn newly uploaded, undescribed photos in src/content/images/ into full photos.yaml entries — EXIF-derived metadata, alt text, optional captions, tags, dedup against the existing library — then commit and push to main so Cloudflare Pages deploys them. Use when the user says things like "add the new photos", "pick up what I uploaded", "describe the new images", "deploy the photos I uploaded", or after they mention uploading photos via Pages CMS from their phone.
+description: Turn newly uploaded, undescribed photos in src/content/images/ into full photos.yaml entries — title, slug, EXIF-derived metadata, alt text, optional captions, location, tags, dedup against the existing library — then commit and push to main so Cloudflare Pages deploys them. Use when the user says things like "add the new photos", "pick up what I uploaded", "describe the new images", "deploy the photos I uploaded", or after they mention uploading photos via Pages CMS from their phone.
 ---
 
 # Add photos
@@ -8,10 +8,10 @@ description: Turn newly uploaded, undescribed photos in src/content/images/ into
 The intended workflow: upload a photo via Pages CMS from your phone, then
 run this skill — nothing else. Pages CMS already handles getting the raw
 file into `src/content/images/`; this skill does the judgment-heavy rest
-(accurate alt text, clean EXIF-derived metadata, dedup against the
-existing library) and — per standing authorization, see step 12 — commits
-and pushes straight to `main`, so Cloudflare Pages deploys it. No laptop,
-no separate commit step.
+(a title, accurate alt text, clean EXIF-derived metadata, a confirmed
+location, dedup against the existing library) and — per standing
+authorization, see step 14 — commits and pushes straight to `main`, so
+Cloudflare Pages deploys it. No laptop, no separate commit step.
 
 Two bundled scripts do the deterministic parts — never hand-roll their
 logic inline, the parsing/arithmetic is easy to get subtly wrong twice:
@@ -19,7 +19,8 @@ logic inline, the parsing/arithmetic is easy to get subtly wrong twice:
 - `scripts/scan_library.py <repo-root>` — surveys `photos.yaml` and
   `src/content/images/`. Returns orphan images (uploaded but not yet in
   `photos.yaml` — your actual worklist), the next `photo-N` id, every tag
-  currently in use, and a fingerprint (date + camera + lens + focal length
+  currently in use, every slug currently in use (for collision detection —
+  see step 7), and a fingerprint (date + camera + lens + focal length
   + aperture + shutter + iso) for every existing entry, for dedup.
 - `scripts/inspect_photo.py <path>` — reads one image's dimensions and
   EXIF via ImageMagick's `identify`, returns clean JSON (see the script
@@ -121,6 +122,12 @@ exposure EXIF this whole skill exists to preserve, so this needs either a
 judgment call from the user or a new tool (e.g. `exiftool`, not currently
 installed) — don't install one without asking.
 
+This is unrelated to (and doesn't replace) step 9's `location` field:
+`location` is a venue name — a zoo or park — that the user tells you, not
+something read out of GPS coordinates even when they're present. GPS
+metadata says where the *camera* was; the venue is a fact about the
+day, not something to derive from EXIF.
+
 ### 6. Destination filename
 
 `src/content/images/` uses a consistent convention: the original camera
@@ -138,16 +145,41 @@ If the normalized name would collide with a *different* existing photo
 duplicate of it), append `-1`, `-2`, etc. before the extension — same
 pattern already in use elsewhere in this library.
 
-### 7. Alt text and caption
+### 7. Title and slug
+
+- **Title is mandatory** — a short human heading (e.g. "Snow leopard
+  snarling"), separate from the alt text you'll write in step 8. Look at
+  the image; don't derive it mechanically from the filename.
+- **Slug is generated once, here, from the title — never regenerated.**
+  It's the photo's public URL (`/photo/<slug>/`) and, once written, it's
+  immutable: a later title edit (in Pages CMS or otherwise) must never
+  change an already-published slug, since that would silently 404 any
+  link already shared. This is also why `slug` isn't a Pages CMS field —
+  this skill is its only writer.
+
+  Generate it: lowercase the title, drop apostrophes (`'`/`’`) entirely
+  (no replacement character — "Pallas's cat" → "pallass", not
+  "pallas-s"), replace every run of one-or-more remaining non-`[a-z0-9]`
+  characters with a single hyphen, then trim leading/trailing hyphens.
+
+  Titles may repeat across photos; slugs must be unique. Check the
+  generated slug against `known_slugs` from step 1 (and against any
+  slug already assigned earlier in this same batch) — on collision,
+  append `-2`, `-3`, etc. (the first use of a given base slug carries no
+  suffix).
+
+### 8. Alt text and caption
 
 Actually look at the image (read it) before writing either of these —
 never infer content from the filename or EXIF alone.
 
 - **Alt text is mandatory.** A real, accessible, factual description of
-  the scene — subject, pose/action, notable context. Not the filename.
-  Look at a few neighboring entries in `photos.yaml` for the established
-  tone (e.g. "Snow leopard perched on a log, eyeing a hanging rabbit
-  carcass") before writing yours.
+  the scene — subject, pose/action, notable context. Not the filename,
+  and not just a repeat of the title: alt text stays the full accessible
+  description, title stays the short heading. Look at a few neighboring
+  entries in `photos.yaml` for the established tone (e.g. "Snow leopard
+  perched on a log, eyeing a hanging rabbit carcass") before writing
+  yours.
 - **Caption is optional and should stay that way.** Only add one when
   there's genuinely something worth saying beyond the alt text — short
   and editorial ("Announcing itself", "Golden hour"), never a restatement
@@ -161,7 +193,22 @@ never infer content from the filename or EXIF alone.
   you're unsure about and ask the user rather than picking your best
   guess silently.
 
-### 8. Tags
+### 9. Location
+
+Ask the user which zoo or park this was shot at — **never guess or infer
+it**, not from the species, the enclosure, the filename, nor from other
+photos in the same upload batch or the same shoot day. Two uploads from
+the same session are *usually* the same venue, but "usually" isn't a
+confirmation: ask every time, even when it seems obvious. (This is a
+venue name, not GPS coordinates — see step 5, which is a separate
+concern.)
+
+If the user hasn't said and doesn't answer before you need to move on,
+leave the field out entirely (`location` is optional in the schema) —
+don't block the rest of the entry on it, but do flag it as unconfirmed in
+your step 15 report so it isn't forgotten.
+
+### 10. Tags
 
 Use `known_tags` from step 1. Prefer an existing tag over inventing a new
 one — the site's tag vocabulary is deliberately small (currently just
@@ -169,14 +216,14 @@ one — the site's tag vocabulary is deliberately small (currently just
 existing, or it's genuinely ambiguous which existing tag fits best, ask
 the user rather than guessing or growing the vocabulary unilaterally.
 
-### 9. Feature flag
+### 11. Feature flag
 
 Default `feature: false`. This flag spans the photo 2 columns in the grid
 *and* makes it eligible as the site's default OG/share image (see
 `Base.astro`) — don't set it without the user asking for that specific
 photo to be featured.
 
-### 10. Write the entry
+### 12. Write the entry
 
 Append to the end of `src/content/photos.yaml` (insertion order doesn't
 matter — every page sorts by `date` at build time via
@@ -186,10 +233,13 @@ existing `photo-NN` zero-padded-to-2 format:
 
 ```yaml
 - id: photo-<next_id_number>
+  slug: <generated once in step 7, e.g. snow-leopard-snarling>
+  title: <required, short heading>
   src: images/<filename>.jpeg
   alt: <required, factual>
   caption: <optional, editorial — omit the key entirely if none>
   date: <YYYY-MM-DD from inspect_photo.py's "date">
+  location: <optional — the venue name from step 9; omit the key entirely if unconfirmed>
   tags:
     - <tag>
   feature: false
@@ -202,16 +252,19 @@ existing `photo-NN` zero-padded-to-2 format:
     iso: <integer>
 ```
 
-Omit the whole `exif:` block (it's optional in the schema) if step 2
-couldn't read camera EXIF at all.
+Key order matters here only for consistency with the rest of the file —
+every existing entry follows this same order. Omit the whole `exif:`
+block (it's optional in the schema) if step 2 couldn't read camera EXIF
+at all.
 
-### 11. Validate
+### 13. Validate
 
-Run `npx astro check` and `npx astro build`. Fix anything that fails
-before going any further — a schema mismatch here means a bad build on
-deploy, and step 12 is about to push straight to production.
+Run `npm run verify` (this project's `astro check` then `astro build`, in
+that order). Fix anything that fails before going any further — a schema
+mismatch here means a bad build on deploy, and step 14 is about to push
+straight to production.
 
-### 12. Commit and push
+### 14. Commit and push
 
 **Standing authorization:** the user has explicitly asked for this skill
 to commit and push to `main` on their behalf, specifically so that
@@ -244,14 +297,15 @@ If the push is rejected (remote has diverged — e.g. another Pages CMS
 commit landed after step 0's pull), `git pull --rebase` and retry once;
 if that doesn't resolve cleanly, stop and ask rather than force-pushing.
 
-### 13. Report
+### 15. Report
 
-Summarize: for each photo added, show its id, filename, **the exact alt
-text and caption you wrote for it** (verbatim, not paraphrased — the
-user should be able to read and correct them without opening the file),
-and its tags. Confirm it's pushed. Also report what was skipped as a
-duplicate (and of what), and anything that needed a judgment call along
-the way (new gear added to `gear.json`, a new tag, GPS present, missing
-EXIF) — including anything still sitting unprocessed because of one of
-those judgment calls, since
-those photos weren't part of the commit and will need a follow-up.
+Summarize: for each photo added, show its id, slug, filename, **the exact
+title, alt text, and caption you wrote for it** (verbatim, not
+paraphrased — the user should be able to read and correct them without
+opening the file), its location (or "unconfirmed" if step 9 didn't get an
+answer), and its tags. Confirm it's pushed. Also report what was skipped
+as a duplicate (and of what), and anything that needed a judgment call
+along the way (new gear added to `gear.json`, a new tag, GPS present,
+missing EXIF, an unconfirmed location) — including anything still sitting
+unprocessed because of one of those judgment calls, since those photos
+weren't part of the commit and will need a follow-up.

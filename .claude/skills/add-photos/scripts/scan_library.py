@@ -15,6 +15,8 @@ Prints JSON:
                      described yet — the skill's actual worklist)
   next_id_number  — the integer to use for the next "photo-N" id
   known_tags      — every distinct tag already in use, sorted
+  known_slugs     — every slug already in use, for collision detection when
+                     generating a new one from a title (see SKILL.md step 7)
   fingerprints    — [{id, date, camera, lens, focalLength, aperture,
                       shutterSpeed, iso}] for every existing entry that has
                      an exif block, for dedup matching against a new
@@ -26,7 +28,8 @@ import sys
 from pathlib import Path
 
 HEAD_RE = re.compile(
-    r"^- id: photo-(?P<id_num>\d+)\n  src: images/(?P<src>[^\n]+)\n", re.MULTILINE
+    r"^- id: photo-(?P<id_num>\d+)\n  slug: (?P<slug>\S+)\n  title: [^\n]+\n  src: images/(?P<src>[^\n]+)\n",
+    re.MULTILINE,
 )
 DATE_RE = re.compile(r"^  date: (?P<date>\S+)\n", re.MULTILINE)
 TAGS_RE = re.compile(r"^  tags:\n(?P<block>(?:    - .+\n)*)", re.MULTILINE)
@@ -63,6 +66,7 @@ def parse_entries(text):
         entries.append(
             {
                 "id_num": int(head.group("id_num")),
+                "slug": head.group("slug"),
                 "src": head.group("src"),
                 "date": date_m.group("date") if date_m else None,
                 "tags": tags,
@@ -93,6 +97,7 @@ def main():
     orphan_images = [name for name in all_images if name not in existing_srcs]
 
     known_tags = sorted({t for e in entries for t in e["tags"]})
+    known_slugs = sorted({e["slug"] for e in entries})
     next_id_number = (max((e["id_num"] for e in entries), default=0)) + 1
 
     fingerprints = [
@@ -117,6 +122,7 @@ def main():
                 "orphan_images": orphan_images,
                 "next_id_number": next_id_number,
                 "known_tags": known_tags,
+                "known_slugs": known_slugs,
                 "fingerprints": fingerprints,
                 "entry_count": len(entries),
                 "image_file_count": len(all_images),

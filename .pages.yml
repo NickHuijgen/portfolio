@@ -13,10 +13,17 @@ content:
     path: src/content/photos.yaml
     list: true
     fields:
+      # No `slug` field here on purpose: it's generated once, at creation,
+      # from `title` (see the add-photos skill and content.config.ts's
+      # schema comment) and never regenerated afterwards. Exposing it as
+      # an editable CMS field would invite exactly the edit that breaks
+      # public/_redirects and any already-shared /photo/<slug>/ URL.
       - { name: src, label: Photo, type: image }
+      - { name: title, label: Title, type: string, required: true }
       - { name: alt, label: Alt text, type: string, required: true }
       - { name: caption, label: Caption, type: string }
       - { name: date, label: Date, type: date }
+      - { name: location, label: Location, type: string, description: "The zoo or park where this was taken. Leave blank if unconfirmed — never guess." }
       - name: tags
         label: Tags
         type: select

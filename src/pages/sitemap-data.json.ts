@@ -25,7 +25,7 @@ export const GET: APIRoute = async () => {
 		photos.map(async (photo) => {
 			const optimized = await getImage({ src: photo.data.src, width: 1600 });
 			return {
-				id: photo.id,
+				slug: photo.data.slug,
 				date: photo.data.date.toISOString(),
 				tags: [...photo.data.tags, ...(photo.data.feature ? ['featured'] : [])],
 				imageUrl: optimized.src,

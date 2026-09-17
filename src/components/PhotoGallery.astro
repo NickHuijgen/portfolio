@@ -236,7 +236,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-md2:${item.md2Rows}; --rows-lg:${item.lgRows}; --rows-lg2:${item.lg2Rows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-md2-open:${item.md2OpenRows}; --rows-lg-open:${item.lgOpenRows}; --rows-lg2-open:${item.lg2OpenRows}; --rows-xs-flat:${item.xsFlatRows}; --rows-sm-flat:${item.smFlatRows}; --rows-md-flat:${item.mdFlatRows}; --rows-md2-flat:${item.md2FlatRows}; --ar:${item.aspectRatio};`}
 				>
 					<a
-						href={`/photo/${item.photo.id}/`}
+						href={`/photo/${item.photo.data.slug}/`}
 						id={item.photo.id}
 						class="thumb-link"
 						aria-expanded="false"
@@ -309,7 +309,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						/>
 					</a>
 					<div class="expand-overlay">
-						<a href={`/photo/${item.photo.id}/`} class="expand-link" aria-label="View full photo">
+						<a href={`/photo/${item.photo.data.slug}/`} class="expand-link" aria-label="View full photo">
 							⤢
 						</a>
 					</div>
@@ -345,7 +345,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		try {
 			const { id, ts } = JSON.parse(raw);
 			// Only honor this if it's fresh — set as { id, ts } (not a bare
-			// id) by /photo/[id].astro specifically so this expires. A bare
+			// id) by /photo/[slug].astro specifically so this expires. A bare
 			// id would keep pointing at whatever photo was last viewed
 			// indefinitely: visit a photo, browse to /about/, come back to
 			// / much later, and focus/scroll would get yanked to a photo
@@ -372,7 +372,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		// `.filters`/`#photo-grid` directly — ClientRouter replaces both
 		// elements on every swap and does not re-execute an already-seen
 		// inline script, so an element-bound listener would go stale the
-		// first time you come back from /photo/[id].
+		// first time you come back from /photo/[slug].
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
@@ -395,7 +395,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			fig.querySelector('.thumb-link')?.setAttribute('aria-expanded', String(open));
 		}
 
-		// The thumbnail is a plain link to /photo/[id]/ that JS turns into
+		// The thumbnail is a plain link to /photo/[slug]/ that JS turns into
 		// a disclosure — visually obvious once it grows, but invisible to
 		// AT otherwise (aria-expanded above covers the persistent state;
 		// this covers the moment it changes). #photo-count is otherwise a
@@ -532,7 +532,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// wherever I end up." on the homepage) no matter which tag is
 			// showing, by design: the page head shouldn't visibly change
 			// just from clicking a filter pill.
-			// So /photo/[id]'s Close link can send you back to the filtered
+			// So /photo/[slug]'s Close link can send you back to the filtered
 			// view you actually came from instead of always the unfiltered
 			// grid — that page is a separate static route with no way to
 			// know this at render time, so it reads this back out of
@@ -640,11 +640,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				const id = a.id;
 				const next = openId === id ? null : id;
 				const base = location.pathname + location.search;
-				// A hash on *this* page's URL, not the real /photo/[id]
+				// A hash on *this* page's URL, not the real /photo/[slug]
 				// path — deliberately distinct from it, so refreshing or
 				// sharing this URL reopens the tile in place here instead
 				// of landing on the standalone lightbox page. (The `<a>`'s
-				// real href is still /photo/[id], for no-JS.) The open tile
+				// real href is still /photo/[slug], for no-JS.) The open tile
 				// is recovered from the hash below, on our own popstate
 				// listener (further down), which fires regardless of what
 				// state ClientRouter stores.

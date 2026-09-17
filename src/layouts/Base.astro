@@ -14,7 +14,7 @@ interface Props {
 	ogImage?: string;
 	/** Alt text for ogImage — falls back to `description` when omitted, same as og:image itself falling back to the featured photo. */
 	ogImageAlt?: string;
-	/** og:type — 'website' (default), 'article' (/photo/[id]), or 'profile' (/about/). */
+	/** og:type — 'website' (default), 'article' (/photo/[slug]), or 'profile' (/about/). */
 	ogType?: 'website' | 'article' | 'profile';
 	/** JSON-LD object (or @graph-wrapped object) — see src/lib/schema.ts. */
 	structuredData?: Record<string, unknown>;
@@ -25,7 +25,7 @@ interface Props {
 	 * preloaded image is *this* page's LCP element (the homepage's first grid
 	 * photo). An `as="image"` preload is fetched at Low priority by default,
 	 * which is right for speculative warming of a page you haven't navigated
-	 * to yet — /photo/[id]'s prev/next deliberately stay Low so they don't
+	 * to yet — /photo/[slug]'s prev/next deliberately stay Low so they don't
 	 * compete for bandwidth with the photo actually on screen.
 	 */
 	preloadImages?: {
@@ -43,7 +43,7 @@ interface Props {
 	 */
 	robots?: string;
 	/**
-	 * Render the site header. Default true; /photo/[id] opts out — it's a
+	 * Render the site header. Default true; /photo/[slug] opts out — it's a
 	 * full-bleed black lightbox whose own fixed close/prev/next controls
 	 * occupy the same corners. See Header.astro.
 	 */

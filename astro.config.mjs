@@ -8,7 +8,7 @@ import { SITE_URL } from './src/lib/site.ts';
 import { isTagNoindexed } from './src/lib/tag-coverage.ts';
 
 /**
- * @typedef {{ id: string; date: string; tags: string[]; imageUrl: string; caption?: string }} SitemapPhoto
+ * @typedef {{ slug: string; date: string; tags: string[]; imageUrl: string; caption?: string }} SitemapPhoto
  */
 
 // sitemap()'s serialize()/filter both run as plain Node integration
@@ -74,7 +74,7 @@ async function serializeWithPhotoData(item) {
 
   const photoMatch = url.pathname.match(/^\/photo\/([^/]+)\/$/);
   if (photoMatch) {
-    const photo = photos.find((p) => p.id === photoMatch[1]);
+    const photo = photos.find((p) => p.slug === photoMatch[1]);
     if (photo) {
       return {
         ...item,

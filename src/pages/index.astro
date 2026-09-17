@@ -21,7 +21,7 @@ const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen
 // the grid thumbnail <Image> exactly (same array, same gridImageSizes
 // call PhotoGallery.astro itself uses), or the browser won't recognize
 // this as the same request and will fetch the image again anyway — see
-// the identical warning on /photo/[id]'s prev/next preload.
+// the identical warning on /photo/[slug]'s prev/next preload.
 const GRID_IMAGE_WIDTHS = [150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800];
 const lcpPhoto = photos[0];
 let lcpPreload;

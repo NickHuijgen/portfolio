@@ -1,6 +1,6 @@
 // og:image should always be exactly this shape, wherever it's generated
 // (Base.astro's featured-photo fallback, about.astro's portrait, or
-// /photo/[id]'s own photo): 1200x630 — matches what
+// /photo/[slug]'s own photo): 1200x630 — matches what
 // twitter:card="summary_large_image" and most link-preview scrapers
 // expect (~1.91:1) — and JPEG, not WebP, since WebP doesn't render in
 // LinkedIn's link preview and LinkedIn is linked from every page here.

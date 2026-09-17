@@ -66,7 +66,7 @@ function websiteSchema() {
 	};
 }
 
-// EXIF as schema.org PropertyValues — /photo/[id] only (see
+// EXIF as schema.org PropertyValues — /photo/[slug] only (see
 // photoPageSchema), not the 64-image gallery graph: it's already
 // rendered as visible text on that page, but nowhere machine-readable.
 function exifProperties(exif: NonNullable<CollectionEntry<'photos'>['data']['exif']>) {
@@ -92,7 +92,7 @@ export async function imageObjectSchema(
 ) {
 	const optimized = await getImage({ src: photo.data.src, width: 1600 });
 	const imageUrl = new URL(optimized.src, SITE_URL).href;
-	const pageUrl = `${SITE_URL}/photo/${photo.id}/`;
+	const pageUrl = `${SITE_URL}/photo/${photo.data.slug}/`;
 
 	return {
 		'@type': 'ImageObject',
@@ -104,6 +104,7 @@ export async function imageObjectSchema(
 		contentUrl: imageUrl,
 		mainEntityOfPage: pageUrl,
 		...(representative && { representativeOfPage: true }),
+		name: photo.data.title,
 		// `description` is the factual alt text; `caption` (when the photo
 		// has one) is the human caption — these were previously swapped,
 		// and `caption` duplicated alt when there was no real caption.
@@ -111,6 +112,9 @@ export async function imageObjectSchema(
 		...(photo.data.caption && { caption: photo.data.caption }),
 		dateCreated: photo.data.date.toISOString().slice(0, 10),
 		keywords: photo.data.tags.join(', '),
+		...(photo.data.location && {
+			contentLocation: { '@type': 'Place', name: photo.data.location },
+		}),
 		width: optimized.attributes.width,
 		height: optimized.attributes.height,
 		creator: { '@id': PERSON_ID },
@@ -152,7 +156,7 @@ export async function gallerySchema(
 	};
 }
 
-// Single-photo detail page (/photo/[id]).
+// Single-photo detail page (/photo/[slug]).
 export async function photoPageSchema(photo: CollectionEntry<'photos'>) {
 	const image = await imageObjectSchema(photo, { representative: true });
 
@@ -165,7 +169,12 @@ export async function photoPageSchema(photo: CollectionEntry<'photos'>) {
 				'@type': 'BreadcrumbList',
 				itemListElement: [
 					{ '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
-					{ '@type': 'ListItem', position: 2, name: photo.data.alt, item: `${SITE_URL}/photo/${photo.id}/` },
+					{
+					'@type': 'ListItem',
+					position: 2,
+					name: photo.data.title,
+					item: `${SITE_URL}/photo/${photo.data.slug}/`,
+				},
 				],
 			},
 			image,

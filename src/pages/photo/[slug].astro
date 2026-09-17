@@ -11,15 +11,15 @@ export async function getStaticPaths() {
 		const prev = photos[(index - 1 + photos.length) % photos.length];
 		const next = photos[(index + 1) % photos.length];
 		return {
-			params: { id: photo.id },
+			params: { slug: photo.data.slug },
 			props: { photo, prev, next },
 		};
 	});
 }
 
 const { photo, prev, next } = Astro.props;
-const prevId = prev.id;
-const nextId = next.id;
+const prevSlug = prev.data.slug;
+const nextSlug = next.data.slug;
 
 // `.clone`, not photo.data.src.width/height directly — see the matching
 // comment in PhotoGallery.astro. Reading a property straight off an
@@ -77,14 +77,14 @@ const structuredData = await photoPageSchema(photo);
 
 // Base.astro falls back to the collection's single `feature: true` photo
 // for og:image when no ogImage is given — fine for the homepage/tag pages,
-// but every /photo/[id] page shares one photo, so sharing this URL (e.g. on
-// WhatsApp) always previewed that same featured photo instead of this one.
+// but every /photo/[slug] page shares one photo, so sharing this URL (e.g.
+// on WhatsApp) always previewed that same featured photo instead of this one.
 const ogImageAsset = await getImage({ src: photo.data.src, ...OG_IMAGE_OPTIONS });
 const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
 
 <Base
-	title={`${photo.data.alt} — Nick Huijgen`}
+	title={`${photo.data.title} — Nick Huijgen`}
 	description={photo.data.caption ?? photo.data.alt}
 	ogImage={ogImage}
 	ogImageAlt={photo.data.alt}
@@ -94,12 +94,12 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	showHeader={false}
 >
 	<main class="photo-detail" id="main" tabindex="-1" data-photo-id={photo.id}>
-		<h1 class="visually-hidden">{photo.data.alt}</h1>
+		<h1 class="visually-hidden">{photo.data.title}</h1>
 		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
 			✕
 		</a>
 		<a
-			href={`/photo/${prevId}/`}
+			href={`/photo/${prevSlug}/`}
 			id="photo-prev"
 			class="control prev"
 			aria-label="Previous photo"
@@ -108,7 +108,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 			‹
 		</a>
 		<a
-			href={`/photo/${nextId}/`}
+			href={`/photo/${nextSlug}/`}
 			id="photo-next"
 			class="control next"
 			aria-label="Next photo"
@@ -134,6 +134,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		<div class="meta">
 			{photo.data.caption && <p class="caption">{photo.data.caption}</p>}
 			<p class="date">{formattedDate}</p>
+			{photo.data.location && <p class="location">{photo.data.location}</p>}
 			{exif && <p class="exif">{formattedExif}</p>}
 			<ul class="tags" role="list">
 				{
@@ -378,6 +379,12 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	}
 
 	.meta .date {
+		margin: 0;
+		font-size: 0.8125rem;
+		color: #999;
+	}
+
+	.meta .location {
 		margin: 0;
 		font-size: 0.8125rem;
 		color: #999;
