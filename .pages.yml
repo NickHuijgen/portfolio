@@ -22,7 +22,7 @@ content:
         type: select
         options:
           multiple: true
-          values: [street, landscape, portrait]
+          values: [wildlife, portrait]
       - { name: feature, label: Feature, type: boolean, default: false }
 
   - name: about
