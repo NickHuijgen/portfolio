@@ -192,3 +192,27 @@ export async function aboutPageSchema() {
 		],
 	};
 }
+
+// /license/ — the acquireLicensePage target for every photo's
+// ImageObject (see imageObjectSchema) — previously the only page on
+// the site with no structured data of its own. A minimal WebPage, not
+// a more specific subtype: there's no schema.org type that means
+// "licensing terms page" and it isn't worth overclaiming one that's
+// close but wrong.
+export async function licensePageSchema() {
+	return {
+		'@context': 'https://schema.org',
+		'@graph': [
+			await personSchema(),
+			websiteSchema(),
+			{
+				'@type': 'WebPage',
+				'@id': `${LICENSE_URL}#page`,
+				url: LICENSE_URL,
+				name: `Photo licensing — ${SITE_NAME}`,
+				isPartOf: { '@id': WEBSITE_ID },
+				publisher: { '@id': PERSON_ID },
+			},
+		],
+	};
+}

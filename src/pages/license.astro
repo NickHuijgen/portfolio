@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { licensePageSchema } from '../lib/schema.ts';
 import { INSTAGRAM_URL } from '../lib/site.ts';
 
 // Referenced from every photo's ImageObject (license + acquireLicensePage
@@ -7,11 +8,13 @@ import { INSTAGRAM_URL } from '../lib/site.ts';
 // alongside search results. Both schema.org properties need a real page
 // with real terms behind them, or Google ignores them — this is that
 // page, not just a link target.
+const structuredData = await licensePageSchema();
 ---
 
 <Base
 	title="Photo licensing — Nick Huijgen"
 	description="Licensing terms for photos on this site."
+	structuredData={structuredData}
 >
 	<main class="intro" id="main" tabindex="-1">
 		<h1>Photo licensing</h1>

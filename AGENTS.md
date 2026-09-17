@@ -276,9 +276,12 @@ this file:
   per photo — used by `/` and every `/tag/[tag]`), `photoPageSchema()`
   (the single-photo page's own `ImageObject`, `representative: true` —
   the only one that gets EXIF `additionalProperty`s and
-  `representativeOfPage`), and `aboutPageSchema()` (ProfilePage). If you
-  add a new page that lists photos, call `gallerySchema` with that
-  page's subset rather than writing JSON-LD by hand.
+  `representativeOfPage`), `aboutPageSchema()` (ProfilePage), and
+  `licensePageSchema()` (WebPage). If you add a new page that lists
+  photos, call `gallerySchema` with that page's subset rather than
+  writing JSON-LD by hand; any other new page should at minimum call
+  `personSchema()`/`websiteSchema()` the way these two do, rather than
+  ship with none.
 - Every photo's `ImageObject` carries `license`/`acquireLicensePage`
   pointing at `/license/` — see that route above. `url` points at the
   image itself (not the page — that's `mainEntityOfPage`).
