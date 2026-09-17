@@ -11,34 +11,45 @@ import { SITE_NAME } from '../lib/site.ts';
 // possible": no background fill, no bottom border, no sticky
 // positioning. A bar that follows you down the grid is permanent
 // visual weight over the one thing the page exists to show, so this
-// scrolls away with everything else. Only two links, too — the tag
-// filters (PhotoGallery.astro) are the site's real navigation, and
-// /license/ is reachable from the structured data's own link target
-// rather than needing a slot up here.
+// scrolls away with everything else. Only two nav links, too — the tag
+// filters (PhotoGallery.astro) are the photo section's own navigation,
+// and /license/ is reachable from the structured data's own link
+// target rather than needing a slot up here.
 //
-// Only the About link carries aria-current, and the wordmark
-// deliberately doesn't — not just to avoid two aria-current="page"
-// links on the homepage (the filter nav's "All" is the other, and it's
-// the one that actually describes the view), but because a wordmark
-// one would go stale: PhotoGallery.astro's filter switch rewrites the
-// URL from / to /tag/<tag>/ client-side without re-rendering anything
-// from the server, so a wordmark marked current on / would keep
-// claiming to be the current page on /tag/portrait/ — the same
-// server-vs-client drift that AGENTS.md's Invariants table already
-// tracks for tagCopy(). The About link can't drift the same way:
-// filtering never moves between the grid and /about/.
+// Photos points at /#photos rather than / so it isn't just a second
+// wordmark: it skips the intro and lands on the grid, same target as
+// the intro's own "View photos" button.
 //
-// trailingSlash: 'always' (astro.config.mjs), so this compares against
-// the trailing-slash form.
+// The two nav links carry aria-current; the wordmark deliberately
+// doesn't. Partly convention (site identity, not a nav item), but
+// mostly because a wordmark one would go stale: PhotoGallery.astro's
+// filter switch rewrites the URL from / to /tag/<tag>/ client-side
+// without re-rendering anything from the server, so a wordmark marked
+// current on / would keep claiming to be the current page on
+// /tag/portrait/ — the same server-vs-client drift AGENTS.md's
+// Invariants table already tracks for tagCopy(). Neither nav link can
+// drift that way, which is exactly why isPhotos spans / AND /tag/*:
+// both sides of a client-side filter switch are "the photos", so the
+// server-rendered answer stays true however the filter moves. Two
+// aria-current="page" links on the grid (this one and the filter nav's
+// "All") is intentional and the normal primary-nav/sub-nav pattern —
+// they answer different questions ("which section" vs "which filter").
+//
+// trailingSlash: 'always' (astro.config.mjs), so these compare against
+// the trailing-slash forms.
 const path = Astro.url.pathname;
+const isPhotos = path === '/' || path.startsWith('/tag/');
 ---
 
 <header class="site-header">
 	<nav class="bar" aria-label="Site">
 		<a href="/" class="wordmark">{SITE_NAME}</a>
-		<a href="/about/" class="nav-link" aria-current={path === '/about/' ? 'page' : undefined}>
-			About
-		</a>
+		<div class="links">
+			<a href="/#photos" class="nav-link" aria-current={isPhotos ? 'page' : undefined}>Photos</a>
+			<a href="/about/" class="nav-link" aria-current={path === '/about/' ? 'page' : undefined}>
+				About
+			</a>
+		</div>
 	</nav>
 </header>
 
@@ -58,6 +69,15 @@ const path = Astro.url.pathname;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 16px;
+	}
+
+	/* 16px between the nav links, matching the filter nav's column-gap —
+	   wide enough that two adjacent 44px targets don't mis-tap, narrow
+	   enough that all three items still fit on one line at 320px. */
+	.links {
+		display: flex;
+		align-items: center;
 		gap: 16px;
 	}
 

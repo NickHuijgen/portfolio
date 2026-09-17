@@ -131,13 +131,14 @@ you know one exists before you touch either side of it.
 - Every route above except `/photo/[id]` renders `Header.astro`
   (`Base.astro`, `showHeader` prop — default true, the lightbox passes
   `false` because its own fixed close/prev/next controls occupy the
-  same corners). Two links, no background, no border, not sticky:
-  a bar that follows you down the grid is permanent visual weight over
-  the photos. The tag filters are the site's real navigation; the
-  header is only site identity plus the one page (`/about/`) the grid
-  can't reach on its own. Its wordmark deliberately carries no
-  `aria-current` — see the comment in `Header.astro` for why a
-  client-side filter switch would make one wrong.
+  same corners). A wordmark plus two nav links (Photos → `/#photos`,
+  About → `/about/`); no background, no border, not sticky — a bar that
+  follows you down the grid is permanent visual weight over the photos.
+  The tag filters remain the photo section's own navigation, so the
+  header stays out of that. Its wordmark deliberately carries no
+  `aria-current`, and the Photos link's spans `/` *and* `/tag/*` on
+  purpose — see the comment in `Header.astro` for why a client-side
+  filter switch makes anything narrower wrong.
 
 ## Layout
 - CSS Grid, `grid-auto-flow: dense`, fixed `grid-auto-rows`.
