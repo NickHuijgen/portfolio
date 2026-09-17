@@ -128,6 +128,16 @@ you know one exists before you touch either side of it.
   by prefetching it — see the `FRAME_IMAGE_WIDTHS` row in Invariants.
   `index.astro` does the same thing for the homepage's own LCP photo
   (see the `GRID_IMAGE_WIDTHS` row).
+- Every route above except `/photo/[id]` renders `Header.astro`
+  (`Base.astro`, `showHeader` prop — default true, the lightbox passes
+  `false` because its own fixed close/prev/next controls occupy the
+  same corners). Two links, no background, no border, not sticky:
+  a bar that follows you down the grid is permanent visual weight over
+  the photos. The tag filters are the site's real navigation; the
+  header is only site identity plus the one page (`/about/`) the grid
+  can't reach on its own. Its wordmark deliberately carries no
+  `aria-current` — see the comment in `Header.astro` for why a
+  client-side filter switch would make one wrong.
 
 ## Layout
 - CSS Grid, `grid-auto-flow: dense`, fixed `grid-auto-rows`.

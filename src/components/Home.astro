@@ -91,7 +91,10 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 		--text-secondary: #666;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding-block: 64px 48px;
+		/* 32px, not the 64px this was before the site header existed —
+		   the header now supplies the space above the fold that this
+		   padding used to. Same reduction in 404.astro/license.astro. */
+		padding-block: 32px 48px;
 	}
 
 	.who {

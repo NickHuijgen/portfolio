@@ -91,6 +91,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	ogType="article"
 	structuredData={structuredData}
 	preloadImages={preloadImages}
+	showHeader={false}
 >
 	<main class="photo-detail" id="main" tabindex="-1" data-photo-id={photo.id}>
 		<h1 class="visually-hidden">{photo.data.alt}</h1>
