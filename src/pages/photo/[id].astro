@@ -128,18 +128,12 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				fetchpriority="high"
 				transition:name={`photo-${photo.id}`}
 			/>
-			{
-				(photo.data.caption || exif) && (
-					<div class="frame-caption">
-						{photo.data.caption && <figcaption>{photo.data.caption}</figcaption>}
-						{exif && <p class="exif">{formattedExif}</p>}
-					</div>
-				)
-			}
 		</figure>
 
 		<div class="meta">
+			{photo.data.caption && <p class="caption">{photo.data.caption}</p>}
 			<p class="date">{formattedDate}</p>
+			{exif && <p class="exif">{formattedExif}</p>}
 			<ul class="tags" role="list">
 				{
 					photo.data.tags.map((tag) => (
@@ -328,11 +322,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	}
 
 	.frame {
-		position: relative;
 		margin: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
 		max-width: 100%;
 	}
 
@@ -344,60 +334,33 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		max-height: 90vh;
 	}
 
-	/* Overlaid on the image itself rather than stacked below it, so the
-	   caption reads as part of the photo instead of page chrome — same
-	   technique as PhotoGallery.astro's .expand-caption. The gradient
-	   gives white text a guaranteed-dark floor to sit on no matter how
-	   light the photo underneath is: 0.65-alpha black under white text
-	   measures ~7:1 even composited over a near-white photo (see the
-	   contrast-ratio comment on .expand-caption for the full math —
-	   these numbers are copied from there). box-sizing: border-box
-	   keeps the side padding from pushing this past the image's width. */
-	.frame-caption {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		box-sizing: border-box;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		justify-content: center;
-		column-gap: 16px;
-		row-gap: 4px;
-		width: 100%;
-		padding: 40px 16px 16px;
-		background: linear-gradient(
-			to top,
-			rgba(0, 0, 0, 0.65) 0,
-			rgba(0, 0, 0, 0.65) 56px,
-			transparent 120px
-		);
-	}
-
-	.frame figcaption {
-		margin: 0;
-		font-size: 0.9375rem;
-		color: #fff;
-	}
-
-	.exif {
-		margin: 0;
-		font-size: 0.75rem;
-		color: rgba(255, 255, 255, 0.8);
-	}
-
 	.meta {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
 		gap: 8px 16px;
+		max-width: 100%;
+	}
+
+	.meta .caption {
+		flex-basis: 100%;
+		margin: 0;
+		font-size: 0.9375rem;
+		color: #fff;
+		text-align: center;
 	}
 
 	.meta .date {
 		margin: 0;
 		font-size: 0.8125rem;
 		color: #999;
+	}
+
+	.meta .exif {
+		margin: 0;
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.8);
 	}
 
 	.tags {
