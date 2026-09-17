@@ -2,11 +2,12 @@
 # https://developers.cloudflare.com/pages/configuration/redirects/
 #
 # One-time migration from the old /photo/photo-NN/-style URLs (the
-# collection's internal `id`, still used for DOM ids/hash URLs/
-# transition names — see the slug row in AGENTS.md's Invariants table)
-# to the new descriptive /photo/<slug>/ URLs. Permanent (301) since the
-# old paths are never coming back and any external link/bookmark/search
-# result pointing at one should update to the new URL.
+# collection's internal `id`, which is no longer used for anything
+# public — see the first bullet under Lightbox / View Transitions in
+# AGENTS.md) to the new descriptive /photo/<slug>/ URLs. Permanent
+# (301) since the old paths are never coming back and any external
+# link/bookmark/search result pointing at one should update to the new
+# URL.
 
 /photo/photo-09/  /photo/sleeping-tiger/  301
 /photo/photo-10/  /photo/clouded-leopard-sleeping/  301

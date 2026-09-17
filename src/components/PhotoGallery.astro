@@ -41,6 +41,24 @@ const OPEN_COLS = {
 
 const photos = await getSortedPhotos();
 
+// Every thumbnail link's DOM id is its photo's `slug` (see the `id` on
+// .thumb-link below): the expansion script looks tiles up with
+// getElementById, focuses them by id after a collapse, and derives each
+// tile's view-transition-name from it. `slug` is already unique across
+// photos (getSortedPhotos throws otherwise), but it's author-written
+// text, so it can also collide with one of this page's own structural
+// ids — and `photos` in particular is a real target (the close link
+// returns to /#photos). A collision would silently point tileFor() at
+// the wrong element instead of failing, so fail the build here instead.
+const RESERVED_IDS = ['main', 'photos', 'photo-grid', 'photo-count'];
+for (const photo of photos) {
+	if (RESERVED_IDS.includes(photo.data.slug)) {
+		throw new Error(
+			`Photo slug "${photo.data.slug}" (${photo.id}) collides with a reserved element id on the gallery page. Rename the slug.`,
+		);
+	}
+}
+
 const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
 // Pinned right after "All", ahead of the alphabetical tags, rather than
 // sorted in among them — "featured" isn't a real tag (see photoMatchesTag),
@@ -237,7 +255,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				>
 					<a
 						href={`/photo/${item.photo.data.slug}/`}
-						id={item.photo.id}
+						id={item.photo.data.slug}
 						class="thumb-link"
 						aria-expanded="false"
 					>
@@ -343,14 +361,16 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		}
 		if (!raw) return;
 		try {
-			const { id, ts } = JSON.parse(raw);
-			// Only honor this if it's fresh — set as { id, ts } (not a bare
-			// id) by /photo/[slug].astro specifically so this expires. A bare
-			// id would keep pointing at whatever photo was last viewed
+			const { slug, ts } = JSON.parse(raw);
+			// Only honor this if it's fresh — set as { slug, ts } (not a bare
+			// slug) by /photo/[slug].astro specifically so this expires. A
+			// bare slug would keep pointing at whatever photo was last viewed
 			// indefinitely: visit a photo, browse to /about/, come back to
 			// / much later, and focus/scroll would get yanked to a photo
-			// the user didn't just come from.
-			if (id && Date.now() - ts < 5000) document.getElementById(id)?.focus();
+			// the user didn't just come from. The slug is also the thumbnail
+			// link's DOM id (see .thumb-link above), so it's the lookup key
+			// here directly.
+			if (slug && Date.now() - ts < 5000) document.getElementById(slug)?.focus();
 		} catch {}
 	});
 </script>
@@ -376,7 +396,18 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
+		// Every id below is a photo's `slug` — that's what .thumb-link
+		// carries as its DOM id, and (via /photo/<slug>/) what an open
+		// tile puts in the address bar.
 		let openId = null;
+		// The grid URL to return to when a tile collapses. An open tile
+		// replaces the address bar with the photo's own /photo/<slug>/ URL
+		// (see the click handler), so `location` can't be read for this
+		// while one is open — and it isn't always `/` either: /tag/<tag>/
+		// is a grid page too, and a filter click makes it one client-side.
+		// Set on every grid page-load and kept current by the filter
+		// handler, both below.
+		let gridUrl = location.pathname + location.search;
 
 		function tileFor(id) {
 			return document.getElementById(id)?.closest('figure') ?? null;
@@ -589,24 +620,37 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				// `hidden` while still `is-open` (openId untouched, sizes
 				// still the expanded candidate) — filtering back to a tag
 				// it does match then brought it back already expanded with
-				// no user action, and the URL had already lost its
-				// #photo-xx hash (this click's own pushState below never
-				// carries one), so a refresh silently lost the open state
-				// too. No transition/scroll needed for this collapse: the
-				// filter's own render() below already animates the switch.
+				// no user action. No transition/scroll needed for this
+				// collapse: the filter's own render() below already
+				// animates the switch, and this click's own pushState
+				// replaces the open tile's /photo/<slug>/ URL with the
+				// tag's anyway.
 				if (openId) {
 					setTileOpen(tileFor(openId), false);
 					openId = null;
 				}
 				const tag = a.getAttribute('data-tag') ?? '';
 				render(tag);
-				history.pushState({ ...history.state, tag, photoOpen: null }, '', a.getAttribute('href'));
+				// This href is the grid page for the new filter, so it's
+				// also where a tile opened *after* this click collapses
+				// back to.
+				gridUrl = a.getAttribute('href');
+				history.pushState({ ...history.state, tag, photoOpen: null }, '', gridUrl);
 			},
 			true,
 		);
 
 		window.addEventListener('popstate', (e) => {
 			if (!e.state || typeof e.state.tag !== 'string') return;
+			// Back out of an open tile pops onto the grid entry this filter
+			// is already showing (that entry's URL and filter never
+			// changed — only the tile did), so check before animating: a
+			// re-render to the tag that's already applied is invisible, but
+			// it still starts a view transition, and that one would be
+			// competing with the swap ClientRouter does for the same pop.
+			const nav = document.querySelector('.filters');
+			const current = nav?.querySelector('[aria-current="page"]')?.getAttribute('data-tag') ?? '';
+			if (current === e.state.tag) return;
 			render(e.state.tag);
 		});
 
@@ -639,32 +683,47 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				e.preventDefault();
 				const id = a.id;
 				const next = openId === id ? null : id;
-				const base = location.pathname + location.search;
-				// A hash on *this* page's URL, not the real /photo/[slug]
-				// path — deliberately distinct from it, so refreshing or
-				// sharing this URL reopens the tile in place here instead
-				// of landing on the standalone lightbox page. (The `<a>`'s
-				// real href is still /photo/[slug], for no-JS.) The open tile
-				// is recovered from the hash below, on our own popstate
-				// listener (further down), which fires regardless of what
-				// state ClientRouter stores.
+				// An open tile puts the photo's own /photo/<slug>/ URL in
+				// the address bar — the same URL this `<a>` points at for
+				// no-JS — rather than a hash on the grid's URL. It used to
+				// be a hash (`/#<slug>`), which had the nice property that
+				// refreshing or sharing it reopened the tile in place; the
+				// dealbreaker is that a fragment is never sent to a server
+				// and every link-preview scraper drops it, so a shared
+				// "look at this photo" URL always embedded the homepage's
+				// og:image (the featured photo) instead of the photo the
+				// sender had open. /photo/<slug>/ is a real prerendered
+				// page with that photo's own og:image, so sharing it
+				// previews the right image — and opening the link lands on
+				// the standalone lightbox rather than the grid, which is
+				// the better arrival for a shared link anyway.
 				//
-				// State must NOT be a literal `null`, though — ClientRouter
-				// keeps its own bookkeeping on every entry ({ index,
-				// scrollX, scrollY }, see router.js) and never repairs an
-				// entry whose state was overwritten. Writing `null` here
-				// used to permanently corrupt that entry: ClientRouter's
-				// onPopState bails early on `ev.state === null`, and it
-				// keeps bailing for *any future arrival* at this entry, not
-				// just the same-page back/forward this was meant for —
-				// e.g. expand a tile, navigate to /about/, then Back would
-				// silently no-op instead of returning here. Spreading
-				// `...history.state` preserves that bookkeeping; same-page
-				// hash transitions still avoid a fetch via ClientRouter's
-				// own same-page/hash fast path (moveToLocation), so this
-				// costs nothing over the old approach.
-				if (next) history.pushState({ ...history.state, photoOpen: next }, '', `${base}#${next}`);
-				else history.replaceState({ ...history.state, photoOpen: null }, '', base);
+				// ClientRouter doesn't navigate behind our back over this:
+				// it tracks its own `originalLocation` (see router.js) and
+				// only updates it in moveToLocation, i.e. on navigations it
+				// performs itself — a manual pushState leaves it pointing
+				// at the grid page, so the "⤢" link's plain navigation to
+				// this same /photo/<slug>/ URL is still a real navigation
+				// to it, not a same-page no-op.
+				//
+				// State must NOT be a literal `null` — ClientRouter keeps
+				// its own bookkeeping on every entry ({ index, scrollX,
+				// scrollY }, see router.js) and never repairs an entry
+				// whose state was overwritten. Writing `null` here used to
+				// permanently corrupt that entry: ClientRouter's onPopState
+				// bails early on `ev.state === null`, and it keeps bailing
+				// for *any future arrival* at this entry, not just the
+				// same-page back/forward this was meant for — e.g. expand a
+				// tile, navigate to /about/, then Back would silently no-op
+				// instead of returning here. Spreading `...history.state`
+				// preserves that bookkeeping.
+				if (next)
+					history.pushState(
+						{ ...history.state, photoOpen: next },
+						'',
+						`/photo/${encodeURIComponent(next)}/`,
+					);
+				else history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
 				setOpen(next).then(() => {
 					document.getElementById(id)?.focus({ preventScroll: true });
 					announce(next ? 'Photo expanded' : 'Photo collapsed');
@@ -678,8 +737,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			const id = openId;
 			// See the pushState/replaceState comment above the click handler:
 			// never write a literal `null` state here either, or Back stops
-			// working for this entry the same way.
-			history.replaceState({ ...history.state, photoOpen: null }, '', location.pathname + location.search);
+			// working for this entry the same way. `gridUrl`, not
+			// `location`: the open tile's URL is /photo/<slug>/, so
+			// collapsing has to restore the grid's own URL from the
+			// variable that remembers it.
+			history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
 			setOpen(null).then(() => {
 				document.getElementById(id)?.focus({ preventScroll: true });
 				announce('Photo collapsed');
@@ -690,25 +752,34 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// Only meaningful while the grid is on screen; if ClientRouter
 			// swapped us elsewhere the fresh page starts collapsed anyway.
 			if (!document.getElementById('photo-grid')) return;
-			const id = location.hash.slice(1);
-			const target = id && tileFor(id) ? id : null;
-			if (target === openId) return;
-			setOpen(target);
+			// Back out of an open tile lands on the grid's own URL — that's
+			// a collapse, in place. A pop *onto* a /photo/<slug>/ entry (a
+			// Forward after that Back) is a navigation to the standalone
+			// lightbox page, which ClientRouter is already fetching and
+			// swapping in: don't race it with a view transition here, and
+			// don't reopen a tile on a page that's about to be replaced.
+			if (location.pathname.startsWith('/photo/')) return;
+			gridUrl = location.pathname + location.search;
+			// Collapsed directly, not through setOpen(): a Back from an
+			// open tile leaves the grid's URL unchanged from
+			// ClientRouter's point of view (its `originalLocation` never
+			// saw our pushState), so it re-fetches and swaps in this same
+			// grid page — a second, concurrent view transition here would
+			// only be aborted by that swap's own one.
+			if (openId) {
+				setTileOpen(tileFor(openId), false);
+				openId = null;
+			}
 		});
 
-		// A swap hands us a fresh grid with nothing expanded — except when
-		// the URL itself names one (a shared link, or a refresh while a
-		// tile was open): reopen it instantly, no transition, since this
-		// is a page load rather than a click and there's no prior on-screen
-		// state to animate from.
+		// A swap (or a Back that ClientRouter served by re-fetching this
+		// grid page) hands us a fresh grid with nothing expanded. Nothing
+		// to recover from the URL: an open tile's URL *is* /photo/<slug>/,
+		// so landing on one is the standalone lightbox page, not this grid.
 		document.addEventListener('astro:page-load', () => {
+			if (!document.getElementById('photo-grid')) return;
 			openId = null;
-			const id = location.hash.slice(1);
-			const fig = id && tileFor(id);
-			if (!fig) return;
-			setTileOpen(fig, true);
-			openId = id;
-			fig.scrollIntoView({ block: 'center', behavior: 'auto' });
+			gridUrl = location.pathname + location.search;
 		});
 	})();
 </script>

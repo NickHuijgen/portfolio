@@ -7,13 +7,16 @@ const photos = defineCollection({
   schema: ({ image }) =>
     z.object({
       // Generated once, at creation, from `title` — see the add-photos
-      // skill and the slug row in the Invariants table. Never regenerated
+      // skill, and the first bullet under Lightbox / View Transitions in
+      // AGENTS.md for everything keyed off it. Never regenerated
       // from a later title edit, and never exposed in Pages CMS, so it
       // can't be hand-edited into breaking public/_redirects or an
-      // already-shared /photo/<slug>/ URL. This is the route param and
-      // the only public identifier; `id` (the collection key, from this
-      // entry's `id:` field) stays purely internal — DOM ids, /#photo-NN
-      // hash URLs, transition names, JSON-LD ids.
+      // already-shared /photo/<slug>/ URL. This is the only identifier
+      // the front end uses: the route param, the grid thumbnail link's
+      // DOM id, the in-grid expansion key, and the view-transition name.
+      // `id` (the collection key, from this entry's `id:` field) stays
+      // purely internal — JSON-LD ids and the old /photo/photo-NN/
+      // redirects.
       slug: z.string().min(1),
       // Short human heading — the photo page's H1. Distinct from `alt`,
       // which stays the full accessible description.

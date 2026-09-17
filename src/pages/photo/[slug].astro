@@ -93,7 +93,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	preloadImages={preloadImages}
 	showHeader={false}
 >
-	<main class="photo-detail" id="main" tabindex="-1" data-photo-id={photo.id}>
+	<main class="photo-detail" id="main" tabindex="-1" data-photo-slug={photo.data.slug}>
 		<h1 class="visually-hidden">{photo.data.title}</h1>
 		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
 			✕
@@ -127,7 +127,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				style={`--frame-ar: ${photoWidth} / ${photoHeight};`}
 				loading="eager"
 				fetchpriority="high"
-				transition:name={`photo-${photo.id}`}
+				transition:name={`photo-${photo.data.slug}`}
 			/>
 		</figure>
 
@@ -151,15 +151,15 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 
 <script is:inline>
 	// No define:vars here on purpose — it made this script's text unique
-	// per photo (`const photoId = "photo-09"` vs `"photo-10"`), which
-	// defeats Astro's inline-script dedup (keyed on exact textContent:
+	// per photo (`const photoSlug = "sleeping-tiger"` vs the next photo's),
+	// which defeats Astro's inline-script dedup (keyed on exact textContent:
 	// see swap-functions.js). `document` survives ClientRouter swaps —
 	// only `document.body` is replaced — so a re-run on every distinct
 	// photo page visited left one extra `keydown` listener behind each
 	// time (up to 64/session), each later throwing on the grid (where
 	// #photo-close doesn't exist) and, worse, firing N stale `.click()`s
-	// per arrow key once N photos had been visited. The photo id now
-	// comes from a `data-photo-id` attribute (read fresh from the
+	// per arrow key once N photos had been visited. The photo's slug now
+	// comes from a `data-photo-slug` attribute (read fresh from the
 	// swapped-in DOM) instead, so this script's text is identical on
 	// every photo page and only ever runs once per session.
 	document.addEventListener('astro:page-load', () => {
@@ -167,14 +167,15 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		const closeLink = document.getElementById('photo-close');
 		if (!main || !closeLink) return;
 		try {
-			// { id, ts } rather than a bare id: PhotoGallery.astro's consumer
-			// only honors this if it's fresh (see the comment there) — a
-			// bare id would keep pointing at whatever photo was last viewed
-			// indefinitely, yanking focus to it on a much later, unrelated
-			// visit to the grid.
+			// { slug, ts } rather than a bare slug: PhotoGallery.astro's
+			// consumer only honors this if it's fresh (see the comment
+			// there) — a bare slug would keep pointing at whatever photo was
+			// last viewed indefinitely, yanking focus to it on a much later,
+			// unrelated visit to the grid. The slug is the grid thumbnail's
+			// DOM id, so it's what that consumer focuses by.
 			sessionStorage.setItem(
 				'focusPhoto',
-				JSON.stringify({ id: main.dataset.photoId, ts: Date.now() }),
+				JSON.stringify({ slug: main.dataset.photoSlug, ts: Date.now() }),
 			);
 		} catch {
 			// Blocked cookies/storage, enterprise policy, sandboxed frame —
