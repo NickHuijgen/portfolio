@@ -22,7 +22,7 @@ const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen
 // call PhotoGallery.astro itself uses), or the browser won't recognize
 // this as the same request and will fetch the image again anyway — see
 // the identical warning on /photo/[id]'s prev/next preload.
-const GRID_IMAGE_WIDTHS = [150, 300, 450, 650, 900, 1300, 1800];
+const GRID_IMAGE_WIDTHS = [150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800];
 const lcpPhoto = photos[0];
 let lcpPreload;
 if (lcpPhoto) {
@@ -31,6 +31,10 @@ if (lcpPhoto) {
 		href: optimized.src,
 		imagesrcset: optimized.srcSet.attribute,
 		imagesizes: gridImageSizes(lcpPhoto.data.feature),
+		// This one preload *is* the homepage's LCP element, so it's the one
+		// case that should outrank the default Low priority an as="image"
+		// preload gets — see the prop's comment in Base.astro.
+		fetchpriority: 'high' as const,
 	};
 }
 ---

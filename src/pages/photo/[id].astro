@@ -124,7 +124,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				widths={FRAME_IMAGE_WIDTHS}
 				sizes={FRAME_IMAGE_SIZES}
 				class="frame-image"
-				style={`aspect-ratio: ${photoWidth} / ${photoHeight};`}
+				style={`--frame-ar: ${photoWidth} / ${photoHeight};`}
 				loading="eager"
 				fetchpriority="high"
 				transition:name={`photo-${photo.id}`}
@@ -325,14 +325,39 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	.frame {
 		margin: 0;
 		max-width: 100%;
+		/* #main is a centered flex column, so this figure would otherwise be
+		   fit-content — i.e. its width would depend on the image inside it.
+		   That leaves the image with no definite containing-block width to
+		   resolve against, which is half of why the box below used to
+		   collapse. Stretching the figure gives it one; the image re-centers
+		   itself with margin-inline below. */
+		align-self: stretch;
 	}
 
 	.frame-image {
 		display: block;
-		width: auto;
+		/* This deliberately encodes the old `max-width: 100%; max-height: 90vh`
+		   pair as a single *definite* width, rather than leaving width/height
+		   `auto`. The old version shifted layout: until the image responded,
+		   its box was 0x0 and everything below it sat ~240px too high, then
+		   jumped down on load (CLS 0.065 on a slow connection, ~0 on a fast
+		   one — which is why browsing from the grid never showed it).
+
+		   `width: auto` was the cause. It overrides the width/height
+		   attributes Astro emits, which are what would otherwise give a
+		   not-yet-loaded image its intrinsic size, so `aspect-ratio` had no
+		   definite axis to work from and the element collapsed.
+
+		   Two fixes that look right and aren't, both measured: dropping the
+		   auto declarations reserves the right box but stretches the image to
+		   364x741 once loaded, and `width: 100%` still collapses to 0x0
+		   (that's the fit-content figure above). min() reproduces exactly
+		   what max-width/max-height used to compute — verified identical at
+		   viewport heights where the 90vh cap binds and where it doesn't. */
+		width: min(100%, calc(90vh * var(--frame-ar)));
 		height: auto;
-		max-width: 100%;
-		max-height: 90vh;
+		aspect-ratio: var(--frame-ar);
+		margin-inline: auto;
 	}
 
 	.meta {

@@ -246,14 +246,21 @@ this file:
   specifically because there's only ever the one bundle (no per-route
   CSS explosion to worry about duplicating).
 - The grid's thumbnail `<Image>` uses
-  `widths={[150, 300, 450, 650, 900, 1300, 1800]}`, not a coarser array
+  `widths={[150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800]}`, not a coarser array
   — see the comment above it in `PhotoGallery.astro` for the exact
   math. Short version: a `sizes` breakpoint value times a phone's
   device-pixel-ratio very easily lands just past one width candidate,
   forcing the browser to the *next* candidate up; with widths spaced
   too far apart that means fetching multiples of the bytes actually
   needed — measured directly via Lighthouse (~2.1MB of oversized images
-  on the homepage, then ~1.8MB after a first, insufficient fix). Every
+  on the homepage, then ~1.8MB after a first, insufficient fix). The
+  same trap runs the other way too: a candidate sitting too far *above*
+  a real need overshoots just as expensively. `550`/`1100`/`1400` close
+  the three worst such gaps (+25%/+23%/+36% over the 2x target); the
+  550 one is the homepage's LCP image and was worth ~330ms of LCP on a
+  throttled phone connection. Closing a gap is not the same as lowering
+  the 2x target — don't "simplify" this array by dropping candidates.
+  Every
   `<Image>`/`getImage()` call on the site with a fixed `widths` array
   (this one, `FRAME_IMAGE_WIDTHS`/`GRID_IMAGE_WIDTHS` for the lightbox
   and homepage preloads) was derived the same way: compute the real

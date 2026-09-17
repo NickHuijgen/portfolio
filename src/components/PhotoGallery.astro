@@ -276,12 +276,30 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 
 							  Re-derive this (or re-run a full-page-scrolled trace) if
 							  TIERS, OPEN_COLS, or the grid's gaps ever change.
+
+							  550/1100/1400 were added later, for the *other* half of
+							  the same trap: a candidate can also sit too far *above* a
+							  real need. Replaying every `sizes` value against the 2x
+							  target above turned up three places where the nearest
+							  candidate overshot badly — 512-526 -> 650 (+25%),
+							  1056-1084 -> 1300 (+23%), and 1322 -> 1800 (+36%). The
+							  first of those is the phone-sized grid tile, i.e. the
+							  homepage's LCP image: measured on a throttled connection
+							  (1.6Mbps/150ms, 412x823 @1.75dpr, median of 5), serving it
+							  at 550w instead of 650w moved LCP 1844ms -> 1512ms.
+
+							  Note this does *not* relax the 2x target — every need is
+							  still served by a candidate at or above 2x. It only closes
+							  gaps between candidates. Nothing was removed either: 450
+							  looks dead against the 2x math alone, but real devices span
+							  dpr 1-3 and the browser picks on actual dpr, so the ladder
+							  has to cover the continuum, not just the 2x points.
 							*/
 						}
 						<Image
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
-							widths={[150, 300, 450, 650, 900, 1300, 1800]}
+							widths={[150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800]}
 							sizes={activeTag === 'featured' ? item.sizesFlat : item.sizes}
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}

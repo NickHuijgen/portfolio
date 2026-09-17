@@ -18,8 +18,22 @@ interface Props {
 	ogType?: 'website' | 'article' | 'profile';
 	/** JSON-LD object (or @graph-wrapped object) — see src/lib/schema.ts. */
 	structuredData?: Record<string, unknown>;
-	/** Responsive image variants to warm the cache for before they're needed — e.g. the lightbox's prev/next photos. */
-	preloadImages?: { href: string; imagesrcset: string; imagesizes: string }[];
+	/**
+	 * Responsive image variants to warm the cache for before they're needed — e.g. the lightbox's prev/next photos.
+	 *
+	 * `fetchpriority: 'high'` is opt-in per entry, and only correct when the
+	 * preloaded image is *this* page's LCP element (the homepage's first grid
+	 * photo). An `as="image"` preload is fetched at Low priority by default,
+	 * which is right for speculative warming of a page you haven't navigated
+	 * to yet — /photo/[id]'s prev/next deliberately stay Low so they don't
+	 * compete for bandwidth with the photo actually on screen.
+	 */
+	preloadImages?: {
+		href: string;
+		imagesrcset: string;
+		imagesizes: string;
+		fetchpriority?: 'high';
+	}[];
 	/**
 	 * robots meta content, e.g. "noindex, follow". Omit for the normal
 	 * indexable case. When set, canonical and all og: and twitter: tags are
@@ -105,7 +119,14 @@ const indexable = !robots?.includes('noindex');
 		}
 		{
 			preloadImages?.map((p) => (
-				<link rel="preload" as="image" href={p.href} imagesrcset={p.imagesrcset} imagesizes={p.imagesizes} />
+				<link
+					rel="preload"
+					as="image"
+					href={p.href}
+					imagesrcset={p.imagesrcset}
+					imagesizes={p.imagesizes}
+					fetchpriority={p.fetchpriority}
+				/>
 			))
 		}
 		{
