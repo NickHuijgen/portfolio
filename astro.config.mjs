@@ -1,47 +1,76 @@
 // @ts-check
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 
 import sitemap from '@astrojs/sitemap';
+import { SITE_URL } from './src/lib/site.ts';
+import { isTagNoindexed } from './src/lib/tag-coverage.ts';
 
 /**
  * @typedef {{ id: string; date: string; tags: string[]; imageUrl: string; caption?: string }} SitemapPhoto
  */
 
-// sitemap()'s serialize() runs as a plain Node integration hook, outside
-// Astro's Vite pipeline — astro:content/astro:assets aren't importable
-// there (confirmed directly: astro:content throws "Only URLs with a
-// scheme in: file, data, and node are supported by the default ESM
-// loader. Received protocol 'astro:'"). To give it real per-photo dates
-// and images for <lastmod>/<image:image> anyway, src/pages/
+// sitemap()'s serialize()/filter both run as plain Node integration
+// hooks, outside Astro's Vite pipeline — astro:content/astro:assets
+// aren't importable there (confirmed directly: astro:content throws
+// "Only URLs with a scheme in: file, data, and node are supported by
+// the default ESM loader. Received protocol 'astro:'"). A *plain*
+// module with no astro:* imports of its own (site.ts, tag-coverage.ts
+// above) loads here just fine, confirmed the same way — the
+// restriction is specifically the astro: virtual-module scheme, not
+// "no imports at all". To give this file real per-photo dates and
+// images for <lastmod>/<image:image> anyway, src/pages/
 // sitemap-data.json.ts runs as a normal prerendered endpoint instead
-// (where both ARE available) and writes its result into the build
-// output; astro:build:done (below) only fires once that whole build,
-// including this endpoint, is finished writing, so it's always there to
-// read by the time serialize() needs it. Lazily read+memoized rather
-// than at module scope, since the file doesn't exist yet when this
-// config file is first evaluated — only once the build has run.
-/** @type {Promise<SitemapPhoto[]> | undefined} */
-let sitemapDataPromise;
+// (where astro:content/astro:assets ARE available) and writes its
+// result into the build output; astro:build:done (both hooks below run
+// inside it) only fires once that whole build, including this
+// endpoint, is finished writing, so it's always there to read by the
+// time either hook needs it. Lazily read+memoized rather than at
+// module scope, since the file doesn't exist yet when this config file
+// is first evaluated — only once the build has run. Synchronous
+// (readFileSync, not the promise-based fs/promises) because
+// sitemap()'s `filter` option is synchronous — `serialize` below could
+// tolerate async, but sharing one loader is simpler than two.
+/** @type {SitemapPhoto[] | undefined} */
+let sitemapData;
+/** @returns {SitemapPhoto[]} */
 function loadSitemapData() {
   // Relative to this config file's own location, not the site's (remote)
   // URL — `./dist` is Astro's default output dir, matching this project
   // (no custom `outDir` is set below).
-  sitemapDataPromise ??= readFile(
-    fileURLToPath(new URL('dist/sitemap-data.json', import.meta.url)),
-    'utf-8',
-  ).then(
-    /** @returns {SitemapPhoto[]} */
-    (raw) => JSON.parse(raw),
+  sitemapData ??= JSON.parse(
+    readFileSync(fileURLToPath(new URL('dist/sitemap-data.json', import.meta.url)), 'utf-8'),
   );
-  return sitemapDataPromise;
+  return /** @type {SitemapPhoto[]} */ (sitemapData);
+}
+
+/** @param {string} tag */
+function photosForTag(tag) {
+  const photos = loadSitemapData();
+  // "featured" is folded into each photo's own tags array by
+  // sitemap-data.json.ts, matching photoMatchesTag's treatment of it
+  // as a pseudo-tag everywhere else.
+  return photos.filter((p) => p.tags.includes(tag));
+}
+
+// Mirrors tag/[tag].astro's own noindex decision (both derived from
+// isTagNoindexed — see tag-coverage.ts) so a tag noindexed there is
+// never still submitted here. Google reports that combination as
+// "Submitted URL marked 'noindex'" in Search Console.
+/** @param {string} pageUrl */
+function isIndexableSitemapUrl(pageUrl) {
+  const tagMatch = new URL(pageUrl).pathname.match(/^\/tag\/([^/]+)\/$/);
+  if (!tagMatch) return true;
+  const tag = decodeURIComponent(tagMatch[1]);
+  const shown = photosForTag(tag);
+  return !isTagNoindexed(shown.length, loadSitemapData().length);
 }
 
 /** @param {import('@astrojs/sitemap').SitemapItem} item */
 async function serializeWithPhotoData(item) {
   const url = new URL(item.url);
-  const photos = await loadSitemapData();
+  const photos = loadSitemapData();
 
   const photoMatch = url.pathname.match(/^\/photo\/([^/]+)\/$/);
   if (photoMatch) {
@@ -63,10 +92,8 @@ async function serializeWithPhotoData(item) {
   if (tag === undefined) return item;
 
   // tag === null here means the homepage (every photo); otherwise the
-  // photos actually shown on /tag/<tag>/ — "featured" is folded into
-  // each photo's own tags array by sitemap-data.json.ts, matching
-  // photoMatchesTag's treatment of it as a pseudo-tag everywhere else.
-  const shown = tag === null ? photos : photos.filter((p) => p.tags.includes(tag));
+  // photos actually shown on /tag/<tag>/.
+  const shown = tag === null ? photos : photosForTag(tag);
   if (shown.length === 0) return item;
 
   const latest = shown.reduce((max, p) => (p.date > max ? p.date : max), shown[0].date);
@@ -79,9 +106,9 @@ async function serializeWithPhotoData(item) {
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://nickhuijgen.nl',
+  site: SITE_URL,
   trailingSlash: 'always',
-  integrations: [sitemap({ serialize: serializeWithPhotoData })],
+  integrations: [sitemap({ serialize: serializeWithPhotoData, filter: isIndexableSitemapUrl })],
   build: {
     // The site's only external stylesheet (~4.3kB, all pages share it) sits
     // just over Vite's 4kB auto-inline threshold, so it was shipped as a

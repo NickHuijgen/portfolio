@@ -39,13 +39,15 @@ export async function personSchema() {
 		knowsAbout: ['Wildlife photography', 'Portrait photography'],
 		knowsLanguage: 'en',
 		sameAs: [LINKEDIN_URL, INSTAGRAM_URL],
-		// No public email — Instagram DM is the stated contact channel (see
-		// about.yaml's body text), so that's what's machine-readable too.
-		contactPoint: {
-			'@type': 'ContactPoint',
-			contactType: 'customer support',
-			url: INSTAGRAM_URL,
-		},
+		// No contactPoint: schema.org's documented contactType values
+		// (customer service, technical support, billing support, sales,
+		// reservations, etc.) are all organizational-desk vocabulary that
+		// doesn't honestly describe "photographer taking booking enquiries
+		// over Instagram DM" — picking the least-wrong one (customer
+		// service was the leading candidate) would still be a mismatch, not
+		// a fix. makesOffer below plus the Instagram link in `sameAs` (and
+		// on-page, in about.yaml's body text) already say how to reach him
+		// for bookings without overclaiming a formal contact desk.
 		makesOffer: {
 			'@type': 'Offer',
 			itemOffered: { '@type': 'Service', name: 'Portrait photography' },

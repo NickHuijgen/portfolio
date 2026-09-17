@@ -48,8 +48,10 @@ you know one exists before you touch either side of it.
 | The grid thumbnail `<Image>`'s `widths` array or `gridImageSizes()` (`PhotoGallery.astro` / `grid.ts`) | `index.astro`'s `GRID_IMAGE_WIDTHS` (must stay array-identical) | `index.astro` preloads the homepage's LCP photo with the exact same `widths`/`sizes` the grid `<Image>` will render, so the browser recognizes it as the same request. Drift here means a silent double-fetch, not an error. |
 | `FRAME_IMAGE_WIDTHS`/`FRAME_IMAGE_SIZES` (`photo/[id].astro`) | The frame `<Image>` right below them, in the same file | Same reasoning, for the lightbox's prev/next preload — see the comment there. |
 | `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`) | The hardcoded `og:image:type`/`width`/`height` meta values in `Base.astro` | Every `og:image` on the site is generated with these exact options (1200×630 JPEG) — the meta tags assume that rather than reading it back off the generated asset. |
-| `SITE_URL` (`src/lib/site.ts`) | `site` in `astro.config.mjs` | No shared import: `astro.config.mjs`'s sitemap `serialize()` runs as a plain Node integration hook outside Astro's Vite pipeline, where app modules that pull in `astro:content`/`astro:assets` (which `site.ts`'s neighbours do, even if `site.ts` itself doesn't) aren't reliably loadable. Keep both hardcoded values in sync by hand. |
 | `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer `wildlife`, which 63 of 64 photos carry). |
+| `tagCopy()` (`src/lib/tag-copy.ts`) | Its by-hand duplicate inside `PhotoGallery.astro`'s `applyFilter` | The client-side filter switch (no real navigation) needs the same heading/lead/title a fresh page load would server-render, but is a plain `is:inline` script with no imports — see Constraints. Missed once already: the h1/lead were added tag-aware server-side without this mirror, so a client-side filter switch left the heading contradicting both `<title>` and the visible grid. |
+
+`SITE_URL`/`SITE_NAME`/the social URLs (`src/lib/site.ts`) and `isTagNoindexed()` (`src/lib/tag-coverage.ts`, used by both `tag/[tag].astro`'s `robots` and `astro.config.mjs`'s sitemap `filter`) are *not* in this table on purpose — they're plain modules with no `astro:*` imports of their own, which import cleanly into `astro.config.mjs` (confirmed directly: the restriction there is specifically the `astro:` virtual-module scheme, not "no imports at all" — see the comment in `astro.config.mjs`), so there's exactly one copy of each, not two to keep in sync.
 
 ## Constraints
 - `.astro` components only. No React, Vue, or any client framework.
@@ -110,9 +112,9 @@ you know one exists before you touch either side of it.
   target — see SEO / structured data.
 - `/sitemap-data.json` — not a page anyone links to or is meant to
   browse; a prerendered JSON endpoint that exists purely so
-  `astro.config.mjs`'s sitemap `serialize()` (which can't reach
-  `astro:content`/`astro:assets` — see SEO / structured data) has
-  per-photo dates and image URLs to read back off disk during the
+  `astro.config.mjs`'s sitemap `serialize()`/`filter` (which can't reach
+  `astro:content`/`astro:assets` — see SEO / structured data) have
+  per-photo dates, tags, and image URLs to read back off disk during the
   build. Harmless to have public since everything in it is already
   public on the photo pages themselves.
 - Prev/next both warm the cache for the *next* page on load, not on
@@ -153,6 +155,29 @@ you know one exists before you touch either side of it.
   math can ever get — expect a few percent of reserved-but-unused
   height even when the reference matches the real column width
   exactly.
+- Reserved-but-unused row height, replaying the tier math over the real
+  aspect ratios (measured, not estimated — re-measure the same way if
+  `TIERS` changes again):
+
+  | viewport | before md/lg split | after |
+  |---|---|---|
+  | 320px | 38% | 38% (unchanged — see below) |
+  | 400px | 21% | 21% |
+  | 600px | 81% | 43% |
+  | 800px | 33% | 33% |
+  | 1000px | 27% | 15% |
+  | 1200px | 5% | 3% |
+
+  320px (an iPhone SE 1st-gen, or a narrower Android phone — below
+  `xs`'s 393px reference) is now the single worst number, and the
+  `md`/`lg` split didn't touch it. Deliberately left as-is rather than
+  splitting `xs` again the same way: it's an old, shrinking device
+  class, and another tier is real added complexity (a full new set of
+  custom properties and `@media` blocks — see the `TIERS` row in
+  Invariants) for a narrower and narrower slice of real traffic. If
+  that calculus changes, the fix is the same move a third time — split
+  the reference, not just cap `.grid`'s `max-width` (see the `TIERS`
+  bullet above for why the cap alone doesn't help here).
 
 ## Style
 - Plain CSS in `.astro` files. No Tailwind, no CSS framework.
@@ -165,6 +190,13 @@ you know one exists before you touch either side of it.
   of introducing a shared stylesheet for a handful of rules — there's
   only ever the one page-level bundle (see Performance), and this
   keeps it that way.
+- The horizontal gutter on every page except `/photo/[id]` (which
+  zeroes it and pads itself explicitly) is the browser's default 8px
+  `body` margin — inherited by accident, not a deliberate design
+  choice, on a site that's otherwise mobile-first about everything
+  else. Known, not fixed: left as-is rather than changed unprompted.
+  If it's ever revisited, it needs an explicit, named value rather than
+  the implicit UA default it is today.
 
 ## Accessibility
 Beyond the general mobile/accessibility-first framing at the top of
@@ -257,29 +289,25 @@ this file:
   e.g. LinkedIn's, don't render it) and not whatever aspect ratio the
   source happened to be. `Base.astro`'s `og:image:type`/`width`/`height`
   meta assume this — see the Invariants row.
-- `Base.astro`'s `robots` prop drives both the `/404` noindex and the
-  `/tag/[tag]` threshold noindex (`tag/[tag].astro`: any tag covering
-  more than 15% of the whole collection — today, `wildlife` and
-  `featured` — gets `noindex, follow`; a percentage rather than a
-  hardcoded tag-name list, so it doesn't need updating as tags change).
-  Setting `robots` also suppresses canonical and every `og:`/`twitter:`
-  tag — a noindexed page shouldn't claim a preferred canonical URL or
-  offer a social-share preview.
-- `astro.config.mjs`'s sitemap `serialize()` adds `lastmod` and
-  `image:image` per URL, but runs as a plain Node integration hook
-  outside Astro's Vite pipeline — confirmed directly that
-  `astro:content` throws there ("astro:" isn't a scheme the default ESM
-  loader resolves). `src/pages/sitemap-data.json.ts` (see Routes) is the
-  workaround: a normal prerendered endpoint, where both APIs work fine,
-  that writes the data `serialize()` needs into the build output;
-  `astro:build:done` (which is when `serialize()` actually runs) only
-  fires once that whole build — including this endpoint — is finished
-  writing, so it's reliably there to read with plain `fs` by then.
+- `Base.astro`'s `robots` prop drives the `/404` noindex and the
+  `/tag/[tag]` threshold noindex. The threshold decision itself —
+  `isTagNoindexed()` in `src/lib/tag-coverage.ts` — is shared with
+  `astro.config.mjs`'s sitemap `filter`, which excludes the same URLs
+  from the sitemap outright: a tag noindexed but still submitted gets
+  Search Console's "Submitted URL marked 'noindex'" warning, so these
+  two can't be allowed to disagree. Setting `robots` also suppresses
+  canonical and every `og:`/`twitter:` tag.
+- `astro.config.mjs`'s sitemap `serialize()`/`filter` add `lastmod`,
+  `image:image`, and the noindex exclusion above, but run as plain Node
+  integration hooks outside Astro's Vite pipeline — confirmed directly
+  that `astro:content` throws there. `src/pages/sitemap-data.json.ts`
+  (see Routes) is the workaround; see the comment at the top of
+  `astro.config.mjs` for the full mechanism and timing guarantee.
 - `SITE_URL`/`SITE_NAME`/the LinkedIn and Instagram URLs live in
   `src/lib/site.ts` — import from there rather than redeclaring them;
   this used to be triplicated across `Home.astro`, `about.astro`, and
-  `schema.ts`. `astro.config.mjs`'s own `site` value is the one
-  exception that still can't share the constant — see Invariants.
+  `schema.ts`, and `astro.config.mjs` (which imports it too — see the
+  Invariants intro for why that's safe) had its own fourth copy.
 
 ## Lightbox / View Transitions
 - Grid thumbnail and detail-page image share

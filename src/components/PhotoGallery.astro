@@ -122,7 +122,17 @@ const items = photos.map((photo) => {
 	// them. "Flat" is that view's alternative: every photo forced to its
 	// plain 1-column span, computed here (not measured) same as the *Open
 	// numbers above. lg/lg2 are untouched (2-of-4 already divides evenly,
-	// so "featured" never breaks it there).
+	// so "featured" never breaks it there) — deliberately no separate
+	// `(min-width: 1100px)` lg2 step here the way `sizes`/`sizesOpen` above
+	// have, reusing `lgWidth` all the way from 1000px up instead. Checked,
+	// not just assumed: lgWidth vs lg2Width is 263px vs 288px (1-col) /
+	// 542px vs 592px (2-col, feature), and both pairs round up to the same
+	// srcset candidate at this project's 2x-DPR ceiling (650w / 1300w in
+	// the widths array below) — so the "wrong" width here never actually
+	// changes which file gets fetched, today. That's an accident of the
+	// current widths array, not a guarantee: re-check this the same way if
+	// the array's candidates ever move closer together near 650/1300, per
+	// the Performance section's re-derive warning.
 	const sizesFlat = `(min-width: 1000px) ${Math.round(lgWidth)}px, (min-width: 800px) ${Math.round(md2ColWidth)}px, (min-width: 600px) ${Math.round(mdColWidth)}px, (min-width: 400px) ${Math.round(smColWidth)}px, ${Math.round(xsColWidth)}px`;
 
 	return {
@@ -348,6 +358,31 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
+		// Mirrors src/lib/tag-copy.ts's tagCopy() by hand — this is a plain
+		// is:inline script with no imports/build step (see Constraints), so
+		// it can't import that file. Home.astro (server-rendered) and
+		// tag/[tag].astro's <title> both call the real one; this is what
+		// keeps a client-side filter switch (no real navigation, so nothing
+		// server-rendered changes on its own) from leaving the heading/lead/
+		// title on whatever tag was active on load. Keep in sync if
+		// tag-copy.ts changes — see AGENTS.md's Invariants table.
+		function tagCopy(tag, count) {
+			if (tag === 'featured') {
+				const heading = 'Featured photos';
+				return {
+					heading,
+					lead: `A selection of ${count} favorite${count === 1 ? '' : 's'}.`,
+					title: `${heading} — Nick Huijgen`,
+				};
+			}
+			const heading = `${tag[0].toUpperCase()}${tag.slice(1)} photography`;
+			return {
+				heading,
+				lead: `${count} photo${count === 1 ? '' : 's'} tagged "${tag}".`,
+				title: `${heading} — Nick Huijgen`,
+			};
+		}
+
 		let openId = null;
 
 		function tileFor(id) {
@@ -499,10 +534,33 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				else a.removeAttribute('aria-current');
 			});
 			// Filtering is a pushState, not a real navigation, so ClientRouter
-			// never swaps in the tag page's own <title> — without this the
-			// tab title stays whatever it was on load (e.g. "— wildlife")
-			// no matter which tag is actually showing, until a manual refresh.
-			document.title = tag ? `Nick Huijgen — ${tag}` : 'Nick Huijgen';
+			// never swaps in the tag page's own <title>/h1/lead — without this
+			// they'd stay whatever they were on load (e.g. "Nick Huijgen" /
+			// "Photography from wherever I end up." even after filtering to
+			// wildlife) no matter which tag is actually showing, until a
+			// manual refresh. Regression once already: this was missed when
+			// the tag-aware heading/lead were first added, so the h1
+			// (screen readers' actual page heading) contradicted both the
+			// <title> and the visible grid after a client-side filter switch.
+			const copy = tag ? tagCopy(tag, visible) : null;
+			const heading = document.querySelector('.intro h1');
+			const lead = document.querySelector('.intro .lead');
+			if (heading) heading.textContent = copy ? copy.heading : 'Nick Huijgen';
+			if (lead) lead.textContent = copy ? copy.lead : 'Photography from wherever I end up.';
+			if (heading) {
+				let byline = document.querySelector('.intro .byline');
+				if (copy) {
+					if (!byline) {
+						byline = document.createElement('p');
+						byline.className = 'byline';
+						heading.insertAdjacentElement('afterend', byline);
+					}
+					byline.textContent = 'by Nick Huijgen';
+				} else {
+					byline?.remove();
+				}
+			}
+			document.title = copy ? copy.title : 'Nick Huijgen';
 			// So /photo/[id]'s Close link can send you back to the filtered
 			// view you actually came from instead of always the unfiltered
 			// grid — that page is a separate static route with no way to

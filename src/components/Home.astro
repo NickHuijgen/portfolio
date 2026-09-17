@@ -2,14 +2,16 @@
 import { Image } from 'astro:assets';
 import PhotoGallery from './PhotoGallery.astro';
 import { getAbout } from '../lib/about.ts';
-import { getSortedPhotos, photoMatchesTag } from '../lib/photos.ts';
 import { INSTAGRAM_URL, LINKEDIN_URL } from '../lib/site.ts';
+import { tagCopy } from '../lib/tag-copy.ts';
 
 interface Props {
 	activeTag?: string;
+	/** Required alongside activeTag — the caller (tag/[tag].astro) already has this count from building the page, so Home.astro doesn't re-fetch and re-filter the whole collection just to get it again. */
+	activeTagCount?: number;
 }
 
-const { activeTag } = Astro.props;
+const { activeTag, activeTagCount } = Astro.props;
 
 const about = await getAbout();
 
@@ -17,22 +19,14 @@ const about = await getAbout();
 // page (as well as /) is most of why / and /tag/[tag] measured 0.9998
 // similar with scripts/styles stripped — near-duplicate content Google
 // has no reason to index all of separately. Tag-aware heading + lead
-// line instead: genuinely different text per tag (not hand-authored
-// prose per tag name, which would go stale the moment a new tag shows
-// up — see .pages.yml's already-stale options list for exactly that
-// failure mode) while staying true to what's actually on the page.
-let tagHeading: string | undefined;
-let tagLead: string | undefined;
-if (activeTag) {
-	const count = (await getSortedPhotos()).filter((photo) => photoMatchesTag(photo, activeTag)).length;
-	if (activeTag === 'featured') {
-		tagHeading = 'Featured photos';
-		tagLead = `A selection of ${count} favorite${count === 1 ? '' : 's'}.`;
-	} else {
-		tagHeading = `${activeTag[0].toUpperCase()}${activeTag.slice(1)} photography`;
-		tagLead = `${count} photo${count === 1 ? '' : 's'} tagged "${activeTag}".`;
-	}
-}
+// line instead (tagCopy — shared with tag/[tag].astro's <title> and,
+// necessarily duplicated by hand, PhotoGallery.astro's client-side
+// filter switch — see the comment there and AGENTS.md's Invariants
+// table): genuinely different text per tag while staying true to
+// what's actually on the page.
+const { heading: tagHeading, lead: tagLead } = activeTag
+	? tagCopy(activeTag, activeTagCount ?? 0)
+	: { heading: undefined, lead: undefined };
 ---
 
 <main id="main" tabindex="-1">
@@ -59,7 +53,7 @@ if (activeTag) {
 				{tagHeading && <p class="byline">by Nick Huijgen</p>}
 			</div>
 		</div>
-		<p>{tagLead ?? 'Photography from wherever I end up.'}</p>
+		<p class="lead">{tagLead ?? 'Photography from wherever I end up.'}</p>
 		<p class="bio">
 			{about.homeIntro} <a href="/about/" class="more-link">More about me</a>
 		</p>
