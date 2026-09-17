@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import { INSTAGRAM_URL } from '../lib/site.ts';
+
+// Referenced from every photo's ImageObject (license + acquireLicensePage
+// — see src/lib/schema.ts) so Google Images can show licensing info
+// alongside search results. Both schema.org properties need a real page
+// with real terms behind them, or Google ignores them — this is that
+// page, not just a link target.
+---
+
+<Base
+	title="Photo licensing — Nick Huijgen"
+	description="Licensing terms for photos on this site."
+>
+	<main class="intro" id="main" tabindex="-1">
+		<h1>Photo licensing</h1>
+		<p>
+			All photos on this site are © Nick Huijgen. All rights reserved — none of them are
+			available under a Creative Commons or other open license.
+		</p>
+		<p>
+			Interested in using one, or booking a portrait session? Send a message on <a
+				href={INSTAGRAM_URL}
+				target="_blank"
+				rel="me noopener">Instagram<span class="visually-hidden"> (opens in a new tab)</span></a
+			>.
+		</p>
+	</main>
+</Base>
+
+<style>
+	#main:focus-visible {
+		outline: none;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.intro {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding-block: 64px 48px;
+	}
+
+	.intro h1 {
+		margin: 0 0 1rem;
+		font-size: 2rem;
+		font-weight: 500;
+	}
+
+	.intro p {
+		margin: 0 0 1rem;
+		font-size: 1.125rem;
+		max-width: 40em;
+	}
+
+	.intro a {
+		color: inherit;
+	}
+</style>

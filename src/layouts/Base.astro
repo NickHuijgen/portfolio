@@ -4,30 +4,49 @@ import { getImage } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
 import '@fontsource-variable/instrument-sans/wght.css';
 import fontUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import { SITE_NAME } from '../lib/site.ts';
+import { OG_IMAGE_OPTIONS } from '../lib/og-image.ts';
 
 interface Props {
 	title: string;
 	description: string;
 	ogImage?: string;
+	/** Alt text for ogImage — falls back to `description` when omitted, same as og:image itself falling back to the featured photo. */
+	ogImageAlt?: string;
+	/** og:type — 'website' (default), 'article' (/photo/[id]), or 'profile' (/about/). */
+	ogType?: 'website' | 'article' | 'profile';
 	/** JSON-LD object (or @graph-wrapped object) — see src/lib/schema.ts. */
 	structuredData?: Record<string, unknown>;
 	/** Responsive image variants to warm the cache for before they're needed — e.g. the lightbox's prev/next photos. */
 	preloadImages?: { href: string; imagesrcset: string; imagesizes: string }[];
+	/**
+	 * robots meta content, e.g. "noindex, follow". Omit for the normal
+	 * indexable case. When set, canonical and all og: and twitter: tags are
+	 * suppressed too — a noindexed page (404, or a near-duplicate tag
+	 * view) shouldn't tell Google or a social-share scraper it has a
+	 * preferred canonical URL or a shareable preview.
+	 */
+	robots?: string;
 }
 
-const { title, description, ogImage, structuredData, preloadImages } = Astro.props;
+const { title, description, ogImage, ogImageAlt, ogType = 'website', structuredData, preloadImages, robots } =
+	Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 let resolvedOgImage = ogImage;
+let resolvedOgImageAlt = ogImageAlt;
 if (!resolvedOgImage) {
 	const photos = await getCollection('photos');
 	const featured = photos.find((photo) => photo.data.feature);
 	if (featured) {
-		const optimized = await getImage({ src: featured.data.src, width: 1200 });
+		const optimized = await getImage({ src: featured.data.src, ...OG_IMAGE_OPTIONS });
 		resolvedOgImage = new URL(optimized.src, Astro.site).href;
+		resolvedOgImageAlt ??= featured.data.alt;
 	}
 }
+
+const indexable = !robots?.includes('noindex');
 ---
 
 <html lang="en">
@@ -35,18 +54,39 @@ if (!resolvedOgImage) {
 		<meta charset="utf-8" />
 		<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
+		<meta name="author" content={SITE_NAME} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
-		<link rel="canonical" href={canonicalURL} />
+		{robots && <meta name="robots" content={robots} />}
+		{indexable && <link rel="canonical" href={canonicalURL} />}
 
-		<meta property="og:title" content={title} />
-		<meta property="og:description" content={description} />
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content={canonicalURL} />
-		{resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
-		<meta name="twitter:card" content="summary_large_image" />
+		{
+			indexable && (
+				<>
+					<meta property="og:title" content={title} />
+					<meta property="og:description" content={description} />
+					<meta property="og:type" content={ogType} />
+					<meta property="og:url" content={canonicalURL} />
+					<meta property="og:site_name" content={SITE_NAME} />
+					<meta property="og:locale" content="en_US" />
+					{resolvedOgImage && (
+						<>
+							<meta property="og:image" content={resolvedOgImage} />
+							{/* Every og:image on the site is generated via OG_IMAGE_OPTIONS
+							    (see og-image.ts) — always exactly this shape, so these are
+							    safe to hardcode rather than thread through as props. */}
+							<meta property="og:image:type" content="image/jpeg" />
+							<meta property="og:image:width" content="1200" />
+							<meta property="og:image:height" content="630" />
+							<meta property="og:image:alt" content={resolvedOgImageAlt ?? description} />
+						</>
+					)}
+					<meta name="twitter:card" content="summary_large_image" />
+				</>
+			)
+		}
 		{
 			preloadImages?.map((p) => (
 				<link rel="preload" as="image" href={p.href} imagesrcset={p.imagesrcset} imagesizes={p.imagesizes} />

@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import Home from '../../components/Home.astro';
 import { gallerySchema } from '../../lib/schema.ts';
 import { getSortedPhotos, photoMatchesTag } from '../../lib/photos.ts';
+import { SITE_URL } from '../../lib/site.ts';
 
 export async function getStaticPaths() {
 	const photos = await getCollection('photos');
@@ -21,17 +22,27 @@ const { tag } = Astro.params;
 // tagged photo shows up here with no extra step.
 const photos = await getSortedPhotos();
 const taggedPhotos = photos.filter((photo) => photoMatchesTag(photo, tag));
-const structuredData = await gallerySchema(
-	taggedPhotos,
-	`https://nickhuijgen.nl/tag/${tag}/`,
-	`Nick Huijgen — ${tag}`,
-);
+const structuredData = await gallerySchema(taggedPhotos, `${SITE_URL}/tag/${tag}/`, `Nick Huijgen — ${tag}`);
+
+// / and every /tag/[tag] measured 0.9998 similar (scripts/styles
+// stripped) — near-duplicate content, because a tag covering nearly the
+// whole collection renders almost the same 64 figures as the homepage.
+// A tag that's a small, genuinely distinct subset (a handful of photos
+// out of 64) doesn't have that problem and is worth indexing on its own
+// — one that covers most of the collection is functionally the same
+// page as /. Threshold (not a hardcoded tag name list, which would go
+// stale the moment tags change) matches today's data: wildlife (63/64,
+// 98%) and featured (11/64, 17%) both noindex; portrait (1/64, 2%)
+// stays indexable.
+const coverage = taggedPhotos.length / photos.length;
+const robots = coverage > 0.15 ? 'noindex, follow' : undefined;
 ---
 
 <Base
 	title={`Nick Huijgen — ${tag}`}
-	description={`Photos tagged "${tag}" by Nick Huijgen.`}
+	description={`${taggedPhotos.length} photo${taggedPhotos.length === 1 ? '' : 's'} tagged "${tag}" by Nick Huijgen.`}
 	structuredData={structuredData}
+	robots={robots}
 >
 	<Home activeTag={tag} />
 </Base>

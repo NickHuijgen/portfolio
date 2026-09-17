@@ -1,6 +1,7 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import { OG_IMAGE_OPTIONS } from '../../lib/og-image.ts';
 import { photoPageSchema } from '../../lib/schema.ts';
 import { getSortedPhotos } from '../../lib/photos.ts';
 
@@ -78,7 +79,7 @@ const structuredData = await photoPageSchema(photo);
 // for og:image when no ogImage is given — fine for the homepage/tag pages,
 // but every /photo/[id] page shares one photo, so sharing this URL (e.g. on
 // WhatsApp) always previewed that same featured photo instead of this one.
-const ogImageAsset = await getImage({ src: photo.data.src, width: 1200 });
+const ogImageAsset = await getImage({ src: photo.data.src, ...OG_IMAGE_OPTIONS });
 const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
 
@@ -86,6 +87,8 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	title={`${photo.data.alt} — Nick Huijgen`}
 	description={photo.data.caption ?? photo.data.alt}
 	ogImage={ogImage}
+	ogImageAlt={photo.data.alt}
+	ogType="article"
 	structuredData={structuredData}
 	preloadImages={preloadImages}
 >
