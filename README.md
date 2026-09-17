@@ -20,6 +20,7 @@ All commands run from the project root:
 | `npm run build`     | Build the production site to `./dist/`           |
 | `npm run preview`   | Preview the build locally, before deploying      |
 | `npm run check`     | Type-check `.astro`/`.ts` files (`astro check`)  |
+| `npm run verify`    | `check` then `build` — run this before pushing  |
 
 ## Content
 

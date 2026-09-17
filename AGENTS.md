@@ -436,6 +436,14 @@ this file:
 ## Verification
 
 Before calling a change done:
+- `npm run verify` runs the first two of these in order, and is the
+  normal way to run them — `check` first, because `build` on its own is
+  not a safety net for type errors. An invalid JSX comment in
+  `Home.astro`'s attribute list once failed `check` with 7 errors while
+  `astro build` still reported success. Deliberately *not* wired into
+  `build` itself: Cloudflare Pages runs `build`, and photo-only commits
+  from Pages CMS shouldn't be blocked from deploying by an unrelated
+  type error elsewhere in the codebase.
 - `npm run check` (`astro check`) — 0 errors expected. Warnings/hints
   from `content.config.ts` or elsewhere that predate your change aren't
   yours to fix incidentally, but don't add new ones.
