@@ -19,11 +19,12 @@ const about = await getAbout();
 // page (as well as /) is most of why / and /tag/[tag] measured 0.9998
 // similar with scripts/styles stripped — near-duplicate content Google
 // has no reason to index all of separately. Tag-aware heading + lead
-// line instead (tagCopy — shared with tag/[tag].astro's <title> and,
-// necessarily duplicated by hand, PhotoGallery.astro's client-side
-// filter switch — see the comment there and AGENTS.md's Invariants
-// table): genuinely different text per tag while staying true to
-// what's actually on the page.
+// line instead (tagCopy — shared with tag/[tag].astro's <title>):
+// genuinely different text per tag while staying true to what's
+// actually on the page. This is server-rendered only — a client-side
+// filter switch on `/` (PhotoGallery.astro's applyFilter) deliberately
+// leaves this heading/lead alone rather than mirroring tagCopy, so
+// clicking a filter pill never changes the page head.
 const { heading: tagHeading, lead: tagLead } = activeTag
 	? tagCopy(activeTag, activeTagCount ?? 0)
 	: { heading: undefined, lead: undefined };

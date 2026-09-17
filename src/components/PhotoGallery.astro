@@ -376,31 +376,6 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
-		// Mirrors src/lib/tag-copy.ts's tagCopy() by hand — this is a plain
-		// is:inline script with no imports/build step (see Constraints), so
-		// it can't import that file. Home.astro (server-rendered) and
-		// tag/[tag].astro's <title> both call the real one; this is what
-		// keeps a client-side filter switch (no real navigation, so nothing
-		// server-rendered changes on its own) from leaving the heading/lead/
-		// title on whatever tag was active on load. Keep in sync if
-		// tag-copy.ts changes — see AGENTS.md's Invariants table.
-		function tagCopy(tag, count) {
-			if (tag === 'featured') {
-				const heading = 'Featured photos';
-				return {
-					heading,
-					lead: `A selection of ${count} favorite${count === 1 ? '' : 's'}.`,
-					title: `${heading} — Nick Huijgen`,
-				};
-			}
-			const heading = `${tag[0].toUpperCase()}${tag.slice(1)} photography`;
-			return {
-				heading,
-				lead: `${count} photo${count === 1 ? '' : 's'} tagged "${tag}".`,
-				title: `${heading} — Nick Huijgen`,
-			};
-		}
-
 		let openId = null;
 
 		function tileFor(id) {
@@ -551,34 +526,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
 				else a.removeAttribute('aria-current');
 			});
-			// Filtering is a pushState, not a real navigation, so ClientRouter
-			// never swaps in the tag page's own <title>/h1/lead — without this
-			// they'd stay whatever they were on load (e.g. "Nick Huijgen" /
-			// "Photography from wherever I end up." even after filtering to
-			// wildlife) no matter which tag is actually showing, until a
-			// manual refresh. Regression once already: this was missed when
-			// the tag-aware heading/lead were first added, so the h1
-			// (screen readers' actual page heading) contradicted both the
-			// <title> and the visible grid after a client-side filter switch.
-			const copy = tag ? tagCopy(tag, visible) : null;
-			const heading = document.querySelector('.intro h1');
-			const lead = document.querySelector('.intro .lead');
-			if (heading) heading.textContent = copy ? copy.heading : 'Nick Huijgen';
-			if (lead) lead.textContent = copy ? copy.lead : 'Photography from wherever I end up.';
-			if (heading) {
-				let byline = document.querySelector('.intro .byline');
-				if (copy) {
-					if (!byline) {
-						byline = document.createElement('p');
-						byline.className = 'byline';
-						heading.insertAdjacentElement('afterend', byline);
-					}
-					byline.textContent = 'by Nick Huijgen';
-				} else {
-					byline?.remove();
-				}
-			}
-			document.title = copy ? copy.title : 'Nick Huijgen';
+			// Filtering is a pushState, not a real navigation — deliberately
+			// leaves the h1/lead/<title> untouched here. They stay whatever
+			// they were on load (e.g. "Nick Huijgen" / "Photography from
+			// wherever I end up." on the homepage) no matter which tag is
+			// showing, by design: the page head shouldn't visibly change
+			// just from clicking a filter pill.
 			// So /photo/[id]'s Close link can send you back to the filtered
 			// view you actually came from instead of always the unfiltered
 			// grid — that page is a separate static route with no way to
