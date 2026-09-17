@@ -34,6 +34,7 @@ content:
       - { name: id, label: ID, type: string }
       - { name: portrait, label: Portrait photo, type: image }
       - { name: portraitAlt, label: Portrait alt text, type: string }
+      - { name: avatar, label: Avatar (square headshot), type: image, description: "Square crop of your face, shown in the small circle on the homepage. Leave empty to zoom into the portrait photo instead." }
       - { name: homeIntro, label: Homepage intro text, type: text }
       - { name: heading, label: About page heading, type: string, required: true }
       - { name: body, label: About page body, type: text, required: true }

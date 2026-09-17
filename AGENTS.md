@@ -71,7 +71,13 @@ you know one exists before you touch either side of it.
   under `src/content/`, both editable through Pages CMS (`.pages.yml`)
   without touching code: `photos.yaml` (the library — schema in
   `src/content.config.ts`) and `about.yaml` (the about page's copy and
-  portrait — loaded via `src/lib/about.ts`'s `getAbout()`).
+  portrait — loaded via `src/lib/about.ts`'s `getAbout()`). `about.yaml`
+  carries two images, not one: `portrait` (the full-body shot the about
+  page and its `og:image` use) and `avatar` (a square pre-cropped
+  headshot for the homepage's 64px circle). `avatar` is optional and
+  the homepage falls back to zooming into `portrait`, but leaving it
+  unset means shipping the whole portrait to paint a 64px circle —
+  ~45kB instead of ~3kB. See `.avatar` in `Home.astro`.
 - Photos: max 2400px long edge, committed to the repo.
 - Photos are always ordered newest-to-oldest by `date` (the date taken,
   not the date added to the repo or the entry's position in the YAML).

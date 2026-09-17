@@ -34,6 +34,14 @@ const about = defineCollection({
     z.object({
       portrait: image().optional(),
       portraitAlt: z.string().optional(),
+      /**
+       * Square, pre-cropped headshot for the homepage's 64px avatar circle.
+       * Optional: without it the homepage falls back to `portrait` and zooms
+       * into the face with a CSS transform — which works, but ships the whole
+       * full-body portrait to paint a 64px circle. See `.avatar` in
+       * Home.astro for both paths.
+       */
+      avatar: image().optional(),
       homeIntro: z.string(),
       heading: z.string(),
       body: z.string(),
