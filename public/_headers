@@ -1,0 +1,10 @@
+# Cloudflare Pages custom headers. See:
+# https://developers.cloudflare.com/pages/configuration/headers/
+#
+# Everything under /_astro/ is content-hashed by Astro's build (the
+# hash is part of the filename, e.g. mg6978.BkD4iF7G.webp) — a changed
+# file always gets a new URL, so these are safe to cache as long as a
+# browser is willing to keep them: a full year, and `immutable` so the
+# browser doesn't even revalidate on reload.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
