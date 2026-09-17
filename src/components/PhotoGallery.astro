@@ -993,12 +993,20 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	   of the figure's, which can be taller once row spans quantise to
 	   whole rows. flex + justify-content: flex-end then bottom-aligns
 	   the caption text within that box, matching the old bottom-anchored
-	   <p>'s position pixel-for-pixel. */
+	   <p>'s position pixel-for-pixel. box-sizing: border-box is required
+	   here, not decorative: with the default content-box, the padding
+	   below is added on top of the aspect-ratio-derived size instead of
+	   being absorbed into it, making the box ~44px taller than the actual
+	   image — which pushes the bottom-anchored text below the image's
+	   real bottom edge, onto the plain page background instead of onto
+	   the photo (confirmed: measured a 920x716 box over a 896x672 image
+	   before this fix). */
 	.expand-caption {
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
+		box-sizing: border-box;
 		aspect-ratio: var(--ar);
 		display: none;
 		flex-direction: column;
