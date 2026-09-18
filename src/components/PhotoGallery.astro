@@ -478,10 +478,26 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				// the transition interpolates *each of them* from its old
 				// viewport position to its new (already-scrolled)
 				// position, rather than cross-fading the whole page at a
-				// fixed scroll offset. `behavior: 'auto'` (instant) is
-				// deliberate — the smoothness comes from the transition's
-				// own animation, not from a second, separate scroll
-				// animation racing it.
+				// fixed scroll offset.
+				//
+				// `behavior: 'instant'`, and the distinction is load-
+				// bearing: `'auto'` does NOT mean "jump". Per CSSOM View
+				// it defers to the computed `scroll-behavior`, and
+				// Base.astro sets `html { scroll-behavior: smooth }` under
+				// `prefers-reduced-motion: no-preference` — the same
+				// condition that gates this transition, so the two are
+				// always enabled together. `'auto'` therefore started a
+				// real animated scroll running *concurrently* with the
+				// view transition: exactly the second scroll animation
+				// this comment used to claim was being avoided. The new-
+				// state snapshots get captured while that scroll is still
+				// in flight, so every tile interpolates toward an offset
+				// the page hasn't reached yet and the whole grid snaps
+				// when the transition ends. Worst in Firefox, whose
+				// smooth scroll uses MSD physics with a longer settle than
+				// Chrome's compositor-driven one, so it's still moving
+				// well past the 400ms transition. `'instant'` is the only
+				// value that actually guarantees the jump this relies on.
 				//
 				// A pure collapse (id is null) still needs a scroll target
 				// — the tile that just closed, not the one that opened —
@@ -489,7 +505,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				// which focus with preventScroll: true) sitting off-screen
 				// once the tile relocates back to its 1-column slot.
 				const target = id ? tileFor(id) : previousOpenId ? tileFor(previousOpenId) : null;
-				target?.scrollIntoView({ block: 'center', behavior: 'auto' });
+				target?.scrollIntoView({ block: 'center', behavior: 'instant' });
 			}
 
 			const canAnimate =
