@@ -67,6 +67,29 @@ export const TIERS = {
 	xs: { container: 393, columns: 3, gap: 8 },
 };
 
+// In-grid expansion target column span per breakpoint. These numbers
+// are duplicated as literals in the `.item.is-open` CSS rules in
+// PhotoGallery.astro (Astro `<style>` blocks can't reference JS values)
+// — keep them in sync if either changes. sm/xs go to the tier's full
+// column count (true full width); lg/lg2/md/md2 deliberately leave one
+// column of neighbouring grid visible rather than also going full width.
+// lg2/md2 match lg/md respectively — the md/lg split only changes which
+// row-height reference is active, not the column count or the
+// in-grid-open behaviour.
+//
+// Lives here rather than in PhotoGallery.astro's frontmatter because
+// /photo/[slug]/index.astro (the grid-landing page, which server-renders
+// one tile already expanded) needs the same numbers to preload that
+// tile's image at the width it will actually render at.
+export const OPEN_COLS = {
+	lg2: 3,
+	lg: 3,
+	md2: 2,
+	md: 2,
+	sm: TIERS.sm.columns,
+	xs: TIERS.xs.columns,
+};
+
 export function columnWidth(container: number, columns: number, gap: number) {
 	return (container - gap * (columns - 1)) / columns;
 }
@@ -85,6 +108,27 @@ export function gridImageSizes(feature: boolean) {
 		const { container, columns, gap } = TIERS[tier];
 		const colWidth = columnWidth(container, columns, gap);
 		return Math.round(colWidth * colSpan + gap * (colSpan - 1));
+	};
+	return `(min-width: 1100px) ${widthAt('lg2')}px, (min-width: 1000px) ${widthAt('lg')}px, (min-width: 800px) ${widthAt('md2')}px, (min-width: 600px) ${widthAt('md')}px, (min-width: 400px) ${widthAt('sm')}px, ${widthAt('xs')}px`;
+}
+
+// The `sizes` value for a grid thumbnail in its in-grid-expanded state —
+// same column-width math as gridImageSizes above, just at the wider
+// OPEN_COLS span, so the browser picks a candidate matched to the width
+// the tile actually renders at once open. Shared between
+// PhotoGallery.astro (which sets it on the open tile, server-rendered,
+// and swaps to it client-side via data-sizes-open) and
+// /photo/[slug]/index.astro (which preloads that tile as its LCP
+// element and needs the identical value to avoid a double fetch).
+//
+// No `feature` parameter, unlike gridImageSizes: an expanded tile spans
+// OPEN_COLS regardless of whether it's an editorial 2-column feature.
+export function gridImageSizesOpen() {
+	const widthAt = (tier: keyof typeof TIERS) => {
+		const { container, columns, gap } = TIERS[tier];
+		const colWidth = columnWidth(container, columns, gap);
+		const span = OPEN_COLS[tier];
+		return Math.round(colWidth * span + gap * (span - 1));
 	};
 	return `(min-width: 1100px) ${widthAt('lg2')}px, (min-width: 1000px) ${widthAt('lg')}px, (min-width: 800px) ${widthAt('md2')}px, (min-width: 600px) ${widthAt('md')}px, (min-width: 400px) ${widthAt('sm')}px, ${widthAt('xs')}px`;
 }

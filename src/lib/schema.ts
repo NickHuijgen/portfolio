@@ -10,6 +10,7 @@ import { getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { getAbout } from './about.ts';
 import { INSTAGRAM_URL, LINKEDIN_URL, SITE_NAME, SITE_URL } from './site.ts';
+import { photoDetailsUrl } from './photos.ts';
 
 // Must match astro.config.mjs's `site` — there's no shared constant to
 // import there (astro.config.mjs's sitemap serialize() runs as a plain
@@ -92,7 +93,13 @@ export async function imageObjectSchema(
 ) {
 	const optimized = await getImage({ src: photo.data.src, width: 1600 });
 	const imageUrl = new URL(optimized.src, SITE_URL).href;
-	const pageUrl = `${SITE_URL}/photo/${photo.data.slug}/`;
+	// The details page, not /photo/<slug>/. Both render this photo, but
+	// /photo/<slug>/ is the grid with the tile expanded — 64 near-identical
+	// renders that all rel=canonical here — while /details/ is the page
+	// with the photo's unique content (EXIF, location, prev/next) and the
+	// one the sitemap submits. mainEntityOfPage and this @id have to name
+	// the page that actually gets indexed. See photoDetailsUrl in photos.ts.
+	const pageUrl = `${SITE_URL}${photoDetailsUrl(photo.data.slug)}`;
 
 	return {
 		'@type': 'ImageObject',
@@ -156,7 +163,7 @@ export async function gallerySchema(
 	};
 }
 
-// Single-photo detail page (/photo/[slug]).
+// Single-photo detail page (/photo/[slug]/details/).
 export async function photoPageSchema(photo: CollectionEntry<'photos'>) {
 	const image = await imageObjectSchema(photo, { representative: true });
 
@@ -173,7 +180,7 @@ export async function photoPageSchema(photo: CollectionEntry<'photos'>) {
 					'@type': 'ListItem',
 					position: 2,
 					name: photo.data.title,
-					item: `${SITE_URL}/photo/${photo.data.slug}/`,
+					item: `${SITE_URL}${photoDetailsUrl(photo.data.slug)}`,
 				},
 				],
 			},

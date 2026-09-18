@@ -60,7 +60,17 @@ function photosForTag(tag) {
 // "Submitted URL marked 'noindex'" in Search Console.
 /** @param {string} pageUrl */
 function isIndexableSitemapUrl(pageUrl) {
-  const tagMatch = new URL(pageUrl).pathname.match(/^\/tag\/([^/]+)\/$/);
+  const pathname = new URL(pageUrl).pathname;
+  // /photo/<slug>/ is the grid with one tile expanded — 64 near-identical
+  // renders of `/` that each rel=canonical at their own /details/ page
+  // (see photoUrl/photoDetailsUrl in src/lib/photos.ts). Submitting a URL
+  // that canonicalises elsewhere earns Search Console's "Alternate page
+  // with proper canonical tag" — harmless but noise, and it competes with
+  // the page we actually want indexed. Same reasoning as the noindexed
+  // tag pages below: what's excluded here has to match what the page
+  // itself tells Google.
+  if (/^\/photo\/[^/]+\/$/.test(pathname)) return false;
+  const tagMatch = pathname.match(/^\/tag\/([^/]+)\/$/);
   if (!tagMatch) return true;
   const tag = decodeURIComponent(tagMatch[1]);
   const shown = photosForTag(tag);
@@ -72,7 +82,7 @@ async function serializeWithPhotoData(item) {
   const url = new URL(item.url);
   const photos = loadSitemapData();
 
-  const photoMatch = url.pathname.match(/^\/photo\/([^/]+)\/$/);
+  const photoMatch = url.pathname.match(/^\/photo\/([^/]+)\/details\/$/);
   if (photoMatch) {
     const photo = photos.find((p) => p.slug === photoMatch[1]);
     if (photo) {

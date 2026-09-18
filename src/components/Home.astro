@@ -9,9 +9,11 @@ interface Props {
 	activeTag?: string;
 	/** Required alongside activeTag — the caller (tag/[tag].astro) already has this count from building the page, so Home.astro doesn't re-fetch and re-filter the whole collection just to get it again. */
 	activeTagCount?: number;
+	/** Slug of a photo whose tile should render already expanded — set only by /photo/[slug]/index.astro, the share-landing page. Forwarded straight to PhotoGallery. */
+	openSlug?: string;
 }
 
-const { activeTag, activeTagCount } = Astro.props;
+const { activeTag, activeTagCount, openSlug } = Astro.props;
 
 const about = await getAbout();
 
@@ -90,7 +92,7 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 	</section>
 
 	<section id="photos" tabindex="-1">
-		<PhotoGallery activeTag={activeTag} />
+		<PhotoGallery activeTag={activeTag} openSlug={openSlug} />
 	</section>
 </main>
 

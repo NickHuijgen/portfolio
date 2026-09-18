@@ -1,0 +1,68 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import Home from '../../../components/Home.astro';
+import { OG_IMAGE_OPTIONS } from '../../../lib/og-image.ts';
+import { gallerySchema } from '../../../lib/schema.ts';
+import { getSortedPhotos, photoDetailsUrl } from '../../../lib/photos.ts';
+import { gridImageSizesOpen } from '../../../lib/grid.ts';
+import { SITE_URL } from '../../../lib/site.ts';
+
+// The share-landing page for a photo: the ordinary grid, with this
+// photo's tile already expanded in place, rather than the separate
+// full-screen view at /photo/<slug>/details/.
+//
+// Why this route exists at all: in-grid expansion needs the address bar
+// to carry a real, per-photo URL so a copied link previews *that* photo
+// (a fragment never reaches a server and every link-preview scraper
+// drops it, so `/#<slug>` always embedded the homepage's featured photo
+// instead). But a shared link should reopen what the sender was looking
+// at — the grid, with that photo big — not drop the recipient into a
+// different view they then have to close. So the URL in the address bar
+// and the page served at that URL now agree.
+export async function getStaticPaths() {
+	const photos = await getSortedPhotos();
+	return photos.map((photo) => ({ params: { slug: photo.data.slug }, props: { photo } }));
+}
+
+const { photo } = Astro.props;
+const photos = await getSortedPhotos();
+
+// The same ImageGallery schema the homepage and every tag page emit —
+// this *is* the grid, so it describes the same thing. The photo's own
+// single-photo ImageObject (representative, with EXIF) belongs to the
+// details page, which is where this page's canonical points.
+const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen — Photography');
+
+// Mirrors index.astro's LCP preload, retargeted: the expanded tile is
+// this page's LCP element, not the grid's first photo. widths must stay
+// array-identical to the grid thumbnail <Image> in PhotoGallery.astro
+// (see the GRID_IMAGE_WIDTHS row in AGENTS.md's Invariants) or the
+// browser won't match this against the <img> it later parses and will
+// fetch the image a second time. `sizes` is the *open* value for the
+// same reason — PhotoGallery renders the expanded tile with sizesOpen.
+const GRID_IMAGE_WIDTHS = [150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800];
+const openImage = await getImage({ src: photo.data.src, widths: GRID_IMAGE_WIDTHS });
+const openPreload = {
+	href: openImage.src,
+	imagesrcset: openImage.srcSet.attribute,
+	imagesizes: gridImageSizesOpen(),
+	fetchpriority: 'high' as const,
+};
+
+const ogImageAsset = await getImage({ src: photo.data.src, ...OG_IMAGE_OPTIONS });
+const ogImage = new URL(ogImageAsset.src, Astro.site).href;
+---
+
+<Base
+	title={`${photo.data.title} — Nick Huijgen`}
+	description={photo.data.caption ?? photo.data.alt}
+	ogImage={ogImage}
+	ogImageAlt={photo.data.alt}
+	ogType="article"
+	structuredData={structuredData}
+	preloadImages={[openPreload]}
+	canonical={`${SITE_URL}${photoDetailsUrl(photo.data.slug)}`}
+>
+	<Home openSlug={photo.data.slug} />
+</Base>

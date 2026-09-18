@@ -1,9 +1,9 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import Base from '../../layouts/Base.astro';
-import { OG_IMAGE_OPTIONS } from '../../lib/og-image.ts';
-import { photoPageSchema } from '../../lib/schema.ts';
-import { getSortedPhotos } from '../../lib/photos.ts';
+import Base from '../../../layouts/Base.astro';
+import { OG_IMAGE_OPTIONS } from '../../../lib/og-image.ts';
+import { photoPageSchema } from '../../../lib/schema.ts';
+import { getSortedPhotos, photoDetailsUrl, photoUrl } from '../../../lib/photos.ts';
 
 export async function getStaticPaths() {
 	const photos = await getSortedPhotos();
@@ -95,11 +95,17 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 >
 	<main class="photo-detail" id="main" tabindex="-1" data-photo-slug={photo.data.slug}>
 		<h1 class="visually-hidden">{photo.data.title}</h1>
-		<a href="/#photos" id="photo-close" class="control close" autofocus aria-label="Close">
+		<a
+			href={photoUrl(photo.data.slug)}
+			id="photo-close"
+			class="control close"
+			autofocus
+			aria-label="Close"
+		>
 			✕
 		</a>
 		<a
-			href={`/photo/${prevSlug}/`}
+			href={photoDetailsUrl(prevSlug)}
 			id="photo-prev"
 			class="control prev"
 			aria-label="Previous photo"
@@ -108,7 +114,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 			‹
 		</a>
 		<a
-			href={`/photo/${nextSlug}/`}
+			href={photoDetailsUrl(nextSlug)}
 			id="photo-next"
 			class="control next"
 			aria-label="Next photo"

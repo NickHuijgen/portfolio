@@ -43,10 +43,11 @@ you know one exists before you touch either side of it.
 
 | If you change… | …also check | Why |
 |---|---|---|
-| `OPEN_COLS` (`PhotoGallery.astro` frontmatter) | The column-span literals in the `.item.is-open` CSS rules (same file) | Astro `<style>` blocks can't read frontmatter values, so the in-grid-expansion column spans are duplicated as literals. See the comment above `OPEN_COLS`. |
+| `OPEN_COLS` (`src/lib/grid.ts`) | The column-span literals in the `.item.is-open` CSS rules (`PhotoGallery.astro`) | Astro `<style>` blocks can't read JS values, so the in-grid-expansion column spans are duplicated as literals. See the comment above `OPEN_COLS`. (It lives in `grid.ts` rather than `PhotoGallery.astro`'s frontmatter because `photo/[slug]/index.astro` needs the same numbers for its LCP preload.) |
 | A `TIERS` reference width (`src/lib/grid.ts`) that's *smaller* than its own tier's true CSS upper edge (currently: `xs`, `sm` — not `md`/`md2`/`lg`/`lg2`, whose references already equal their tier's edge) | The matching `.grid` `max-width` breakpoint in `PhotoGallery.astro` | Row-span math assumes the real column never exceeds the reference. A tier where that's not true by construction needs `.grid` capped to make it true — see the big comment on `TIERS` in `grid.ts` and the `.grid` rule in `PhotoGallery.astro`. |
 | The grid thumbnail `<Image>`'s `widths` array or `gridImageSizes()` (`PhotoGallery.astro` / `grid.ts`) | `index.astro`'s `GRID_IMAGE_WIDTHS` (must stay array-identical) | `index.astro` preloads the homepage's LCP photo with the exact same `widths`/`sizes` the grid `<Image>` will render, so the browser recognizes it as the same request. Drift here means a silent double-fetch, not an error. |
-| `FRAME_IMAGE_WIDTHS`/`FRAME_IMAGE_SIZES` (`photo/[slug].astro`) | The frame `<Image>` right below them, in the same file | Same reasoning, for the lightbox's prev/next preload — see the comment there. |
+| `FRAME_IMAGE_WIDTHS`/`FRAME_IMAGE_SIZES` (`photo/[slug]/details.astro`) | The frame `<Image>` right below them, in the same file | Same reasoning, for the lightbox's prev/next preload — see the comment there. |
+| `GRID_IMAGE_WIDTHS` + `gridImageSizesOpen()` (`photo/[slug]/index.astro`) | The grid thumbnail `<Image>`'s `widths` (`PhotoGallery.astro`) and `gridImageSizesOpen` (`grid.ts`) | Same reasoning again, for the share-landing page's preload of its server-rendered *open* tile — which is that page's LCP element. Verified by diffing the preload's `imagesrcset`/`imagesizes` against the rendered `<img>`'s. |
 | `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`) | The hardcoded `og:image:type`/`width`/`height` meta values in `Base.astro` | Every `og:image` on the site is generated with these exact options (1200×630 JPEG) — the meta tags assume that rather than reading it back off the generated asset. |
 | `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer `wildlife`, which 63 of 64 photos carry). |
 
@@ -58,7 +59,7 @@ you know one exists before you touch either side of it.
   framework, no build step for it. Currently three: two in
   `PhotoGallery.astro` (focus restoration; and filtering + in-grid
   expansion, merged into one IIFE so they can share state — see
-  Lightbox / View Transitions) and one in `photo/[slug].astro` (keyboard
+  Lightbox / View Transitions) and one in `photo/[slug]/details.astro` (keyboard
   nav + the close-link/sessionStorage mechanics). Everything else
   renders at build time.
 - All images go through `astro:assets`. Never a raw `<img>` with a
@@ -82,7 +83,7 @@ you know one exists before you touch either side of it.
   not the date added to the repo or the entry's position in the YAML).
   `src/lib/photos.ts` exports `getSortedPhotos()`, the single sort
   implementation — every page that lists or paginates through photos
-  (the grid, `/tag/[tag]`, and `/photo/[slug]`'s prev/next) calls it
+  (the grid, `/tag/[tag]`, and the detail page's prev/next) calls it
   instead of `getCollection('photos')` directly, so the grid order and
   the lightbox's prev/next order never diverge. The same file's
   `photoMatchesTag()` is the single definition of what a tag "means" —
@@ -101,12 +102,29 @@ you know one exists before you touch either side of it.
   structured data) instead of the homepage's generic ones. Tags that
   cover most of the collection (today: `wildlife`, `featured`) are
   `noindex, follow` — see SEO / structured data.
-- `/photo/[slug]` — static route per photo, one per collection entry.
-  The lightbox: a real page with a real URL, not a modal/dialog. Large
-  image, caption, date, tags (linking to `/tag/[tag]`), and prev/next
-  links to the adjacent photos in date order (newest-to-oldest, wrapping
-  at both ends). Close returns to `/#photos` (or the active tag's
-  `#photos`, if there was one).
+- `/photo/[slug]` — static route per photo. **Not** the lightbox: it is
+  the identical `Home.astro` grid with that photo's tile already
+  expanded server-side (`openSlug`, threaded to `PhotoGallery.astro`).
+  This is the *shareable* URL — the one in-grid expansion pushes onto
+  history and therefore the one that gets copied out of the address bar
+  — so it carries that photo's own `og:image`, and following it reopens
+  exactly what the sender was looking at rather than dropping the
+  recipient into a different view. `rel=canonical` points at the
+  `details/` page below (64 near-copies of `/` otherwise), while
+  `og:url` deliberately keeps naming this page so a scraper can't
+  rewrite a shared card's target to `details/`. Excluded from the
+  sitemap for the same reason — see SEO / structured data. Preloads its
+  open tile as the LCP element; the tile also carries `autofocus`, which
+  is what scrolls it into view without JS.
+- `/photo/[slug]/details/` — the lightbox: a real page with a real URL,
+  not a modal/dialog. Large full-viewport image, caption, date,
+  location, EXIF, tags (linking to `/tag/[tag]`), and prev/next links to
+  the adjacent photos' own `details/` pages in date order
+  (newest-to-oldest, wrapping at both ends). Reached from the `⤢`
+  control on an expanded tile. Close returns to `/photo/<slug>/` — i.e.
+  back to the grid with this same tile still expanded — or to the active
+  tag's `#photos` if there was one. The page that actually gets indexed:
+  it holds the photo's unique content and its `photoPageSchema`.
 - `/about/` — Nick's bio, portrait, and a facts list, all from
   `about.yaml`. Own `ProfilePage` structured data.
 - `/404` — `noindex`, no canonical, no og:*/twitter:* (see `robots` on
@@ -125,7 +143,7 @@ you know one exists before you touch either side of it.
 - Prev/next both warm the cache for the *next* page on load, not on
   hover/tap — touch has no hover, so on mobile that's otherwise the
   difference between an instant flip and a cold fetch. Two separate
-  mechanisms, both in `photo/[slug].astro`: `data-astro-prefetch="load"`
+  mechanisms, both in `photo/[slug]/details.astro`: `data-astro-prefetch="load"`
   on the controls fetches the adjacent page's HTML; a `<link
   rel="preload" as="image" imagesrcset=… imagesizes=…>` (passed to
   `Base.astro`'s `preloadImages` prop) fetches the adjacent photo's
@@ -133,7 +151,7 @@ you know one exists before you touch either side of it.
   by prefetching it — see the `FRAME_IMAGE_WIDTHS` row in Invariants.
   `index.astro` does the same thing for the homepage's own LCP photo
   (see the `GRID_IMAGE_WIDTHS` row).
-- Every route above except `/photo/[slug]` renders `Header.astro`
+- Every route above except `/photo/[slug]/details/` renders `Header.astro`
   (`Base.astro`, `showHeader` prop — default true, the lightbox passes
   `false` because its own fixed close/prev/next controls occupy the
   same corners). A wordmark plus two nav links (Photos → `/#photos`,
@@ -206,7 +224,7 @@ you know one exists before you touch either side of it.
   of introducing a shared stylesheet for a handful of rules — there's
   only ever the one page-level bundle (see Performance), and this
   keeps it that way.
-- The horizontal gutter on every page except `/photo/[slug]` (which
+- The horizontal gutter on every page except `/photo/[slug]/details/` (which
   zeroes it and pads itself explicitly) is the browser's default 8px
   `body` margin — inherited by accident, not a deliberate design
   choice, on a site that's otherwise mobile-first about everything
@@ -229,7 +247,7 @@ this file:
 - Focus restoration after closing the lightbox back to the grid, and
   after collapsing an in-grid-expanded tile, both use
   `sessionStorage`/DOM state rather than relying on default browser
-  focus — see the `focusPhoto` mechanism (`photo/[slug].astro` writes,
+  focus — see the `focusPhoto` mechanism (`photo/[slug]/details.astro` writes,
   `PhotoGallery.astro` reads, with a 5s freshness check so a much later,
   unrelated visit to the grid doesn't get its focus yanked around) and
   the `scrollIntoView`-on-collapse note in the expansion script.
@@ -237,7 +255,7 @@ this file:
   Android doesn't auto-dark-mode the chrome while leaving the
   (already-correctly-colored) photos alone.
 - `@media (forced-colors: active)` rules exist for the translucent
-  scrim controls (`.control` in `photo/[slug].astro`, `.expand-link` in
+  scrim controls (`.control` in `photo/[slug]/details.astro`, `.expand-link` in
   `PhotoGallery.astro`) — Windows High Contrast strips background
   colors, so these need an explicit outline to stay legible.
 
@@ -309,12 +327,22 @@ this file:
   pointing at `/license/` — see that route above. `url` points at the
   image itself (not the page — that's `mainEntityOfPage`).
 - Every `og:image` on the site (the featured-photo fallback in
-  `Base.astro`, `about.astro`'s portrait, `/photo/[slug]`'s own photo) is
+  `Base.astro`, `about.astro`'s portrait, each photo route's own photo) is
   generated via the shared `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`):
   1200×630, `fit: 'cover'`, JPEG — not WebP (some link-preview scrapers,
   e.g. LinkedIn's, don't render it) and not whatever aspect ratio the
   source happened to be. `Base.astro`'s `og:image:type`/`width`/`height`
   meta assume this — see the Invariants row.
+- `/photo/[slug]` (the grid with one tile expanded) is 64 near-copies of
+  `/`, so each one `rel=canonical`s at its own `/details/` page — the one
+  carrying that photo's unique content and `photoPageSchema`. `Base.astro`
+  takes that as a `canonical` prop, which deliberately does *not* move
+  `og:url`: a scraper handed a shared `/photo/<slug>/` link must not
+  rewrite the card's target to `/details/`, or following a share drops
+  you in the full-screen view — the exact thing that route exists to
+  avoid. `astro.config.mjs`'s sitemap `filter` excludes the canonicalised
+  URLs for the same reason it excludes noindexed tag pages: what the
+  sitemap submits has to match what the page tells Google.
 - `Base.astro`'s `robots` prop drives the `/404` noindex and the
   `/tag/[tag]` threshold noindex. The threshold decision itself —
   `isTagNoindexed()` in `src/lib/tag-coverage.ts` — is shared with
@@ -357,7 +385,7 @@ this file:
   outside an active transition. Fixed-position controls (close/prev/next)
   need an explicit `z-index` or the image paints over them.
 - In-grid expansion (clicking a grid tile expands it in place) is a
-  progressive enhancement layered over `/photo/[slug]`; those pages are
+  progressive enhancement layered over `/photo/[slug]`; that page is
   unchanged and remain the no-JS behaviour. Both span sets are emitted
   as custom properties at build time, so nothing is measured in JS —
   see the `OPEN_COLS` row in Invariants for what that requires staying
@@ -367,7 +395,7 @@ this file:
   - **Bind to `document`/`window`, never to `#photo-grid` or `.filters`.**
     ClientRouter replaces those elements on every swap and does not
     re-execute an already-seen inline script, so an element-bound
-    listener is silently dead after the first trip to `/photo/[slug]`
+    listener is silently dead after the first trip to `/photo/[slug]/details/`
     and back. Use an init guard so the setup runs once. (This is also
     why filtering and in-grid expansion — originally two separate
     scripts — are now one IIFE in `PhotoGallery.astro`: the filter
@@ -392,10 +420,16 @@ this file:
   `/photo/<slug>/` already is one, with that photo's own `og:image`.
   Consequences to keep in mind:
   - Refreshing, sharing, or Forward-ing onto an open tile's URL lands on
-    the standalone lightbox page, not the grid with a tile expanded.
-    In-grid expansion is now a same-session visual state only; there is
-    no URL that restores it (and nothing reads `location.hash` any
-    more).
+    the grid with that tile expanded — `/photo/<slug>/` server-renders
+    exactly that (see Routes). So the address bar and the page served at
+    it agree, and expansion *is* restorable from a URL, just not via
+    `location.hash` (nothing reads it any more). The client script adopts
+    the server-rendered open tile on `astro:page-load` rather than
+    resetting to collapsed; without that, the first click on an
+    already-open tile would read as "open" instead of "collapse".
+  - Landing that way can't know which tag filter the sender had active —
+    a shared link carries none — so `gridUrl` falls back to `/` when the
+    tile came from the server rather than from a click.
   - The grid URL to collapse back to can't be read off `location` while
     a tile is open, and isn't always `/` (a `/tag/<tag>/` page, or a
     client-side filter switch, is a grid URL too) — hence the `gridUrl`
@@ -445,7 +479,7 @@ this file:
   the top of the document — see the `focusPhoto` mechanism under
   Accessibility.
 - The close link's href isn't static: it needs to return to whichever
-  tag filter was active, not always the unfiltered grid. `/photo/[slug]`
+  tag filter was active, not always the unfiltered grid. The detail page
   is a separate static route with no way to know the filter at render
   time (arriving there doesn't even have to come from the grid — a
   shared link, a search result), and the filter itself is purely
@@ -454,12 +488,12 @@ this file:
   there's no URL segment to read it from either. `applyFilter()`
   mirrors the active tag into `sessionStorage.activeTag` on every
   change (and on load, for landing directly on `/tag/[tag]`);
-  `/photo/[slug]`'s inline script reads it back and rewrites
+  the detail page's inline script reads it back and rewrites
   `#photo-close`'s href to `/tag/<tag>/#photos` before the user can
   click it. The **same** gap used to lose the filter on the
   `.expand-overlay` "⤢" link too — unlike the grid's own thumbnails,
   that link is a plain, un-intercepted navigation straight to
-  `/photo/[slug]` (see the ClientRouter capture-phase note above), so it
+  the detail page (see the ClientRouter capture-phase note above), so it
   couldn't carry client-side filter state through any other way.
 
 ## Verification
@@ -483,7 +517,7 @@ Before calling a change done:
   build succeeded.
 - **Hard-load** any page you changed with an empty cache — not just by
   clicking through from the grid. Two real bugs (a permanently-blank
-  `/photo/[slug]` on cold cache; a tag page that eager-loaded six hidden
+  `/photo/[slug]/details/` on cold cache; a tag page that eager-loaded six hidden
   photos and left the one visible photo on `loading="lazy"`) only
   reproduced this way; browsing from the grid always worked and hid
   both for a long time.

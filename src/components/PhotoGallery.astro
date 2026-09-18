@@ -1,18 +1,27 @@
 ---
 import { Image } from 'astro:assets';
-import { getSortedPhotos, photoMatchesTag } from '../lib/photos.ts';
+import { getSortedPhotos, photoDetailsUrl, photoMatchesTag, photoUrl } from '../lib/photos.ts';
 // TIERS/columnWidth/gridImageSizes live in a shared module (not just
 // here) because index.astro needs the exact same `sizes` value, matched
 // to the same `widths` array, to preload the homepage's LCP photo — see
 // the comment on that preload for why an exact match matters. See
 // grid.ts for the full reasoning behind the md/md2/lg/lg2 tier split.
-import { TIERS, columnWidth, gridImageSizes } from '../lib/grid.ts';
+import { OPEN_COLS, TIERS, columnWidth, gridImageSizes, gridImageSizesOpen } from '../lib/grid.ts';
 
 interface Props {
 	activeTag?: string;
+	/**
+	 * Slug of a photo to render already expanded, server-side. Set only by
+	 * /photo/[slug]/index.astro — the URL an expanded tile puts in the
+	 * address bar, so a shared link reopens the grid in the state the
+	 * sender was looking at. The client script adopts this on page-load
+	 * rather than resetting to collapsed; see the `astro:page-load`
+	 * handler at the bottom of the expansion IIFE.
+	 */
+	openSlug?: string;
 }
 
-const { activeTag } = Astro.props;
+const { activeTag, openSlug } = Astro.props;
 
 const ROW = 8;
 
@@ -20,24 +29,6 @@ function rowSpan(aspectRatio: number, width: number, gap: number) {
 	const height = width / aspectRatio;
 	return Math.ceil((height + gap) / (ROW + gap));
 }
-
-// In-grid expansion target column span per breakpoint. These numbers
-// are duplicated as literals in the `.item.is-open` CSS below (Astro
-// `<style>` blocks can't reference frontmatter values) — keep them in
-// sync if either changes. sm/xs go to the tier's full column count
-// (true full width); lg/lg2/md/md2 deliberately leave one column of
-// neighbouring grid visible rather than also going full width. lg2/md2
-// match lg/md respectively — the md/lg split above only changes which
-// row-height reference is active, not the column count or the
-// in-grid-open behaviour.
-const OPEN_COLS = {
-	lg2: 3,
-	lg: 3,
-	md2: 2,
-	md: 2,
-	sm: TIERS.sm.columns,
-	xs: TIERS.xs.columns,
-};
 
 const photos = await getSortedPhotos();
 
@@ -127,10 +118,13 @@ const items = photos.map((photo) => {
 	const xsOpenWidth = xsColWidth * OPEN_COLS.xs + TIERS.xs.gap * (OPEN_COLS.xs - 1);
 
 	const visible = !activeTag || photoMatchesTag(photo, activeTag);
+	const open = photo.data.slug === openSlug;
 
 	// Shared with index.astro's LCP preload — see the import comment above.
 	const sizes = gridImageSizes(photo.data.feature);
-	const sizesOpen = `(min-width: 1100px) ${Math.round(lg2OpenWidth)}px, (min-width: 1000px) ${Math.round(lgOpenWidth)}px, (min-width: 800px) ${Math.round(md2OpenWidth)}px, (min-width: 600px) ${Math.round(mdOpenWidth)}px, (min-width: 400px) ${Math.round(smOpenWidth)}px, ${Math.round(xsOpenWidth)}px`;
+	// Shared with /photo/[slug]/index.astro's LCP preload of the
+	// server-rendered open tile — same reasoning as `sizes` above.
+	const sizesOpen = gridImageSizesOpen();
 	// The "featured" view shows only feature:true photos, so the editorial
 	// 2-column span has nothing left to stand out against — at the
 	// 3-column tiers (xs/sm/md/md2) every tile would be 2-of-3 wide with a
@@ -156,6 +150,7 @@ const items = photos.map((photo) => {
 	return {
 		photo,
 		visible,
+		open,
 		sizes,
 		sizesOpen,
 		sizesFlat,
@@ -193,6 +188,18 @@ const visibleCount = items.filter((item) => item.visible).length;
 // matching photo sitting at collection index 60) that starves the one
 // visible image entirely. -1 for hidden figures so they never match
 // either check below.
+//
+// On /photo/<slug>/ the budget is skipped entirely rather than re-keyed
+// (see `!openSlug` at both use sites): that page opens scrolled to its
+// expanded tile, which is its LCP element and is preloaded as such, so
+// the first six figures in DOM order are off-screen above the fold.
+// Spending six eager fetches and a second fetchpriority="high" on them
+// puts unrelated images in direct competition with the one the visitor
+// actually came for — measured at index 60 of 64, that was 7 eager
+// images and 2 high-priority ones for a single photo. The open tile's
+// neighbours don't need the budget either: they're in the viewport once
+// the scroll lands, and `loading="lazy"` never defers an in-viewport
+// image.
 let visibleIndex = -1;
 const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1));
 ---
@@ -246,18 +253,41 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		{
 			items.map((item, index) => (
 				<figure
-					class="item"
+					class={`item${item.open ? ' is-open' : ''}`}
 					hidden={!item.visible}
 					data-tags={[...item.photo.data.tags, ...(item.photo.data.feature ? ['featured'] : [])].join(
 						' ',
 					)}
 					style={`--cols-sm:${item.smColSpan}; --cols-md:${item.mdColSpan}; --cols-lg:${item.lgColSpan}; --rows-xs:${item.xsRows}; --rows-sm:${item.smRows}; --rows-md:${item.mdRows}; --rows-md2:${item.md2Rows}; --rows-lg:${item.lgRows}; --rows-lg2:${item.lg2Rows}; --rows-xs-open:${item.xsOpenRows}; --rows-sm-open:${item.smOpenRows}; --rows-md-open:${item.mdOpenRows}; --rows-md2-open:${item.md2OpenRows}; --rows-lg-open:${item.lgOpenRows}; --rows-lg2-open:${item.lg2OpenRows}; --rows-xs-flat:${item.xsFlatRows}; --rows-sm-flat:${item.smFlatRows}; --rows-md-flat:${item.mdFlatRows}; --rows-md2-flat:${item.md2FlatRows}; --ar:${item.aspectRatio};`}
 				>
+					{
+						/*
+						  `autofocus` on the server-rendered open tile is the no-JS
+						  half of "landing on /photo/<slug>/ shows you that photo".
+						  The script's astro:page-load handler centers the tile with
+						  scrollIntoView, but that needs JS; the browser scrolls an
+						  autofocused element into view during the initial parse on
+						  its own. Without it a no-JS visitor following a shared link
+						  gets the top of a 64-photo grid with the photo they were
+						  sent expanded somewhere far below (dense packing puts it
+						  wherever it fits — index 60 of 64 in one measured case).
+						  Only ever on the one open tile, so it can't fight itself.
+
+						  It doesn't double up with the JS path: `autofocus` applies
+						  only during a fresh Document parse, so ClientRouter swaps
+						  (where it's silently ignored — see the same note on the
+						  close control in /photo/[slug]/details.astro) are handled
+						  by the scrollIntoView alone, and on a cold load the two
+						  agree about which element matters — autofocus just gets it
+						  roughly on screen, scrollIntoView then centers it.
+						*/
+					}
 					<a
-						href={`/photo/${item.photo.data.slug}/`}
+						href={photoUrl(item.photo.data.slug)}
 						id={item.photo.data.slug}
 						class="thumb-link"
-						aria-expanded="false"
+						aria-expanded={item.open ? 'true' : 'false'}
+						autofocus={item.open}
 					>
 						{
 							/*
@@ -318,16 +348,28 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 							src={item.photo.data.src}
 							alt={item.photo.data.alt}
 							widths={[150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800]}
-							sizes={activeTag === 'featured' ? item.sizesFlat : item.sizes}
+							sizes={
+								item.open ? item.sizesOpen : activeTag === 'featured' ? item.sizesFlat : item.sizes
+							}
 							data-sizes={item.sizes}
 							data-sizes-open={item.sizesOpen}
 							data-sizes-flat={item.sizesFlat}
-							loading={visibleIndexOf[index] >= 0 && visibleIndexOf[index] < 6 ? 'eager' : 'lazy'}
-							fetchpriority={visibleIndexOf[index] === 0 ? 'high' : undefined}
+							loading={
+								item.open || (!openSlug && visibleIndexOf[index] >= 0 && visibleIndexOf[index] < 6)
+									? 'eager'
+									: 'lazy'
+							}
+							fetchpriority={
+								item.open || (!openSlug && visibleIndexOf[index] === 0) ? 'high' : undefined
+							}
 						/>
 					</a>
 					<div class="expand-overlay">
-						<a href={`/photo/${item.photo.data.slug}/`} class="expand-link" aria-label="View full photo">
+						<a
+							href={photoDetailsUrl(item.photo.data.slug)}
+							class="expand-link"
+							aria-label="View full photo"
+						>
 							⤢
 						</a>
 					</div>
@@ -363,7 +405,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		try {
 			const { slug, ts } = JSON.parse(raw);
 			// Only honor this if it's fresh — set as { slug, ts } (not a bare
-			// slug) by /photo/[slug].astro specifically so this expires. A
+			// slug) by /photo/[slug]/details.astro specifically so this expires. A
 			// bare slug would keep pointing at whatever photo was last viewed
 			// indefinitely: visit a photo, browse to /about/, come back to
 			// / much later, and focus/scroll would get yanked to a photo
@@ -392,7 +434,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		// `.filters`/`#photo-grid` directly — ClientRouter replaces both
 		// elements on every swap and does not re-execute an already-seen
 		// inline script, so an element-bound listener would go stale the
-		// first time you come back from /photo/[slug].
+		// first time you come back from /photo/[slug]/details.
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
@@ -678,7 +720,23 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// Covers landing directly on /tag/[tag] (already server-filtered,
 			// so render()'s own sessionStorage write below never fires
 			// unless a filter tab is actually clicked).
-			sessionStorage.setItem('activeTag', initialTag);
+			//
+			// Skipped on /photo/<slug>/: that route has no tag in its URL to
+			// render, so it always draws the nav with "All" current and
+			// `initialTag` is unconditionally '' there — writing that would
+			// wipe a filter the visitor still has, without them touching a
+			// filter pill at all. Reachable in four steps: on /tag/wildlife/
+			// expand a tile (a pushState, so this doesn't fire), follow ⤢ to
+			// the detail page, then press Back rather than Close.
+			// ClientRouter re-fetches /photo/<slug>/, this handler runs, and
+			// from then on the detail page's Close link returns to the
+			// unfiltered grid instead of /tag/wildlife/. Leaving the stored
+			// value alone is right for the other arrival too: a shared link
+			// starts a session with nothing stored, so there's nothing to
+			// preserve and nothing to clear.
+			if (!location.pathname.startsWith('/photo/')) {
+				sessionStorage.setItem('activeTag', initialTag);
+			}
 		});
 
 		// ---- in-grid expansion ----
@@ -710,9 +768,16 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				// og:image (the featured photo) instead of the photo the
 				// sender had open. /photo/<slug>/ is a real prerendered
 				// page with that photo's own og:image, so sharing it
-				// previews the right image — and opening the link lands on
-				// the standalone lightbox rather than the grid, which is
-				// the better arrival for a shared link anyway.
+				// previews the right image.
+				//
+				// That page is this same grid with this tile expanded
+				// server-side, not a separate full-screen view: the URL in
+				// the address bar and the page served at it show the same
+				// thing, so following a shared link reopens exactly what
+				// the sender was looking at instead of dropping the
+				// recipient somewhere they have to close out of. The
+				// full-screen view is still there, one step deeper, at
+				// /photo/<slug>/details/ behind the ⤢ control.
 				//
 				// ClientRouter doesn't navigate behind our back over this:
 				// it tracks its own `originalLocation` (see router.js) and
@@ -770,10 +835,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			if (!document.getElementById('photo-grid')) return;
 			// Back out of an open tile lands on the grid's own URL — that's
 			// a collapse, in place. A pop *onto* a /photo/<slug>/ entry (a
-			// Forward after that Back) is a navigation to the standalone
-			// lightbox page, which ClientRouter is already fetching and
-			// swapping in: don't race it with a view transition here, and
-			// don't reopen a tile on a page that's about to be replaced.
+			// Forward after that Back) is a navigation ClientRouter is
+			// already fetching and swapping in — and what it swaps in is
+			// this same grid with that tile expanded server-side, which the
+			// astro:page-load handler below adopts. Don't race that with a
+			// view transition here, and don't reopen a tile on a page
+			// that's about to be replaced.
 			if (location.pathname.startsWith('/photo/')) return;
 			gridUrl = location.pathname + location.search;
 			// Collapsed directly, not through setOpen(): a Back from an
@@ -788,14 +855,33 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			}
 		});
 
-		// A swap (or a Back that ClientRouter served by re-fetching this
-		// grid page) hands us a fresh grid with nothing expanded. Nothing
-		// to recover from the URL: an open tile's URL *is* /photo/<slug>/,
-		// so landing on one is the standalone lightbox page, not this grid.
 		document.addEventListener('astro:page-load', () => {
-			if (!document.getElementById('photo-grid')) return;
-			openId = null;
-			gridUrl = location.pathname + location.search;
+			const grid = document.getElementById('photo-grid');
+			if (!grid) return;
+			// /photo/<slug>/ serves this same grid with one tile already
+			// expanded server-side (PhotoGallery's `openSlug` prop), so a
+			// shared link reopens what the sender was looking at. Adopt that
+			// tile rather than resetting to collapsed: with openId left null
+			// the first click on the open tile would read as "open" rather
+			// than "collapse", and Escape wouldn't know there was anything
+			// to close. Every other grid arrival (`/`, `/tag/<tag>/`, a Back
+			// that ClientRouter served by re-fetching the grid) has no
+			// .is-open figure and lands on null exactly as before.
+			const openFig = grid.querySelector('figure.is-open');
+			openId = openFig?.querySelector('.thumb-link')?.id ?? null;
+			// Collapsing has to restore a *grid* URL, and on /photo/<slug>/
+			// `location` is the open tile's own URL rather than a grid one —
+			// so fall back to the unfiltered grid there. A shared link
+			// carries no filter to preserve, which is the only way to arrive
+			// with a tile already open.
+			gridUrl = openId ? '/' : location.pathname + location.search;
+			// Dense packing puts an expanded tile wherever it fits, which on
+			// a 64-photo grid is usually far below the fold — so arriving at
+			// /photo/<slug>/ without this shows the top of the grid instead
+			// of the photo the URL names. Same centering setOpen does, and
+			// 'instant' for the same reason (see the note there on `auto`
+			// deferring to `scroll-behavior: smooth`).
+			openFig?.scrollIntoView({ block: 'center', behavior: 'instant' });
 		});
 	})();
 </script>

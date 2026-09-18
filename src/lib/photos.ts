@@ -36,3 +36,27 @@ export async function getSortedPhotos() {
 export function photoMatchesTag(photo: { data: { tags: string[]; feature: boolean } }, tag: string) {
 	return tag === 'featured' ? photo.data.feature : photo.data.tags.includes(tag);
 }
+
+// The two public URLs a photo has, in one place so the grid, the detail
+// page, the JSON-LD and the sitemap can't drift apart on what they mean.
+//
+// `photoUrl` is the *shareable* one: the grid with that photo's tile
+// expanded in place. It's what a grid thumbnail links to, what in-grid
+// expansion pushes onto history, and therefore the URL that ends up in
+// the address bar to be copied and shared — which is the whole reason it
+// carries that photo's own og:image rather than the homepage's featured
+// fallback. Landing on it puts you in the grid, in context, not in a
+// separate full-screen view.
+//
+// `photoDetailsUrl` is the deep view: full-viewport image, EXIF, date,
+// location, tag links and prev/next. Reached from the "⤢" control on an
+// expanded tile, and the page that actually gets indexed — photoUrl's
+// 64 near-identical grid renders all rel=canonical here, and the sitemap
+// submits only these (see astro.config.mjs).
+export function photoUrl(slug: string) {
+	return `/photo/${slug}/`;
+}
+
+export function photoDetailsUrl(slug: string) {
+	return `/photo/${slug}/details/`;
+}

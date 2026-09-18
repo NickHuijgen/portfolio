@@ -43,6 +43,20 @@ interface Props {
 	 */
 	robots?: string;
 	/**
+	 * Absolute URL for rel=canonical, when this page is a deliberate
+	 * near-duplicate of another and should consolidate into it. Only
+	 * /photo/[slug]/index.astro sets it: 64 grid renders differing solely
+	 * in which tile is expanded would otherwise be 64 near-copies of `/`,
+	 * so they all point at their own /details/ page, which carries the
+	 * photo's unique content (EXIF, location, prev/next) and its
+	 * representative ImageObject. Deliberately does NOT move og:url —
+	 * that has to keep naming *this* page, or a scraper handed a shared
+	 * /photo/<slug>/ link may rewrite the card's target to /details/ and
+	 * send people to the full-screen view instead of the grid, which is
+	 * the exact thing this route exists to avoid.
+	 */
+	canonical?: string;
+	/**
 	 * Render the site header. Default true; /photo/[slug] opts out — it's a
 	 * full-bleed black lightbox whose own fixed close/prev/next controls
 	 * occupy the same corners. See Header.astro.
@@ -59,10 +73,15 @@ const {
 	structuredData,
 	preloadImages,
 	robots,
+	canonical,
 	showHeader = true,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Two separate URLs on purpose — see the `canonical` prop's comment.
+// pageURL is where this page actually lives (og:url); canonicalURL is
+// where its indexing signal should land.
+const pageURL = new URL(Astro.url.pathname, Astro.site);
+const canonicalURL = canonical ? new URL(canonical) : pageURL;
 
 let resolvedOgImage = ogImage;
 let resolvedOgImageAlt = ogImageAlt;
@@ -98,7 +117,7 @@ const indexable = !robots?.includes('noindex');
 					<meta property="og:title" content={title} />
 					<meta property="og:description" content={description} />
 					<meta property="og:type" content={ogType} />
-					<meta property="og:url" content={canonicalURL} />
+					<meta property="og:url" content={pageURL} />
 					<meta property="og:site_name" content={SITE_NAME} />
 					<meta property="og:locale" content="en_US" />
 					{resolvedOgImage && (
