@@ -3,6 +3,10 @@
   "name": "portfolio",
   "compatibility_date": "2026-09-15",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    // Without this, an unmatched path gets Cloudflare's bare 404
+    // (empty body) instead of dist/404.html — confirmed live:
+    // https://nickhuijgen.nl/test/ returned 404 with content-length 0.
+    "not_found_handling": "404-page"
   }
 }
