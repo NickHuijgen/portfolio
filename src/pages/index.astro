@@ -6,11 +6,23 @@ import { gallerySchema } from '../lib/schema.ts';
 import { getSortedPhotos } from '../lib/photos.ts';
 import { gridImageSizes } from '../lib/grid.ts';
 import { SITE_URL } from '../lib/site.ts';
+import { getAbout } from '../lib/about.ts';
+import { OG_IMAGE_OPTIONS } from '../lib/og-image.ts';
 
 // Every photo in the collection, so a newly added one is picked up here
 // automatically — no separate list to update.
 const photos = await getSortedPhotos();
 const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen — Photography');
+
+// Base.astro's og:image fallback is the collection's single feature:true
+// photo (a wildlife shot) — fine for a tag page about that photo, but a
+// shared link to the homepage itself should show the same face as the
+// about page, not whichever photo happens to be tagged featured. Same
+// approach as about.astro.
+const about = await getAbout();
+const ogImage = about.portrait
+	? new URL((await getImage({ src: about.portrait, ...OG_IMAGE_OPTIONS })).src, Astro.site).href
+	: undefined;
 
 // photos[0] (newest first — see getSortedPhotos) is always the grid's
 // first item on the unfiltered homepage, which is also the one
@@ -44,6 +56,8 @@ if (lcpPhoto) {
 	description="Wildlife and portrait photography by Nick Huijgen, based near Amersfoort, Netherlands."
 	structuredData={structuredData}
 	preloadImages={lcpPreload ? [lcpPreload] : undefined}
+	ogImage={ogImage}
+	ogImageAlt={about.portraitAlt}
 >
 	<Home />
 </Base>
