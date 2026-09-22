@@ -1320,7 +1320,7 @@
   location: Eurol Hellendoorn Rally
   tags:
     - motorsport
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 70-200mm f/2.8L IS III USM
@@ -1464,7 +1464,7 @@
   location: Eurol Hellendoorn Rally
   tags:
     - motorsport
-  feature: false
+  feature: true
   exif:
     camera: Canon EOS R6 Mark II
     lens: Canon EF 70-200mm f/2.8L IS III USM
