@@ -52,6 +52,7 @@ export const LOCALE_NAME: Record<Locale, string> = { en: 'English', nl: 'Nederla
 export const TAG_LABELS: Record<string, Record<Locale, string>> = {
 	animals: { en: 'animals', nl: 'dieren' },
 	portrait: { en: 'portrait', nl: 'portret' },
+	motorsport: { en: 'motorsport', nl: 'motorsport' },
 	featured: { en: 'featured', nl: 'uitgelicht' },
 };
 

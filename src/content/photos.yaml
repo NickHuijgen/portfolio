@@ -1308,3 +1308,271 @@
     aperture: 4
     shutterSpeed: 0.00025
     iso: 100
+- id: photo-75
+  slug: bmw-m3-on-the-gas
+  title: BMW M3 on the gas
+  src: images/914a4600.jpeg
+  alt: White BMW M3 rally car at speed on a narrow country road, the trees and grass behind it blurred by the panning shot
+  nl:
+    title: "BMW M3 vol op het gas"
+    alt: "Witte BMW M3-rallyauto die met hoge snelheid over een smalle landweg rijdt, met de bomen en het gras erachter vervaagd door het meetrekken van de camera"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 70
+    aperture: 10
+    shutterSpeed: 0.01
+    iso: 100
+- id: photo-76
+  slug: rally-bmw-side-on
+  title: Rally BMW side-on
+  src: images/914a4602.jpeg
+  alt: White BMW M3 rally car in full side profile, its gold wheels spinning and the background streaked with motion blur
+  nl:
+    title: "Rally-BMW in zijaanzicht"
+    alt: "Witte BMW M3-rallyauto in volledig zijaanzicht, met draaiende gouden velgen en een achtergrond die tot strepen vervaagt"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 70
+    aperture: 11
+    shutterSpeed: 0.01
+    iso: 100
+- id: photo-77
+  slug: green-porsche-flat-out
+  title: Green Porsche flat out
+  src: images/914a4718.jpeg
+  alt: Bright green Porsche 911 rally car with a black chequered pattern along its flank, side-on at speed past a farmhouse
+  nl:
+    title: "Groene Porsche op volle snelheid"
+    alt: "Felgroene Porsche 911-rallyauto met een zwart geblokt patroon op de flank, in zijaanzicht op volle snelheid langs een boerderij"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 70
+    aperture: 10
+    shutterSpeed: 0.005
+    iso: 100
+- id: photo-78
+  slug: rally-car-under-the-trees
+  title: Rally car under the trees
+  src: images/914a4747.jpeg
+  alt: White, red and blue BMW E30 325i rally car on a narrow lane, dwarfed by the tall trees and a barn behind it
+  caption: Small car, big trees
+  nl:
+    title: "Rallyauto onder de bomen"
+    alt: "Witte, rode en blauwe BMW E30 325i-rallyauto op een smalle landweg, die in het niet valt bij de hoge bomen en de schuur erachter"
+    caption: "Kleine auto, grote bomen"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 70
+    aperture: 10
+    shutterSpeed: 0.008
+    iso: 100
+- id: photo-79
+  slug: lancia-delta-hf-integrale-at-speed
+  title: Lancia Delta HF Integrale at speed
+  src: images/914a4911.jpeg
+  alt: Green and white Lancia Delta HF Integrale rally car side-on at speed, its wheels blurred with motion
+  nl:
+    title: "Lancia Delta HF Integrale op snelheid"
+    alt: "Groen-witte Lancia Delta HF Integrale-rallyauto in zijaanzicht op hoge snelheid, met wielen die vervagen door de beweging"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 110
+    aperture: 8
+    shutterSpeed: 0.00625
+    iso: 100
+- id: photo-80
+  slug: orange-bmw-kicking-up-dust
+  title: Orange BMW kicking up dust
+  src: images/914a4926.jpeg
+  alt: Orange BMW E30 325i rally car seen from behind, trailing dust as it accelerates away past a brick house
+  caption: Leaving the village
+  nl:
+    title: "Oranje BMW die stof opwerpt"
+    alt: "Oranje BMW E30 325i-rallyauto van achteren gezien, die een stofwolk achterlaat terwijl hij optrekt langs een bakstenen huis"
+    caption: "Het dorp uit"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 200
+    aperture: 2.8
+    shutterSpeed: 0.001
+    iso: 125
+- id: photo-81
+  slug: hyundai-i20-through-the-woods
+  title: Hyundai i20 through the woods
+  src: images/914a5024.jpeg
+  alt: Green and white Hyundai i20 N Rally2 car cornering on a wooded lane, the background blurred by the panning shot
+  nl:
+    title: "Hyundai i20 door het bos"
+    alt: "Groen-witte Hyundai i20 N Rally2 die door een bocht op een bosweg stuurt, met een achtergrond die vervaagt door het meetrekken van de camera"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 142
+    aperture: 4
+    shutterSpeed: 0.01
+    iso: 100
+- id: photo-82
+  slug: rally-car-digging-for-grip
+  title: Rally car digging for grip
+  src: images/914a5047.jpeg
+  alt: Red and white Škoda Fabia RS Rally2 car cutting a corner and throwing up a spray of dirt, framed by oak trunks
+  nl:
+    title: "Rallyauto die grip zoekt"
+    alt: "Rood-witte Škoda Fabia RS Rally2 die een bocht afsnijdt en een wolk aarde opwerpt, omlijst door eikenstammen"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 200
+    aperture: 2.8
+    shutterSpeed: 0.001
+    iso: 800
+- id: photo-83
+  slug: porsche-between-the-oaks
+  title: Porsche between the oaks
+  src: images/914a5084.jpeg
+  alt: White and red Porsche 992 Rally GT powering through a corner between two oak trunks, flinging dirt from its rear wheels
+  nl:
+    title: "Porsche tussen de eiken"
+    alt: "Wit-rode Porsche 992 Rally GT die vol gas door een bocht gaat tussen twee eikenstammen, met aarde die van de achterwielen wegspat"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 120
+    aperture: 2.8
+    shutterSpeed: 0.001
+    iso: 800
+- id: photo-84
+  slug: porsche-trailing-dust
+  title: Porsche trailing dust
+  src: images/914a5097.jpeg
+  alt: Grey and red Porsche 992 Rally GT on a narrow lane, a trail of dust hanging behind it and a farmhouse among the trees beyond
+  nl:
+    title: "Porsche met een sliert stof"
+    alt: "Grijs-rode Porsche 992 Rally GT op een smalle landweg, met een sliert stof die achter hem blijft hangen en een boerderij tussen de bomen verderop"
+  date: 2026-09-19
+  location: Eurol Hellendoorn Rally
+  tags:
+    - motorsport
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 120
+    aperture: 2.8
+    shutterSpeed: 0.001
+    iso: 640
+- id: photo-85
+  slug: pelican-with-its-bill-open
+  title: Pelican with its bill open
+  src: images/914a5151.jpeg
+  alt: Pelican swimming towards the camera on duckweed-covered water, its bill wide open
+  caption: Mid-yawn
+  nl:
+    title: "Pelikaan met open snavel"
+    alt: "Pelikaan die naar de camera toe zwemt over water vol kroos, met wijd geopende snavel"
+    caption: "Midden in een geeuw"
+  date: 2026-09-20
+  location: Dierenpark Amersfoort
+  tags:
+    - animals
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 200
+    aperture: 2.8
+    shutterSpeed: 0.0008
+    iso: 100
+- id: photo-86
+  slug: pelican-bill-to-the-sky
+  title: Pelican bill to the sky
+  src: images/914a5156.jpeg
+  alt: Pelican on duckweed-covered water with its bill tilted upward and open, sunlight glowing through its orange throat pouch
+  nl:
+    title: "Pelikaan met de snavel omhoog"
+    alt: "Pelikaan op water vol kroos die zijn snavel omhoog steekt en opent, met zonlicht dat door zijn oranje keelzak schijnt"
+  date: 2026-09-20
+  location: Dierenpark Amersfoort
+  tags:
+    - animals
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 200
+    aperture: 2.8
+    shutterSpeed: 0.000625
+    iso: 100
+- id: photo-87
+  slug: meerkat-on-lookout
+  title: Meerkat on lookout
+  src: images/914a5178.jpeg
+  alt: Meerkat sitting upright on a moss-covered rock, looking up and to one side, its whiskers lit against a dark green background
+  caption: On watch
+  nl:
+    title: "Stokstaartje op wacht"
+    alt: "Stokstaartje dat rechtop op een met mos begroeide rots zit en omhoog en opzij kijkt, met zijn snorharen verlicht tegen een donkergroene achtergrond"
+    caption: "Op wacht"
+  date: 2026-09-20
+  location: Dierenpark Amersfoort
+  tags:
+    - animals
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 70-200mm f/2.8L IS III USM
+    focalLength: 200
+    aperture: 2.8
+    shutterSpeed: 0.004
+    iso: 800

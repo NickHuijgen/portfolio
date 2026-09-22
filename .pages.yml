@@ -29,7 +29,7 @@ content:
         type: select
         options:
           multiple: true
-          values: [animals, portrait]
+          values: [animals, portrait, motorsport]
       - { name: feature, label: Feature, type: boolean, default: false }
       - name: nl
         label: Dutch translation
