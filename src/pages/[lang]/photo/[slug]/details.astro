@@ -9,6 +9,7 @@ import {
 	photoUrl,
 	photoPageTitle,
 	localizedPhoto,
+	photoDescription,
 } from '../../../../lib/photos.ts';
 import { LOCALES, isLocale, localizedPath, DATE_LOCALE, UI, tagLabel, type Locale } from '../../../../lib/i18n.ts';
 
@@ -100,7 +101,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 <Base
 	lang={lang}
 	title={photoPageTitle(title)}
-	description={caption ?? alt}
+	description={photoDescription(photo, lang)}
 	ogImage={ogImage}
 	ogImageAlt={alt}
 	ogType="article"

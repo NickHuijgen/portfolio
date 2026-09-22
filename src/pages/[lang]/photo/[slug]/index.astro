@@ -9,6 +9,7 @@ import {
 	photoDetailsUrl,
 	photoPageTitle,
 	localizedPhoto,
+	photoDescription,
 } from '../../../../lib/photos.ts';
 import { gridImageSizesOpen } from '../../../../lib/grid.ts';
 import { SITE_URL } from '../../../../lib/site.ts';
@@ -39,7 +40,7 @@ const lang: Locale = rawLang;
 
 const { photo } = Astro.props;
 const photos = await getSortedPhotos();
-const { title, alt, caption } = localizedPhoto(photo, lang);
+const { title, alt } = localizedPhoto(photo, lang);
 
 // The same ImageGallery schema the homepage and every tag page emit —
 // this *is* the grid, so it describes the same thing. The photo's own
@@ -75,7 +76,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 <Base
 	lang={lang}
 	title={photoPageTitle(title)}
-	description={caption ?? alt}
+	description={photoDescription(photo, lang)}
 	ogImage={ogImage}
 	ogImageAlt={alt}
 	ogType="article"

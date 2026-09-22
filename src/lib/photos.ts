@@ -99,3 +99,44 @@ export function localizedPhoto(
 export function photoPageTitle(title: string) {
 	return `${title} — ${SITE_NAME}`;
 }
+
+// The meta description / og:description a photo's two pages carry, in one
+// place for the same reason photoPageTitle() is: /photo/<slug>/ and its
+// /details/ are one canonical pair and must describe themselves
+// identically.
+//
+// Composed from three fields rather than taken from one, because no
+// single field is a good description on its own. This used to be
+// `caption ?? alt`, which was worst exactly where the photo had the most
+// to say: `caption` is a short editorial phrase with no subject in it
+// ("Announcing itself"), and preferring it *replaced* the far richer alt
+// on the ~1-in-4 photos that have one. `alt` alone is a real description
+// but never says where the photo was taken.
+//
+// Order is load-bearing, not cosmetic: a search snippet clips around 155
+// characters (by pixel width, not a character count), so the unique
+// descriptive text goes first and the parts whose loss costs least go
+// last. Measured against the current library (77 photos, Sept 2026), 7
+// of the 154 photo pages compose to more than 160 characters — six of
+// them Dutch, since Dutch alt text runs longer than the English it's
+// translated from — and on five of those the clip lands in `location`
+// rather than in the caption. Accepted deliberately: the alternatives
+// were to rebuild the over-budget ones from the much shorter `title`
+// (every page then fits, but those seven drop to 47-82 characters of
+// snippet, and one reads redundantly because its title nearly repeats
+// its caption) or to truncate at runtime, where a mid-sentence "…" reads
+// worse than the engine's own clip. What survives the clip is the unique
+// description either way. Re-measure if the alt-text convention changes.
+//
+// `location` is the one part that isn't localized: it's a venue's actual
+// name, so there's nothing to translate (same call as the schema's — see
+// the `nl` comment in content.config.ts). Everything else goes through
+// localizedPhoto(), so the Dutch-with-English-fallback rule stays defined
+// in exactly one place.
+export function photoDescription(photo: CollectionEntry<'photos'>, lang: Locale) {
+	const { alt, caption } = localizedPhoto(photo, lang);
+	return [alt, photo.data.location, caption]
+		.filter((part): part is string => Boolean(part))
+		.map((part) => (part.endsWith('.') ? part : `${part}.`))
+		.join(' ');
+}
