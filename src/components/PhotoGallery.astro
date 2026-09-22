@@ -63,7 +63,7 @@ const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))].sort();
 // Pinned right after "All", ahead of the alphabetical tags, rather than
 // sorted in among them — "featured" isn't a real tag (see photoMatchesTag),
 // and its whole point is to be the quick, always-in-the-same-place way to
-// see the highlight reel, not something you hunt for next to "wildlife".
+// see the highlight reel, not something you hunt for next to "animals".
 const hasFeatured = photos.some((photo) => photo.data.feature);
 
 const items = photos.map((photo) => {
@@ -142,8 +142,8 @@ const items = photos.map((photo) => {
 	// 2-column span has nothing left to stand out against — at the
 	// 3-column tiers (xs/sm/md/md2) every tile would be 2-of-3 wide with a
 	// dense-pack gap beside it that nothing can fill. Feature photos should
-	// still show wide under their *other* tags (a featured wildlife photo
-	// stays big on /tag/wildlife/) — only the featured view itself flattens
+	// still show wide under their *other* tags (a featured animal photo
+	// stays big on /tag/animals/) — only the featured view itself flattens
 	// them. "Flat" is that view's alternative: every photo forced to its
 	// plain 1-column span, computed here (not measured) same as the *Open
 	// numbers above. lg/lg2 are untouched (2-of-4 already divides evenly,
@@ -797,12 +797,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// render, so it always draws the nav with "All" current and
 			// `initialTag` is unconditionally '' there — writing that would
 			// wipe a filter the visitor still has, without them touching a
-			// filter pill at all. Reachable in four steps: on /tag/wildlife/
+			// filter pill at all. Reachable in four steps: on /tag/animals/
 			// expand a tile (a pushState, so this doesn't fire), follow ⤢ to
 			// the detail page, then press Back rather than Close.
 			// ClientRouter re-fetches /photo/<slug>/, this handler runs, and
 			// from then on the detail page's Close link returns to the
-			// unfiltered grid instead of /tag/wildlife/. Leaving the stored
+			// unfiltered grid instead of /tag/animals/. Leaving the stored
 			// value alone is right for the other arrival too: a shared link
 			// starts a session with nothing stored, so there's nothing to
 			// preserve and nothing to clear. `L() + '/photo/'`, not a bare
@@ -1130,8 +1130,8 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	   their 2-column span has nothing left to stand out against — at the
 	   3-column tiers below every tile would be 2-of-3 wide with an
 	   unfillable dense-pack gap beside it. Feature photos still show wide
-	   under their *other* tags (a featured wildlife photo stays big on
-	   /tag/wildlife/) — this only applies to the featured view itself.
+	   under their *other* tags (a featured animal photo stays big on
+	   /tag/animals/) — this only applies to the featured view itself.
 	   Flattened to span 1 here instead, using the *-flat row numbers
 	   computed alongside the *Open ones in the frontmatter. lg is
 	   untouched: 2-of-4 already divides evenly, so "featured" never breaks

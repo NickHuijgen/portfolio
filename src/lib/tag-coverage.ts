@@ -13,7 +13,7 @@
 // homepage. A tag that's a small, genuinely distinct subset doesn't
 // have that problem. A coverage threshold, not a hardcoded tag-name
 // list (which would go stale the moment tags change), decides which —
-// today: wildlife (63/64, 98%) and featured (11/64, 17%) both
+// today: animals (63/64, 98%) and featured (11/64, 17%) both
 // noindex; portrait (1/64, 2%) stays indexable.
 export const NOINDEX_TAG_COVERAGE_THRESHOLD = 0.15;
 

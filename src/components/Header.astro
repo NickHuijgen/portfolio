@@ -51,8 +51,8 @@ const { lang } = Astro.props;
 //
 // Every real URL now carries a locale prefix (/en/, /nl/ — see i18n.ts),
 // so the comparison has to run against the locale-*neutral* path, not
-// Astro.url.pathname directly: stripLocale('/nl/tag/wildlife/').path is
-// '/tag/wildlife/', the same shape this logic always compared against.
+// Astro.url.pathname directly: stripLocale('/nl/tag/animals/').path is
+// '/tag/animals/', the same shape this logic always compared against.
 // Doing it this way rather than checking each locale's prefix separately
 // keeps isPhotos itself locale-agnostic, matching how it was already
 // agnostic to which *tag* it's on.

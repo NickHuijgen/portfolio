@@ -100,9 +100,9 @@ function isIndexableSitemapUrl(pageUrl) {
   if (!tagMatch) return true;
   const tag = decodeURIComponent(tagMatch[2]);
   const shown = photosForTag(tag);
-  // Coverage-based, not per-locale: whether wildlife/featured cover "most
+  // Coverage-based, not per-locale: whether animals/featured cover "most
   // of the collection" doesn't depend on which language is asking, so
-  // /en/tag/wildlife/ and /nl/tag/wildlife/ get the same indexable/not
+  // /en/tag/animals/ and /nl/tag/animals/ get the same indexable/not
   // answer — correct, and it's also the only way the two locales' sitemap
   // entries and their own pages' `robots` meta can't disagree with
   // each other.

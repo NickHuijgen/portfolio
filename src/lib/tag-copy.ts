@@ -12,6 +12,28 @@ import { tagLabel, type Locale } from './i18n.ts';
 // with that script, and no invariant to track — the only thing it
 // restates by hand is the photo count, which it reads off `#photo-count`'s
 // data attributes rather than recomputing.
+
+// The English heading below reads `<label> photography`, which assumes the
+// label works attributively — true of `portrait`, and it was true of
+// `wildlife`, but "Animals photography" is wrong where "Animal photography"
+// is right. The plural stays the tag's label everywhere it's a *name* (the
+// filter pill, the tag links, the lead line's quoted tag), so the singular
+// lives here, next to the one sentence that needs it, rather than as a
+// second per-locale form in TAG_LABELS that every tag would have to carry
+// for the sake of one. Dutch needs no equivalent: its heading compounds
+// ("Dierenfotografie", "Portretfotografie") and the plural is already the
+// right half of the compound.
+//
+// Keyed on the English *label*, not the tag slug, so it can't drift into
+// naming a word the site no longer uses: re-label the tag in TAG_LABELS and
+// this lookup misses, falling back to the new label rather than silently
+// heading the page with the old one. A miss is only ever a grammar wart
+// (the state every tag is in today without this map), never a stale name —
+// which is why this needs no invariant row.
+const EN_HEADING_NOUN: Record<string, string> = {
+	animals: 'animal',
+};
+
 export function tagCopy(tag: string, count: number, lang: Locale) {
 	const label = tagLabel(tag, lang);
 	if (lang === 'nl') {
@@ -38,7 +60,8 @@ export function tagCopy(tag: string, count: number, lang: Locale) {
 			title: `${heading} — ${SITE_NAME}`,
 		};
 	}
-	const heading = `${label[0].toUpperCase()}${label.slice(1)} photography`;
+	const noun = EN_HEADING_NOUN[label] ?? label;
+	const heading = `${noun[0].toUpperCase()}${noun.slice(1)} photography`;
 	return {
 		heading,
 		lead: `${count} photo${count === 1 ? '' : 's'} tagged "${label}".`,

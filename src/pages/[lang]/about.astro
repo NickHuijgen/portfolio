@@ -19,7 +19,7 @@ const about = await getAbout(lang);
 const paragraphs = about.body.split(/\n{2,}/);
 
 // Base.astro's og:image fallback is the collection's single feature:true
-// photo (a wildlife shot) — fine elsewhere, but wrong for a page about
+// photo (an animal shot) — fine elsewhere, but wrong for a page about
 // Nick himself. Use the portrait instead, when one's set.
 const ogImage = about.portrait
 	? new URL((await getImage({ src: about.portrait, ...OG_IMAGE_OPTIONS })).src, Astro.site).href

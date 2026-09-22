@@ -50,7 +50,7 @@ you know one exists before you touch either side of it.
 | `FRAME_IMAGE_WIDTHS`/`FRAME_IMAGE_SIZES` (`photo/[slug]/details.astro`) | The frame `<Image>` right below them, in the same file | Same reasoning, for the lightbox's prev/next preload — see the comment there. |
 | `GRID_IMAGE_WIDTHS` + `gridImageSizesOpen()` (`photo/[slug]/index.astro`) | The grid thumbnail `<Image>`'s `widths` (`PhotoGallery.astro`) and `gridImageSizesOpen` (`grid.ts`) | Same reasoning again, for the share-landing page's preload of its server-rendered *open* tile — which is that page's LCP element. Verified by diffing the preload's `imagesrcset`/`imagesizes` against the rendered `<img>`'s. |
 | `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`) | The hardcoded `og:image:type`/`width`/`height` meta values in `Base.astro` | Every `og:image` on the site is generated with these exact options (1200×630 JPEG) — the meta tags assume that rather than reading it back off the generated asset. |
-| `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer `wildlife`, which 63 of 64 photos carry). |
+| `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer the animals tag — then named `wildlife` — which 63 of 64 photos carry). |
 | `LOCALES`/`DEFAULT_LOCALE` (`src/lib/i18n.ts`) | The `LOCALES` and `DEFAULT_LOCALE` constants in `worker/index.js` | The worker is bundled by Cloudflare's build, outside Astro's Vite pipeline *and* outside the project's tsconfig, so it restates the two locale strings rather than importing across that boundary — see the comment above its copy. `astro.config.mjs` *can* import `LOCALES` (and does, for its `filter`/`serialize` regexes), and derives `@astrojs/sitemap`'s `{ locale: langTag }` map from it too, so that file needs no edit. Adding a locale means editing **two** places: `i18n.ts` and `worker/index.js`. |
 | `not_found_handling: "404-page"` (`wrangler.jsonc`) | That there is exactly one `404.astro`, at the `src/pages/` root, and that it's bilingual | That handler matches literal `404.html` files walking *up* the tree, and `trailingSlash: 'always'` makes Astro render every **non-root** page as `<path>/index.html`. A per-locale `src/pages/[lang]/404.astro` therefore builds to `dist/nl/404/index.html`, which is never found — measured against a real build, not assumed. Astro special-cases only the root `404.astro` into a bare `404.html`, which is why that one page has to speak both languages. |
 
@@ -193,7 +193,7 @@ the coverage math behind that call, and what would justify revisiting it.
   Renders the identical `Home.astro`, `activeTag` set — same grid,
   pre-filtered, plus a tag-aware heading and lead line (see SEO /
   structured data) instead of the homepage's generic ones. Tags that
-  cover most of the collection (today: `wildlife`, `featured`) are
+  cover most of the collection (today: `animals`, `featured`) are
   `noindex, follow` — see SEO / structured data.
 - `/photo/[slug]` — static route per photo. **Not** the lightbox: it is
   the identical `Home.astro` grid with that photo's tile already
@@ -509,7 +509,7 @@ this file:
   `/photo/<slug>/` URL — the same URL the thumbnail's `href` points at
   for no-JS — onto history, and collapsing replaces it with the grid's
   own URL again. This used to be a hash on the current page
-  (`/#photo-09`, or `/tag/wildlife/#photo-09` on a filtered page), which
+  (`/#photo-09`, or `/tag/animals/#photo-09` on a filtered page), which
   had the nice property that refreshing or sharing it reopened the tile
   *in place* in the grid. It was given up on purpose: a fragment never
   reaches a server and every link-preview scraper drops it, so a shared
