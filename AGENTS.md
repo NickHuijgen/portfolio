@@ -287,7 +287,19 @@ the coverage math behind that call, and what would justify revisiting it.
   exactly.
 - Reserved-but-unused row height, replaying the tier math over the real
   aspect ratios (measured, not estimated — re-measure the same way if
-  `TIERS` changes again):
+  `TIERS` changes again). **The same way** means, per photo: take the
+  tier's reference column, compute `rowSpan` off it exactly as
+  `PhotoGallery.astro` does, turn that back into a reserved height
+  (`rows * 8 + (rows - 1) * gap`), compare against the height the image
+  actually renders at in that viewport's *real* column, and average
+  `(reserved - actual) / actual` across the library — a ratio of the
+  slack to the image, not to the reserved box. Re-derived and confirmed
+  still accurate against the current library (77 photos, Sept 2026): 38.5
+  / 20.5 / 43.0 / 32.9 / 14.2% for the first five rows. The 1200px row
+  assumes the grid sitting at its 1200px `max-width` cap, where the
+  reference column exactly equals the real one; measuring at a literal
+  1200px viewport instead leaves 1184px after the body margins and reads
+  ~5%.
 
   | viewport | before md/lg split | after |
   |---|---|---|
