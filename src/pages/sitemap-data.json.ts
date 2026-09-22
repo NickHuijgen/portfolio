@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getImage } from 'astro:assets';
-import { getSortedPhotos } from '../lib/photos.ts';
+import { getSortedPhotos, localizedPhoto } from '../lib/photos.ts';
 
 // Feeds astro.config.mjs's sitemap serialize() with per-photo lastmod
 // dates and image URLs for sitemap.xml's <lastmod>/<image:image> — see
@@ -14,9 +14,16 @@ import { getSortedPhotos } from '../lib/photos.ts';
 // astro:build:done (which fires only once the whole build, including
 // this endpoint, is written) can then read with plain fs.
 //
+// One entry per photo, not per locale: slug/date/tags/imageUrl are the
+// same file and the same taxonomy regardless of which locale's page
+// links to them. Only the caption is locale-dependent (it's rendered
+// text, not a URL or identifier), so it's the one field shaped per
+// locale — `captions.en`/`captions.nl` — rather than the array being
+// doubled.
+//
 // Publicly served at /sitemap-data.json — harmless: everything in it
-// (dates, tags, image URLs) is already public on the photo pages
-// themselves, just reshaped for the sitemap generator to consume.
+// (dates, tags, image URLs, captions) is already public on the photo
+// pages themselves, just reshaped for the sitemap generator to consume.
 export const prerender = true;
 
 export const GET: APIRoute = async () => {
@@ -29,7 +36,17 @@ export const GET: APIRoute = async () => {
 				date: photo.data.date.toISOString(),
 				tags: [...photo.data.tags, ...(photo.data.feature ? ['featured'] : [])],
 				imageUrl: optimized.src,
-				caption: photo.data.caption ?? photo.data.alt,
+				// A real (human-written) caption, not alt text — same
+				// "present and non-empty nl, else en, else absent" rule
+				// localizedPhoto applies everywhere else. Absent rather than
+				// falling back to alt: astro-sitemap's <image:caption> is
+				// optional, and alt text is a description of the image, not
+				// a caption for it — conflating the two here would put the
+				// wrong string in a field a scraper may read back as prose.
+				captions: {
+					en: localizedPhoto(photo, 'en').caption,
+					nl: localizedPhoto(photo, 'nl').caption,
+				},
 			};
 		}),
 	);

@@ -5,10 +5,23 @@ import { ClientRouter } from 'astro:transitions';
 import '@fontsource-variable/instrument-sans/wght.css';
 import fontUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
-import { SITE_NAME } from '../lib/site.ts';
+import { SITE_NAME, SITE_URL } from '../lib/site.ts';
 import { OG_IMAGE_OPTIONS } from '../lib/og-image.ts';
+import { LOCALES, type Locale, OG_LOCALE, UI, stripLocale, localizedPath } from '../lib/i18n.ts';
 
 interface Props {
+	/**
+	 * The page's locale. Required, not defaulted — every real route lives
+	 * under /en/ or /nl/ (see i18n.ts), so there's no "unlocalized" page
+	 * left to fall back for. Drives <html lang>, which the is:inline
+	 * scripts elsewhere (filtering, keyboard nav, the language switcher)
+	 * read via `document.documentElement.lang` to learn the locale without
+	 * their own prop plumbing — and which ClientRouter swaps on every
+	 * navigation along with the rest of <html>'s attributes, so it stays
+	 * correct across client-side transitions too. Load-bearing, not
+	 * decorative.
+	 */
+	lang: Locale;
 	title: string;
 	description: string;
 	ogImage?: string;
@@ -65,6 +78,7 @@ interface Props {
 }
 
 const {
+	lang,
 	title,
 	description,
 	ogImage,
@@ -83,6 +97,14 @@ const {
 const pageURL = new URL(Astro.url.pathname, Astro.site);
 const canonicalURL = canonical ? new URL(canonical) : pageURL;
 
+// The locale-neutral path underneath this page's own locale prefix —
+// e.g. /nl/about/ -> /about/. hreflang alternates are this same path
+// re-prefixed with every other locale, not just a string swap on the
+// current URL, because a locale prefix is the only thing that differs
+// between the two versions of any given page (see localizedPath/
+// stripLocale in i18n.ts).
+const { path: neutralPath } = stripLocale(Astro.url.pathname);
+
 let resolvedOgImage = ogImage;
 let resolvedOgImageAlt = ogImageAlt;
 if (!resolvedOgImage) {
@@ -98,7 +120,7 @@ if (!resolvedOgImage) {
 const indexable = !robots?.includes('noindex');
 ---
 
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<meta charset="utf-8" />
 		<link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
@@ -112,6 +134,38 @@ const indexable = !robots?.includes('noindex');
 		{indexable && <link rel="canonical" href={canonicalURL} />}
 
 		{
+			// hreflang alternates: one per locale (including this page's own —
+			// the set must be self-referential as well as reciprocal, per
+			// Google's spec) plus x-default pointing at the bare root, which
+			// redirects by detected language.
+			//
+			// Suppressed in two cases, both for the same underlying reason —
+			// hreflang clusters are built from canonical URLs, so a page that
+			// isn't one has no business making these claims:
+			//   - `robots` noindex (404, the over-threshold tag pages), same
+			//     as canonical and the og:/twitter: tags above.
+			//   - `canonical` pointing somewhere else, i.e. /<lang>/photo/
+			//     <slug>/, which consolidates into its own /details/ page.
+			//     Its alternates would have named /en|nl/photo/<slug>/ —
+			//     URLs that themselves canonicalise elsewhere. Google
+			//     ignores annotations on non-canonical pages anyway; the
+			//     /details/ pages they point at carry the correct, reciprocal
+			//     set, so nothing is lost by staying quiet here.
+			indexable && !canonical && (
+				<>
+					{LOCALES.map((loc) => (
+						<link
+							rel="alternate"
+							hreflang={loc}
+							href={new URL(localizedPath(neutralPath, loc), Astro.site)}
+						/>
+					))}
+					<link rel="alternate" hreflang="x-default" href={SITE_URL + '/'} />
+				</>
+			)
+		}
+
+		{
 			indexable && (
 				<>
 					<meta property="og:title" content={title} />
@@ -119,7 +173,10 @@ const indexable = !robots?.includes('noindex');
 					<meta property="og:type" content={ogType} />
 					<meta property="og:url" content={pageURL} />
 					<meta property="og:site_name" content={SITE_NAME} />
-					<meta property="og:locale" content="en_US" />
+					<meta property="og:locale" content={OG_LOCALE[lang]} />
+					{LOCALES.filter((loc) => loc !== lang).map((loc) => (
+						<meta property="og:locale:alternate" content={OG_LOCALE[loc]} />
+					))}
 					{resolvedOgImage && (
 						<>
 							<meta property="og:image" content={resolvedOgImage} />
@@ -156,8 +213,8 @@ const indexable = !robots?.includes('noindex');
 		<ClientRouter />
 	</head>
 	<body>
-		<a href="#main" class="skip-link">Skip to main content</a>
-		{showHeader && <Header />}
+		<a href="#main" class="skip-link">{UI[lang].skipToMain}</a>
+		{showHeader && <Header lang={lang} />}
 		<slot />
 	</body>
 </html>

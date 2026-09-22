@@ -31,6 +31,13 @@ content:
           multiple: true
           values: [wildlife, portrait]
       - { name: feature, label: Feature, type: boolean, default: false }
+      - name: nl
+        label: Dutch translation
+        type: object
+        fields:
+          - { name: title, label: Title, type: string }
+          - { name: alt, label: Alt text, type: string }
+          - { name: caption, label: Caption, type: string }
 
   - name: about
     label: About
@@ -52,3 +59,18 @@ content:
         fields:
           - { name: label, type: string, required: true }
           - { name: value, type: string, required: true }
+      - name: nl
+        label: Dutch translation
+        type: object
+        fields:
+          - { name: portraitAlt, label: Portrait alt text, type: string }
+          - { name: homeIntro, label: Homepage intro text, type: text }
+          - { name: heading, label: About page heading, type: string }
+          - { name: body, label: About page body, type: text }
+          - name: facts
+            label: Facts
+            type: object
+            list: true
+            fields:
+              - { name: label, type: string, required: true }
+              - { name: value, type: string, required: true }

@@ -1,5 +1,6 @@
-# Cloudflare Pages custom headers. See:
-# https://developers.cloudflare.com/pages/configuration/headers/
+# Custom headers, honoured by Cloudflare Workers static assets (see
+# wrangler.jsonc). The syntax is the one Cloudflare documents here:
+# https://developers.cloudflare.com/workers/static-assets/headers/
 #
 # Everything under /_astro/ is content-hashed by Astro's build (the
 # hash is part of the filename, e.g. mg6978.BkD4iF7G.webp) — a changed

@@ -1,63 +1,143 @@
 ---
-import { getImage } from 'astro:assets';
-import Base from '../layouts/Base.astro';
-import Home from '../components/Home.astro';
-import { gallerySchema } from '../lib/schema.ts';
-import { getSortedPhotos } from '../lib/photos.ts';
-import { gridImageSizes } from '../lib/grid.ts';
-import { SITE_URL } from '../lib/site.ts';
-import { getAbout } from '../lib/about.ts';
-import { OG_IMAGE_OPTIONS } from '../lib/og-image.ts';
+import { LOCALES, DEFAULT_LOCALE, UI } from '../lib/i18n.ts';
+import { SITE_NAME, SITE_URL } from '../lib/site.ts';
 
-// Every photo in the collection, so a newly added one is picked up here
-// automatically — no separate list to update.
-const photos = await getSortedPhotos();
-const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen — Photography');
-
-// Base.astro's og:image fallback is the collection's single feature:true
-// photo (a wildlife shot) — fine for a tag page about that photo, but a
-// shared link to the homepage itself should show the same face as the
-// about page, not whichever photo happens to be tagged featured. Same
-// approach as about.astro.
-const about = await getAbout();
-const ogImage = about.portrait
-	? new URL((await getImage({ src: about.portrait, ...OG_IMAGE_OPTIONS })).src, Astro.site).href
-	: undefined;
-
-// photos[0] (newest first — see getSortedPhotos) is always the grid's
-// first item on the unfiltered homepage, which is also the one
-// PhotoGallery.astro marks loading="eager" fetchpriority="high" — the
-// page's LCP candidate. A <link rel="preload"> gets the browser
-// fetching it before it's even parsed the grid's HTML, rather than
-// only once it reaches that <img> tag. widths/sizes here must mirror
-// the grid thumbnail <Image> exactly (same array, same gridImageSizes
-// call PhotoGallery.astro itself uses), or the browser won't recognize
-// this as the same request and will fetch the image again anyway — see
-// the identical warning on /photo/[slug]'s prev/next preload.
-const GRID_IMAGE_WIDTHS = [150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800];
-const lcpPhoto = photos[0];
-let lcpPreload;
-if (lcpPhoto) {
-	const optimized = await getImage({ src: lcpPhoto.data.src, widths: GRID_IMAGE_WIDTHS });
-	lcpPreload = {
-		href: optimized.src,
-		imagesrcset: optimized.srcSet.attribute,
-		imagesizes: gridImageSizes(lcpPhoto.data.feature),
-		// This one preload *is* the homepage's LCP element, so it's the one
-		// case that should outrank the default Low priority an as="image"
-		// preload gets — see the prop's comment in Base.astro.
-		fetchpriority: 'high' as const,
-	};
-}
+// The bare root `/`. It holds no content and is never meant to be read —
+// its only job is to send a visitor to `/en/` or `/nl/`. There is
+// deliberately no language picker: a browser asking for a language this
+// site doesn't have gets DEFAULT_LOCALE rather than a choice to make.
+//
+// Three mechanisms, each covering the one below it:
+//
+//  1. worker/index.js negotiates `Accept-Language` at the edge and 302s
+//     before a byte of this file is sent. That's production, and this
+//     file never renders there at all.
+//  2. The inline script below, for every context that worker isn't in
+//     front of — `astro dev` (which serves src/pages directly and knows
+//     nothing about wrangler.jsonc), `astro preview`, and a worker that's
+//     been removed or misconfigured. It runs in <head>, during parse, so
+//     nothing paints first.
+//  3. A <meta http-equiv="refresh"> to DEFAULT_LOCALE, for no JS at all.
+//     It sits *after* the script so the script's language-aware redirect
+//     always wins the race; this one is the blunt fallback.
+//
+// This file is not deleted outright in favour of (1) alone because
+// without it `/` 404s on `astro dev`, `astro preview`, and any deploy
+// where the worker isn't running — the local-vs-production split that
+// made the root behave differently depending on which server was in
+// front of it.
+//
+// It keeps a real hreflang set, and remains `x-default`: Google's own
+// definition of x-default is "a page that redirects users to a local
+// version based on their detected language", which is exactly this.
+const rootUrl = `${SITE_URL}/`;
+const defaultUrl = `/${DEFAULT_LOCALE}/`;
+const strings = UI[DEFAULT_LOCALE];
 ---
 
-<Base
-	title="Nick Huijgen"
-	description="Wildlife and portrait photography by Nick Huijgen, based near Amersfoort, Netherlands."
-	structuredData={structuredData}
-	preloadImages={lcpPreload ? [lcpPreload] : undefined}
-	ogImage={ogImage}
-	ogImageAlt={about.portraitAlt}
->
-	<Home />
-</Base>
+<html lang={DEFAULT_LOCALE} data-locales={LOCALES.join(' ')} data-default-locale={DEFAULT_LOCALE}>
+	<head>
+		<meta charset="utf-8" />
+		<script is:inline>
+			// Backstop for the edge worker — see this file's frontmatter for
+			// when each mechanism applies. First thing in <head> on purpose:
+			// it redirects during parse, before anything paints and before
+			// the <meta refresh> below is even read.
+			//
+			// Locale data arrives via data attributes rather than
+			// define:vars, matching how every other inline script on this
+			// site takes its data (AGENTS.md, Constraints).
+			(function () {
+				var root = document.documentElement;
+				var locales = (root.dataset.locales || '').split(' ');
+				var chosen = '';
+
+				// A cookie set by the header's language switcher outranks the
+				// browser's own preference, so an explicit choice sticks —
+				// the same precedence the worker applies.
+				var cookie = document.cookie.match(/(?:^|;\s*)lang=([^;]*)/);
+				if (cookie) {
+					var fromCookie = decodeURIComponent(cookie[1]).trim().toLowerCase();
+					if (locales.indexOf(fromCookie) !== -1) chosen = fromCookie;
+				}
+
+				if (!chosen) {
+					// navigator.languages is already in the user's priority
+					// order, so the first match wins. Compare on the primary
+					// subtag only: en-US, en-GB and en all mean `en`, nl-BE and
+					// nl-NL both mean `nl`. This site has no regional variants
+					// to tell apart.
+					var preferred = navigator.languages || [navigator.language];
+					for (var i = 0; i < preferred.length; i++) {
+						if (!preferred[i]) continue;
+						var base = String(preferred[i]).toLowerCase().split('-')[0];
+						if (locales.indexOf(base) !== -1) {
+							chosen = base;
+							break;
+						}
+					}
+				}
+
+				// Nothing matched (de, fr, ja…): English, not a choice.
+				if (!chosen) chosen = root.dataset.defaultLocale;
+
+				// replace(), not assign(): `/` must not become a history entry,
+				// or Back from `/en/` lands here and immediately redirects
+				// forward again — a Back trap with no way out.
+				//
+				// location.search is carried across for the same reason the
+				// worker does it: the bare domain is where `?utm_source=…`
+				// arrives, and dropping it would silently break attribution.
+				location.replace('/' + chosen + '/' + location.search);
+			})();
+		</script>
+		<meta http-equiv="refresh" content={`0; url=${defaultUrl}`} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="author" content={SITE_NAME} />
+		<title>{SITE_NAME}</title>
+		<meta name="description" content={strings.homeDescription} />
+		<link rel="canonical" href={rootUrl} />
+		{LOCALES.map((loc) => <link rel="alternate" hreflang={loc} href={`${SITE_URL}/${loc}/`} />)}
+		<link rel="alternate" hreflang="x-default" href={rootUrl} />
+	</head>
+	<body>
+		{/* Visible only if JS is off *and* the meta refresh is ignored —
+		    a link, not a choice, so there's still something clickable
+		    rather than a blank page. */}
+		<main id="main">
+			<a href={defaultUrl}>{strings.continueToSite}</a>
+		</main>
+	</body>
+</html>
+
+<style>
+	body {
+		margin: 0;
+		color-scheme: light;
+		background-color: #fff;
+		font-family:
+			system-ui,
+			-apple-system,
+			'Segoe UI',
+			Roboto,
+			sans-serif;
+	}
+
+	main {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 64px 24px;
+		text-align: center;
+	}
+
+	a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		color: inherit;
+		font-size: 16px;
+		text-underline-offset: 2px;
+	}
+</style>

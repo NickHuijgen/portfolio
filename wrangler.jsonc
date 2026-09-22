@@ -2,11 +2,31 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "portfolio",
   "compatibility_date": "2026-09-15",
+  // Accept-Language negotiation for the bare `/` — see worker/index.js for
+  // the full reasoning. Everything else on this site is a plain static
+  // asset and stays that way.
+  "main": "./worker/index.js",
   "assets": {
     "directory": "./dist",
     // Without this, an unmatched path gets Cloudflare's bare 404
     // (empty body) instead of dist/404.html — confirmed live:
     // https://nickhuijgen.nl/test/ returned 404 with content-length 0.
-    "not_found_handling": "404-page"
+    //
+    // It walks *up* from the requested path looking for a literal
+    // `404.html`. There is exactly one, at the root, because
+    // trailingSlash: 'always' renders every non-root page as
+    // `<path>/index.html` — so a per-locale 404 route would build to
+    // `dist/nl/404/index.html`, which this never looks for. Verified
+    // against a real build; see the Invariants row and 404.astro.
+    "not_found_handling": "404-page",
+    // Lets the worker fall through to the static assets it doesn't handle.
+    "binding": "ASSETS",
+    // Scoped to the root, deliberately not `true`. With `main` set, the
+    // asset handler normally runs first and a worker never sees a request
+    // that matches a file — and `/` *does* match (dist/index.html, the
+    // redirect stub), so without this the negotiation would never run.
+    // Listing just "/" buys that one path without pushing every other
+    // request through a worker invocation first.
+    "run_worker_first": ["/"]
   }
 }

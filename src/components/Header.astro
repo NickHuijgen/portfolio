@@ -1,5 +1,12 @@
 ---
 import { SITE_NAME } from '../lib/site.ts';
+import { LOCALES, type Locale, LOCALE_NAME, UI, stripLocale, localizedPath } from '../lib/i18n.ts';
+
+interface Props {
+	lang: Locale;
+}
+
+const { lang } = Astro.props;
 
 // Rendered by Base.astro on every page except /photo/[slug] — see the
 // `showHeader` prop there. The lightbox is full-bleed black with its
@@ -14,7 +21,10 @@ import { SITE_NAME } from '../lib/site.ts';
 // scrolls away with everything else. Only two nav links, too — the tag
 // filters (PhotoGallery.astro) are the photo section's own navigation,
 // and /license/ lives in the copyright footer (Home.astro) rather than
-// needing a slot up here.
+// needing a slot up here. The language switcher below is a third,
+// separate piece of chrome (its own nav landmark, not a third nav-link)
+// but earns its spot: it's the only way to change locale once you're
+// off the bare-root picker, since every other route is locale-prefixed.
 //
 // Photos points at /#photos rather than / so it isn't just a second
 // wordmark: it skips the intro and lands on the grid, same target as
@@ -26,8 +36,9 @@ import { SITE_NAME } from '../lib/site.ts';
 // filter switch rewrites the URL from / to /tag/<tag>/ client-side
 // without re-rendering anything from the server, so a wordmark marked
 // current on / would keep claiming to be the current page on
-// /tag/portrait/ — the same server-vs-client drift AGENTS.md's
-// Invariants table already tracks for tagCopy(). Neither nav link can
+// /tag/portrait/ — the same server-vs-client drift that's why
+// applyFilter() leaves the h1/lead/<title> alone (see tag-copy.ts).
+// Neither nav link can
 // drift that way, which is exactly why isPhotos spans / AND /tag/*:
 // both sides of a client-side filter switch are "the photos", so the
 // server-rendered answer stays true however the filter moves. Two
@@ -37,21 +48,126 @@ import { SITE_NAME } from '../lib/site.ts';
 //
 // trailingSlash: 'always' (astro.config.mjs), so these compare against
 // the trailing-slash forms.
-const path = Astro.url.pathname;
+//
+// Every real URL now carries a locale prefix (/en/, /nl/ — see i18n.ts),
+// so the comparison has to run against the locale-*neutral* path, not
+// Astro.url.pathname directly: stripLocale('/nl/tag/wildlife/').path is
+// '/tag/wildlife/', the same shape this logic always compared against.
+// Doing it this way rather than checking each locale's prefix separately
+// keeps isPhotos itself locale-agnostic, matching how it was already
+// agnostic to which *tag* it's on.
+const { lang: pathLocale, path } = stripLocale(Astro.url.pathname);
 const isPhotos = path === '/' || path.startsWith('/tag/');
+
+const t = UI[lang];
+// The switcher links to the *same page* in each locale: swap only the
+// locale prefix, keep the locale-neutral path underneath it (see
+// localizedPath/stripLocale in i18n.ts).
+//
+// Unless this page has no locale prefix to swap. `stripLocale` returns
+// `lang: undefined` for those, and there is exactly one today: the root
+// `/404`, which is deliberately unprefixed and bilingual (see the
+// `not_found_handling` row in AGENTS.md's Invariants). Re-prefixing its
+// path produced `/en/404/` and `/nl/404/` — neither of which is ever
+// built, so the switcher offered two dead links, and clicking one wrote
+// the `lang` cookie and then landed the visitor back on the same
+// English-chromed 404. A page with no per-locale twin has nothing to
+// switch *to* at the same path, so the switcher sends you to that
+// locale's home instead: you hit a dead URL, pick a language, and land
+// somewhere real in it. Falling back rather than hiding the switcher
+// keeps the cookie-setting path available, which is the useful half.
+const switcherPath = pathLocale ? path : '/';
+const switcherLinks = LOCALES.map((loc) => ({
+	loc,
+	href: localizedPath(switcherPath, loc),
+	current: loc === lang,
+}));
 ---
 
 <header class="site-header">
-	<nav class="bar" aria-label="Site">
-		<a href="/" class="wordmark">{SITE_NAME}</a>
-		<div class="links">
-			<a href="/#photos" class="nav-link" aria-current={isPhotos ? 'page' : undefined}>Photos</a>
-			<a href="/about/" class="nav-link" aria-current={path === '/about/' ? 'page' : undefined}>
-				About
-			</a>
+	<nav class="bar" aria-label={t.siteNavLabel}>
+		<a href={localizedPath('/', lang)} class="wordmark">{SITE_NAME}</a>
+		{/* .links and the switcher are grouped in one flex item so .bar
+		    itself stays a simple two-item space-between (wordmark left,
+		    everything else right) — the same shape it always was — rather
+		    than distributing three top-level items with the switcher
+		    drifting away from the links it visually belongs next to. */}
+		<div class="right">
+			<div class="links">
+				<a
+					href={`${localizedPath('/', lang)}#photos`}
+					class="nav-link"
+					aria-current={isPhotos ? 'page' : undefined}
+				>
+					{t.navPhotos}
+				</a>
+				<a
+					href={localizedPath('/about/', lang)}
+					class="nav-link"
+					aria-current={path === '/about/' ? 'page' : undefined}
+				>
+					{t.navAbout}
+				</a>
+			</div>
+			<nav class="lang-switcher" aria-label={t.languageNavLabel}>
+				{
+					switcherLinks.map(({ loc, href, current }) => (
+						<a
+							href={href}
+							class="lang-link"
+							hreflang={loc}
+							lang={loc}
+							aria-current={current ? 'true' : undefined}
+						>
+							{loc.toUpperCase()}
+							<span class="visually-hidden">{` ${LOCALE_NAME[loc]}`}</span>
+						</a>
+					))
+				}
+			</nav>
 		</div>
 	</nav>
 </header>
+
+<script is:inline>
+	// Writes a `lang` cookie on every language-switcher click so the edge
+	// worker (worker/index.js) can read it and let a manual choice
+	// permanently beat Accept-Language detection on the next bare-root
+	// visit. Only ever written on a real click, never on load — a cookie
+	// set just because the worker routed someone here would turn its own
+	// guess into a permanent "choice". Deliberately reads the locale off the clicked
+	// link's own hreflang rather than being handed it via define:vars —
+	// define:vars breaks Astro's textContent-keyed inline-script dedup
+	// (see AGENTS.md's Constraints section for the bug that caused).
+	//
+	// Bound to `document`, in the capture phase, guarded to run its setup
+	// once — both required by ClientRouter, not stylistic choices. It
+	// replaces `.lang-switcher`'s elements on every swap and does not
+	// re-run an already-seen inline script, so a listener bound to the
+	// element itself would be dead after the first navigation; and it
+	// registers its own document click listener from <head> that fires
+	// (and navigates) before any later-added bubble-phase listener could
+	// intercept the click.
+	if (!window.__langSwitchInit) {
+		window.__langSwitchInit = true;
+		document.addEventListener(
+			'click',
+			(event) => {
+				// `closest?.` — matches the guard on the other document-capture
+				// click handler in PhotoGallery.astro: an event target isn't
+				// guaranteed to be an Element with this method.
+				const link = event.target.closest?.('.lang-link');
+				if (!link) return;
+				const loc = link.getAttribute('hreflang');
+				if (!loc) return;
+				document.cookie =
+						`lang=${loc}; path=/; max-age=31536000; SameSite=Lax` +
+						(location.protocol === 'https:' ? '; Secure' : '');
+			},
+			true,
+		);
+	}
+</script>
 
 <style>
 	.site-header {
@@ -69,7 +185,23 @@ const isPhotos = path === '/' || path.startsWith('/tag/');
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 16px;
+		gap: 8px;
+	}
+
+	/* Links and switcher share the bar's right-hand side. `gap` (not
+	   `justify-content: space-between` at this level) so the switcher sits
+	   snug against the nav links rather than drifting toward the far edge
+	   — the visual read should be "primary nav, then a small locale
+	   control", not two unrelated groups. `flex-wrap: wrap` is a safety
+	   valve, not the intended layout: at the still-supported 320px floor
+	   this row fits on one line with the sizing below, but a device
+	   narrower than that (or a very long future locale label) degrades to
+	   a second line instead of clipping or forcing horizontal scroll. */
+	.right {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 4px 12px;
 	}
 
 	/* 16px between the nav links, matching the filter nav's column-gap —
@@ -122,5 +254,67 @@ const isPhotos = path === '/' || path.startsWith('/tag/');
 	.nav-link:focus-visible {
 		outline: 2px solid #1a73e8;
 		outline-offset: 2px;
+	}
+
+	.lang-switcher {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	/* Deliberately smaller than the 44px-square ideal on the width axis —
+	   two-letter codes at a full 44px width each, plus the gap above,
+	   would leave too little room for the wordmark and nav links to
+	   coexist on one line at the 320px floor. Height stays the full 44px
+	   (the dimension a thumb actually needs when scrolling a page), and
+	   the 4px gap between EN/NL keeps some tap-accuracy margin even at
+	   this narrower width — a locale switch is a rare, deliberate tap,
+	   not the primary action in this bar, so it can afford to be the
+	   smallest target here. Re-check against a real 320px viewport if the
+	   wordmark or nav labels ever grow (see Verification in AGENTS.md). */
+	.lang-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		min-width: 28px;
+		padding: 0 2px;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.02em;
+		color: var(--text-secondary);
+		text-decoration: none;
+		border-radius: 4px;
+	}
+
+	.lang-link:hover,
+	.lang-link[aria-current='true'] {
+		text-decoration: underline;
+		text-underline-offset: 4px;
+	}
+
+	.lang-link[aria-current='true'] {
+		color: inherit;
+	}
+
+	.lang-link:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	/* Standard visually-hidden pattern, duplicated per-component rather
+	   than shared — see AGENTS.md's Style section. Carries the full
+	   locale name (LOCALE_NAME) as an accessible name behind each link's
+	   short "EN"/"NL" visible text. */
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 </style>

@@ -1,33 +1,40 @@
 ---
-import Base from '../layouts/Base.astro';
-import { licensePageSchema } from '../lib/schema.ts';
-import { INSTAGRAM_URL } from '../lib/site.ts';
+import Base from '../../layouts/Base.astro';
+import { licensePageSchema } from '../../lib/schema.ts';
+import { INSTAGRAM_URL } from '../../lib/site.ts';
+import { LOCALES, isLocale, UI, type Locale } from '../../lib/i18n.ts';
+
+export function getStaticPaths() {
+	return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang: rawLang } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
 
 // Referenced from every photo's ImageObject (license + acquireLicensePage
 // — see src/lib/schema.ts) so Google Images can show licensing info
 // alongside search results. Both schema.org properties need a real page
 // with real terms behind them, or Google ignores them — this is that
 // page, not just a link target.
-const structuredData = await licensePageSchema();
+const structuredData = await licensePageSchema(lang);
 ---
 
 <Base
-	title="Photo licensing — Nick Huijgen"
-	description="Licensing terms for photos on this site."
+	lang={lang}
+	title={`${UI[lang].licenseTitle} — Nick Huijgen`}
+	description={UI[lang].licenseDescription}
 	structuredData={structuredData}
 >
 	<main class="intro" id="main" tabindex="-1">
-		<h1>Photo licensing</h1>
+		<h1>{UI[lang].licenseTitle}</h1>
 		<p>
-			All photos on this site are © Nick Huijgen. All rights reserved — none of them are
-			available under a Creative Commons or other open license.
+			{UI[lang].licenseTerms}
 		</p>
 		<p>
-			Interested in using one, or booking a portrait session? Send a message on <a
-				href={INSTAGRAM_URL}
-				target="_blank"
-				rel="me noopener">Instagram<span class="visually-hidden"> (opens in a new tab)</span></a
-			>.
+			{UI[lang].licenseContactBefore}<a href={INSTAGRAM_URL} target="_blank" rel="me noopener"
+				>Instagram<span class="visually-hidden">{UI[lang].opensInNewTab}</span></a
+			>{UI[lang].licenseContactAfter}
 		</p>
 	</main>
 </Base>

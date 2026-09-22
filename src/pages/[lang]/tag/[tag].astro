@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Home from '../../../components/Home.astro';
+import { gallerySchema } from '../../../lib/schema.ts';
+import { getSortedPhotos, photoMatchesTag } from '../../../lib/photos.ts';
+import { SITE_URL } from '../../../lib/site.ts';
+import { isTagNoindexed } from '../../../lib/tag-coverage.ts';
+import { tagCopy } from '../../../lib/tag-copy.ts';
+import { LOCALES, isLocale, localizedPath, type Locale } from '../../../lib/i18n.ts';
+
+export async function getStaticPaths() {
+	const photos = await getCollection('photos');
+	const tags = [...new Set(photos.flatMap((photo) => photo.data.tags))];
+	// "featured" isn't a real tag (see photoMatchesTag) — only emit the
+	// route for it when a photo actually has feature: true, same as any
+	// other tag only getting a route when a photo carries it.
+	if (photos.some((photo) => photo.data.feature)) tags.push('featured');
+	// Cross every tag with every locale — the tag *slug* itself stays
+	// English (see the TAG_LABELS comment in i18n.ts on why localizing it
+	// isn't worth the six-call-site slug<->key map), only the copy shown
+	// for it changes per lang.
+	return LOCALES.flatMap((lang) => tags.map((tag) => ({ params: { lang, tag } })));
+}
+
+const { lang: rawLang, tag } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
+
+// Filtered to this tag, but still driven by the full collection — a newly
+// tagged photo shows up here with no extra step.
+const photos = await getSortedPhotos();
+const taggedPhotos = photos.filter((photo) => photoMatchesTag(photo, tag));
+const copy = tagCopy(tag, taggedPhotos.length, lang);
+const structuredData = await gallerySchema(
+	taggedPhotos,
+	`${SITE_URL}${localizedPath(`/tag/${tag}/`, lang)}`,
+	copy.title,
+	lang,
+);
+
+// See tag-coverage.ts for the reasoning and the threshold. This also
+// drives astro.config.mjs's sitemap `filter` — a tag noindexed here
+// but still submitted to the sitemap gets Search Console's "Submitted
+// URL marked 'noindex'" warning, so both read the same function.
+const robots = isTagNoindexed(taggedPhotos.length, photos.length) ? 'noindex, follow' : undefined;
+---
+
+<Base
+	lang={lang}
+	title={copy.title}
+	description={copy.lead}
+	structuredData={structuredData}
+	robots={robots}
+>
+	<Home lang={lang} activeTag={tag} activeTagCount={taggedPhotos.length} />
+</Base>

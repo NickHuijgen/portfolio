@@ -2,6 +2,9 @@
 dist/
 # generated types
 .astro/
+# wrangler's local dev state (created by `wrangler dev`, which is how the
+# edge language negotiation in worker/ gets tested — see Verification)
+.wrangler/
 
 # dependencies
 node_modules/

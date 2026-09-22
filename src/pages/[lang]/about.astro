@@ -1,12 +1,21 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import Base from '../layouts/Base.astro';
-import { getAbout } from '../lib/about.ts';
-import { aboutPageSchema } from '../lib/schema.ts';
-import { INSTAGRAM_URL, LINKEDIN_URL } from '../lib/site.ts';
-import { OG_IMAGE_OPTIONS } from '../lib/og-image.ts';
+import Base from '../../layouts/Base.astro';
+import { getAbout } from '../../lib/about.ts';
+import { aboutPageSchema } from '../../lib/schema.ts';
+import { INSTAGRAM_URL, LINKEDIN_URL } from '../../lib/site.ts';
+import { OG_IMAGE_OPTIONS } from '../../lib/og-image.ts';
+import { LOCALES, isLocale, localizedPath, UI, type Locale } from '../../lib/i18n.ts';
 
-const about = await getAbout();
+export function getStaticPaths() {
+	return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang: rawLang } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
+
+const about = await getAbout(lang);
 const paragraphs = about.body.split(/\n{2,}/);
 
 // Base.astro's og:image fallback is the collection's single feature:true
@@ -16,11 +25,12 @@ const ogImage = about.portrait
 	? new URL((await getImage({ src: about.portrait, ...OG_IMAGE_OPTIONS })).src, Astro.site).href
 	: undefined;
 
-const structuredData = await aboutPageSchema();
+const structuredData = await aboutPageSchema(lang);
 ---
 
 <Base
-	title="About — Nick Huijgen"
+	lang={lang}
+	title={`${UI[lang].aboutTitle} — Nick Huijgen`}
 	description={about.homeIntro}
 	ogImage={ogImage}
 	ogImageAlt={about.portraitAlt}
@@ -58,13 +68,15 @@ const structuredData = await aboutPageSchema();
 				}
 			</dl>
 			<div class="cta">
-				<a href="/#photos" class="button">View photos</a>
+				<a href={localizedPath('/', lang) + '#photos'} class="button">
+					{UI[lang].viewPhotos}
+				</a>
 				<div class="social-links">
 					<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="me noopener">
-						LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+						LinkedIn<span class="visually-hidden">{UI[lang].opensInNewTab}</span>
 					</a>
 					<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="me noopener">
-						Instagram<span class="visually-hidden"> (opens in a new tab)</span>
+						Instagram<span class="visually-hidden">{UI[lang].opensInNewTab}</span>
 					</a>
 				</div>
 			</div>

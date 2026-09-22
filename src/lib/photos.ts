@@ -1,4 +1,5 @@
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import type { Locale } from './i18n.ts';
 
 // Canonical photo order for the whole site: newest-to-oldest by the date
 // the picture was taken. The grid, the /tag pages, and /photo/[slug]'s
@@ -59,4 +60,27 @@ export function photoUrl(slug: string) {
 
 export function photoDetailsUrl(slug: string) {
 	return `/photo/${slug}/details/`;
+}
+
+// The single definition of what a photo's title/alt/caption *is* in a
+// given language: the `nl` value when it's present and non-empty, English
+// otherwise. Every page and component that renders these fields goes
+// through this rather than reaching into `photo.data.nl` directly, the
+// same rule getSortedPhotos() enforces for ordering — one implementation
+// of the fallback instead of it being re-derived (and inevitably drifting)
+// at each call site. "Present and non-empty" rather than just "present"
+// matters because the photos.yaml schema allows an `nl` block with only
+// some fields filled in (a half-translated entry still has to build), so
+// a missing `nl.caption` must fall back exactly like a missing `nl`
+// altogether.
+export function localizedPhoto(
+	photo: CollectionEntry<'photos'>,
+	lang: Locale,
+): { title: string; alt: string; caption: string | undefined } {
+	const nl = lang === 'nl' ? photo.data.nl : undefined;
+	return {
+		title: nl?.title || photo.data.title,
+		alt: nl?.alt || photo.data.alt,
+		caption: nl?.caption || photo.data.caption,
+	};
 }

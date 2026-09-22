@@ -23,8 +23,9 @@ Consult these guides before working on related tasks:
 
 # Photo portfolio
 
-Astro static site. Single-page photo portfolio with tag filtering.
-Deployed to Cloudflare Pages.
+Astro static site. Photo portfolio with tag filtering, in English and
+Dutch. Deployed to Cloudflare as Workers static assets (`wrangler.jsonc`),
+with one small worker in front of the bare `/` — see Routes.
 
 Design and build mobile-first and accessibility-first: most traffic is
 on phones, and the photos should work for everyone. When a layout or
@@ -50,18 +51,22 @@ you know one exists before you touch either side of it.
 | `GRID_IMAGE_WIDTHS` + `gridImageSizesOpen()` (`photo/[slug]/index.astro`) | The grid thumbnail `<Image>`'s `widths` (`PhotoGallery.astro`) and `gridImageSizesOpen` (`grid.ts`) | Same reasoning again, for the share-landing page's preload of its server-rendered *open* tile — which is that page's LCP element. Verified by diffing the preload's `imagesrcset`/`imagesizes` against the rendered `<img>`'s. |
 | `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`) | The hardcoded `og:image:type`/`width`/`height` meta values in `Base.astro` | Every `og:image` on the site is generated with these exact options (1200×630 JPEG) — the meta tags assume that rather than reading it back off the generated asset. |
 | `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer `wildlife`, which 63 of 64 photos carry). |
+| `LOCALES`/`DEFAULT_LOCALE` (`src/lib/i18n.ts`) | The `LOCALES` and `DEFAULT_LOCALE` constants in `worker/index.js` | The worker is bundled by Cloudflare's build, outside Astro's Vite pipeline *and* outside the project's tsconfig, so it restates the two locale strings rather than importing across that boundary — see the comment above its copy. `astro.config.mjs` *can* import `LOCALES` (and does, for its `filter`/`serialize` regexes), and derives `@astrojs/sitemap`'s `{ locale: langTag }` map from it too, so that file needs no edit. Adding a locale means editing **two** places: `i18n.ts` and `worker/index.js`. |
+| `not_found_handling: "404-page"` (`wrangler.jsonc`) | That there is exactly one `404.astro`, at the `src/pages/` root, and that it's bilingual | That handler matches literal `404.html` files walking *up* the tree, and `trailingSlash: 'always'` makes Astro render every **non-root** page as `<path>/index.html`. A per-locale `src/pages/[lang]/404.astro` therefore builds to `dist/nl/404/index.html`, which is never found — measured against a real build, not assumed. Astro special-cases only the root `404.astro` into a bare `404.html`, which is why that one page has to speak both languages. |
 
 `SITE_URL`/`SITE_NAME`/the social URLs (`src/lib/site.ts`) and `isTagNoindexed()` (`src/lib/tag-coverage.ts`, used by both `tag/[tag].astro`'s `robots` and `astro.config.mjs`'s sitemap `filter`) are *not* in this table on purpose — they're plain modules with no `astro:*` imports of their own, which import cleanly into `astro.config.mjs` (confirmed directly: the restriction there is specifically the `astro:` virtual-module scheme, not "no imports at all" — see the comment in `astro.config.mjs`), so there's exactly one copy of each, not two to keep in sync.
 
 ## Constraints
 - `.astro` components only. No React, Vue, or any client framework.
 - Client-side JS is vanilla, in `is:inline` `<script>` tags — no
-  framework, no build step for it. Currently three: two in
+  framework, no build step for it. Currently five: two in
   `PhotoGallery.astro` (focus restoration; and filtering + in-grid
   expansion, merged into one IIFE so they can share state — see
-  Lightbox / View Transitions) and one in `photo/[slug]/details.astro` (keyboard
-  nav + the close-link/sessionStorage mechanics). Everything else
-  renders at build time.
+  Lightbox / View Transitions), one in `photo/[slug]/details.astro`
+  (keyboard nav + the close-link/sessionStorage mechanics), one in
+  `Header.astro` (writes the `lang` cookie on a switcher click), and one
+  in `pages/index.astro` (the root's language-detecting redirect).
+  Everything else renders at build time.
 - All images go through `astro:assets`. Never a raw `<img>` with a
   public/ path. Reading a property directly off an `image()` asset
   (`photo.data.src.width`, etc.) has a real, non-obvious cost — see the
@@ -78,6 +83,26 @@ you know one exists before you touch either side of it.
   the homepage falls back to zooming into `portrait`, but leaving it
   unset means shipping the whole portrait to paint a 64px circle —
   ~45kB instead of ~3kB. See `.avatar` in `Home.astro`.
+- No user-facing string is hardcoded in a template. UI copy lives in
+  `UI` (`src/lib/i18n.ts`), keyed by locale; photo and about copy live in
+  the content collections' optional `nl:` blocks, resolved through
+  `localizedPhoto()` (`src/lib/photos.ts`) and `getAbout(lang)` — each of
+  which is the *single* definition of the Dutch-with-English-fallback
+  rule, so never read `photo.data.nl` directly. The `nl:` blocks are
+  optional so a half-translated library still builds and the add-photos
+  skill can write an entry from a phone without blocking; an unpopulated
+  one ships an English page under a Dutch URL, which is the
+  near-duplicate problem the locale split exists to avoid, so treat a
+  missing translation as unfinished rather than acceptable.
+- None of the `is:inline` scripts can import `i18n.ts`. They take their
+  strings from `data-` attributes (`data-count-one`, `data-expanded`, …
+  on `#photo-count`; `data-locales` on the root stub's `<html>`) and
+  their locale from
+  `document.documentElement.lang`. **Not** `define:vars` — that makes a
+  script's text unique per page and defeats Astro's textContent-keyed
+  dedup, which has already caused a real listener leak here (see the
+  comment at the top of `details.astro`'s script). The script text must
+  stay byte-identical across all 64 photos *and* both locales.
 - Photos: max 2400px long edge, committed to the repo.
 - Photos are always ordered newest-to-oldest by `date` (the date taken,
   not the date added to the repo or the entry's position in the YAML).
@@ -91,6 +116,74 @@ you know one exists before you touch either side of it.
   than a real entry in any photo's `tags` array.
 
 ## Routes
+
+Every route below is **locale-prefixed**: read each path as
+`/<lang>/…`, where `<lang>` is `en` or `nl` (`LOCALES` in
+`src/lib/i18n.ts`). There is no unprefixed default — the prefixes are
+symmetric on purpose, so that no locale is privileged, a third language
+costs nothing structural, and every URL the code builds is an
+unconditional `/${lang}${path}` (`localizedPath`) rather than a "does
+this locale get a prefix?" branch. That last point is what matters most
+in practice: several hand-written `is:inline` scripts build URLs
+without being able to import anything, and they read the locale off
+`document.documentElement.lang`. Read it **per use, never cached** —
+ClientRouter's `swapRootAttributes()` rewrites that attribute on every
+swap while the script itself never re-runs, so a value captured once
+goes stale the moment someone uses the language switcher. That bug
+shipped once: on `/nl/` after switching from `/en/`, opening a tile
+pushed `/en/photo/<slug>/` into the address bar.
+
+The two exceptions, both real files at the `src/pages/` root:
+
+- `/` — holds no content; it exists only to redirect to a locale based
+  on the visitor's browser language. **There is deliberately no language
+  picker.** A browser asking for a language this site doesn't have
+  (`de`, `fr`, `ja`, `*`, or no header at all) gets `DEFAULT_LOCALE`
+  — English — rather than a choice to make.
+
+  **Three mechanisms**, each covering the gap below it:
+  1. `worker/index.js` negotiates `Accept-Language` at the edge and 302s
+     before a byte is sent. No flash, no JS required. This is production,
+     where `src/pages/index.astro` never renders at all.
+  2. An inline `<head>` script in `src/pages/index.astro`, for every
+     context that worker isn't in front of — `astro dev` (which serves
+     `src/pages` directly and knows nothing about `wrangler.jsonc`),
+     `astro preview`, and a worker that's been removed or misconfigured.
+     It redirects during parse, before anything paints.
+  3. A `<meta http-equiv="refresh">` to `DEFAULT_LOCALE`, for no JS.
+     It sits *after* the script so the language-aware redirect always
+     wins the race.
+
+  (1) and (2) apply the same precedence: a `lang` cookie — written by
+  the header's switcher, so an explicit choice sticks — beats the
+  browser's preference. Both match on the **primary subtag**, so
+  `en-US`/`en-GB`/`en-AU` all mean `en` and `nl-BE`/`nl-NL` both mean
+  `nl`; this site has no regional variants to tell apart.
+
+  (2) uses `location.replace()`, never `assign()`: `/` must not become a
+  history entry, or Back from `/en/` lands there and immediately
+  redirects forward again — a Back trap with no way out.
+
+  `src/pages/index.astro` is **not** deleted in favour of (1) alone,
+  even though production never serves it: without it `/` 404s on
+  `astro dev`, `astro preview`, and any deploy where the worker isn't
+  running. That local-vs-production split — the root behaving
+  differently depending on which server is in front of it — is a bug
+  that has already been reported once.
+
+  It keeps a real hreflang set and remains `x-default`, which is exactly
+  what that value is for: Google defines it as the page that "redirects
+  users to a local version based on their detected language".
+- `/404` — see the `not_found_handling` row in Invariants for why there
+  is exactly one, and why it's bilingual.
+
+Photo and tag **slugs stay English in both locales** (`/nl/photo/
+sleeping-tiger/details/`, `/nl/tag/portrait/`). A slug is the immutable
+public URL and the view-transition key; a tag slug is the data key that
+`photoMatchesTag` and the filter script match on. Only the rendered
+labels are translated (`tagLabel`). See the comment on `TAG_LABELS` for
+the coverage math behind that call, and what would justify revisiting it.
+
 - `/` — intro section (avatar, name, one line, links to the about page,
   LinkedIn, and Instagram) followed by the full photo grid in
   `<section id="photos">`. Tag filtering lives here. Renders `Home.astro`
@@ -127,8 +220,10 @@ you know one exists before you touch either side of it.
   it holds the photo's unique content and its `photoPageSchema`.
 - `/about/` — Nick's bio, portrait, and a facts list, all from
   `about.yaml`. Own `ProfilePage` structured data.
-- `/404` — `noindex`, no canonical, no og:*/twitter:* (see `robots` on
-  `Base.astro`).
+- `/404` — the one page in this list that is **not** locale-prefixed;
+  `/en/404/` and `/nl/404/` do not exist. `noindex`, no canonical, no
+  og:*/twitter:* (see `robots` on `Base.astro`), and bilingual — see the
+  `not_found_handling` row in Invariants for why there can only be one.
 - `/license/` — plain-language photo licensing terms. Exists because
   Google's image-license metadata (`license`/`acquireLicensePage` on
   every `ImageObject`) needs a real page behind it, not just a link
@@ -154,7 +249,8 @@ you know one exists before you touch either side of it.
 - Every route above except `/photo/[slug]/details/` renders `Header.astro`
   (`Base.astro`, `showHeader` prop — default true, the lightbox passes
   `false` because its own fixed close/prev/next controls occupy the
-  same corners). A wordmark plus two nav links (Photos → `/#photos`,
+  same corners). The bare `/` stub has no header either, for a different
+  reason: it doesn't render `Base.astro` at all. A wordmark plus two nav links (Photos → `/#photos`,
   About → `/about/`); no background, no border, not sticky — a bar that
   follows you down the grid is permanent visual weight over the photos.
   The tag filters remain the photo section's own navigation, so the
@@ -224,8 +320,9 @@ you know one exists before you touch either side of it.
   of introducing a shared stylesheet for a handful of rules — there's
   only ever the one page-level bundle (see Performance), and this
   keeps it that way.
-- The horizontal gutter on every page except `/photo/[slug]/details/` (which
-  zeroes it and pads itself explicitly) is the browser's default 8px
+- The horizontal gutter on every page except `/photo/[slug]/details/` and
+  the bare `/` stub (both of which zero it and pad themselves
+  explicitly) is the browser's default 8px
   `body` margin — inherited by accident, not a deliberate design
   choice, on a site that's otherwise mobile-first about everything
   else. Known, not fixed: left as-is rather than changed unprompted.
@@ -235,8 +332,11 @@ you know one exists before you touch either side of it.
 ## Accessibility
 Beyond the general mobile/accessibility-first framing at the top of
 this file:
-- Every page has a skip link (`Base.astro`) to `#main` — every page's
-  own top-level landmark needs a matching `id="main" tabindex="-1"`.
+- Every page rendered through `Base.astro` has a skip link to `#main`,
+  and every such page's top-level landmark needs a matching
+  `id="main" tabindex="-1"`. The one exception is the bare `/` redirect
+  stub, which bypasses `Base.astro`: it holds a single link and exists
+  to be redirected away from, so there is nothing to skip past.
 - In-grid tile expansion updates `aria-expanded` on the thumbnail link
   and briefly announces the state change through the same `role=status`
   region used for the filter's live-updating photo count (`#photo-count`
@@ -374,8 +474,7 @@ this file:
   page's own element ids (`main`, `photos`, `photo-grid`,
   `photo-count`), since a collision there would silently point
   `tileFor()` at the wrong element. The collection `id` stays internal
-  (JSON-LD ids, the old `/photo/photo-NN/` redirects in
-  `public/_redirects`) and is not used for anything the grid or the
+  (JSON-LD ids only) and is not used for anything the grid or the
   lightbox key off.
 - Reduced motion turns the morph into an instant cut (guarded in
   `Base.astro`, global — `view-transition-*` pseudo-elements live
@@ -504,7 +603,7 @@ Before calling a change done:
   not a safety net for type errors. An invalid JSX comment in
   `Home.astro`'s attribute list once failed `check` with 7 errors while
   `astro build` still reported success. Deliberately *not* wired into
-  `build` itself: Cloudflare Pages runs `build`, and photo-only commits
+  `build` itself: the Cloudflare deploy runs `build`, and photo-only commits
   from Pages CMS shouldn't be blocked from deploying by an unrelated
   type error elsewhere in the codebase.
 - `npm run check` (`astro check`) — 0 errors expected. Warnings/hints
@@ -529,3 +628,52 @@ Before calling a change done:
 - If you touched routing, history state, or the ClientRouter-related
   scripts: test Back/Forward through an in-grid expand/collapse *and*
   through a filter switch, not just a plain page-to-page navigation.
+- Anything touching locales, URLs or the head: check **both** locales,
+  not just `/en/`. Dutch strings are longer than English ones, so the
+  header and filter nav are tighter — 320px is the binding case.
+  Mechanical checks worth re-running (all of these caught something real
+  the first time):
+  - every page that is indexable **and self-canonical** carries the full
+    `en`/`nl`/`x-default` hreflang set, and every URL it names exists on
+    disk. Pages whose `canonical` points elsewhere carry **none** — the
+    128 `/<lang>/photo/<slug>/` pages are indexable but consolidate into
+    their own `/details/` page, and hreflang clusters are built from
+    canonical URLs, so annotations there would be ignored anyway (see the
+    comment on the hreflang block in `Base.astro`). Don't "fix" their
+    absence by re-adding them;
+  - the LCP preload's `imagesrcset`/`imagesizes` still match the rendered
+    `<img>`'s, **in both locales** — that's the silent double-fetch in
+    the Invariants table;
+  - **every internal `href` in `dist/` resolves to a file that exists.**
+    Cheap to script (walk the HTML, check each `/…` href against
+    `dist/<path>` or `dist/<path>/index.html`) and it catches the whole
+    class: the language switcher builds its targets by re-prefixing
+    `stripLocale(pathname).path`, which silently produced `/en/404/` and
+    `/nl/404/` — two links that never existed — because the root `/404`
+    has no locale prefix to swap. Anything that constructs a URL from
+    the current path rather than from a route has this failure mode;
+  - `dist/` contains exactly one `404.html`;
+  - the sitemap submits no `/photo/<slug>/` (non-details) and no
+    noindexed tag URL, in either locale.
+- Root redirection has three mechanisms (see `/` under Routes) and they
+  need **separate** tests — on `astro dev` you are exercising the JS
+  backstop, not the worker, and it's easy to conclude the worker works
+  when you never ran it. On either server, check: a matching browser
+  language redirects (`nl-NL` → `/nl/`); a **region variant** resolves
+  on its primary subtag (`en-US`, `en-GB`, `nl-BE`); a language the site
+  doesn't have lands on `/en/` rather than stalling (`de-DE`, `fr`,
+  `*`, no header); a `lang` cookie overrides all of it; and Back from
+  the locale you landed on skips `/` entirely rather than bouncing
+  forward again. (`navigator.languages` can be overridden
+  per-navigation with an init script if your own browser only speaks one
+  of them.)
+- The edge half specifically needs a real Workers runtime —
+  `astro dev` does not run `worker/index.js`. Use
+  `npx wrangler dev --port 8787 --local` against a fresh `npm run build`,
+  then check: a Dutch header 302s `/` to `/nl/`, an English one to
+  `/en/`, a `lang` cookie beats the header, an undecidable header (`de`,
+  `*`, or none) still lands on `/en/`, `Vary` is on
+  every root response, and — the regression that matters most — a URL
+  that already names a locale is **never** redirected. Check the 404s
+  through wrangler too, not just in `dist/`: a worker in front of the
+  static asset handler is exactly what could break commit `8453f19`.

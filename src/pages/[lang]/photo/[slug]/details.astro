@@ -1,25 +1,38 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import Base from '../../../layouts/Base.astro';
-import { OG_IMAGE_OPTIONS } from '../../../lib/og-image.ts';
-import { photoPageSchema } from '../../../lib/schema.ts';
-import { getSortedPhotos, photoDetailsUrl, photoUrl } from '../../../lib/photos.ts';
+import Base from '../../../../layouts/Base.astro';
+import { OG_IMAGE_OPTIONS } from '../../../../lib/og-image.ts';
+import { photoPageSchema } from '../../../../lib/schema.ts';
+import {
+	getSortedPhotos,
+	photoDetailsUrl,
+	photoUrl,
+	localizedPhoto,
+} from '../../../../lib/photos.ts';
+import { LOCALES, isLocale, localizedPath, DATE_LOCALE, UI, tagLabel, type Locale } from '../../../../lib/i18n.ts';
 
 export async function getStaticPaths() {
 	const photos = await getSortedPhotos();
-	return photos.map((photo, index) => {
-		const prev = photos[(index - 1 + photos.length) % photos.length];
-		const next = photos[(index + 1) % photos.length];
-		return {
-			params: { slug: photo.data.slug },
-			props: { photo, prev, next },
-		};
-	});
+	return LOCALES.flatMap((lang) =>
+		photos.map((photo, index) => {
+			const prev = photos[(index - 1 + photos.length) % photos.length];
+			const next = photos[(index + 1) % photos.length];
+			return {
+				params: { lang, slug: photo.data.slug },
+				props: { photo, prev, next },
+			};
+		}),
+	);
 }
+
+const { lang: rawLang } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
 
 const { photo, prev, next } = Astro.props;
 const prevSlug = prev.data.slug;
 const nextSlug = next.data.slug;
+const { title, alt, caption } = localizedPhoto(photo, lang);
 
 // `.clone`, not photo.data.src.width/height directly — see the matching
 // comment in PhotoGallery.astro. Reading a property straight off an
@@ -55,7 +68,7 @@ const preloadImages = await Promise.all(
 	}),
 );
 
-const formattedDate = photo.data.date.toLocaleDateString('en-US', {
+const formattedDate = photo.data.date.toLocaleDateString(DATE_LOCALE[lang], {
 	year: 'numeric',
 	month: 'long',
 	day: 'numeric',
@@ -73,7 +86,7 @@ const formattedExif =
 		`ISO ${exif.iso}`,
 	].join(' · ');
 
-const structuredData = await photoPageSchema(photo);
+const structuredData = await photoPageSchema(photo, lang);
 
 // Base.astro falls back to the collection's single `feature: true` photo
 // for og:image when no ogImage is given — fine for the homepage/tag pages,
@@ -84,40 +97,41 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
 
 <Base
-	title={`${photo.data.title} — Nick Huijgen`}
-	description={photo.data.caption ?? photo.data.alt}
+	lang={lang}
+	title={`${title} — Nick Huijgen`}
+	description={caption ?? alt}
 	ogImage={ogImage}
-	ogImageAlt={photo.data.alt}
+	ogImageAlt={alt}
 	ogType="article"
 	structuredData={structuredData}
 	preloadImages={preloadImages}
 	showHeader={false}
 >
 	<main class="photo-detail" id="main" tabindex="-1" data-photo-slug={photo.data.slug}>
-		<h1 class="visually-hidden">{photo.data.title}</h1>
+		<h1 class="visually-hidden">{title}</h1>
 		<a
-			href={photoUrl(photo.data.slug)}
+			href={localizedPath(photoUrl(photo.data.slug), lang)}
 			id="photo-close"
 			class="control close"
 			autofocus
-			aria-label="Close"
+			aria-label={UI[lang].close}
 		>
 			✕
 		</a>
 		<a
-			href={photoDetailsUrl(prevSlug)}
+			href={localizedPath(photoDetailsUrl(prevSlug), lang)}
 			id="photo-prev"
 			class="control prev"
-			aria-label="Previous photo"
+			aria-label={UI[lang].previousPhoto}
 			data-astro-prefetch="load"
 		>
 			‹
 		</a>
 		<a
-			href={photoDetailsUrl(nextSlug)}
+			href={localizedPath(photoDetailsUrl(nextSlug), lang)}
 			id="photo-next"
 			class="control next"
-			aria-label="Next photo"
+			aria-label={UI[lang].nextPhoto}
 			data-astro-prefetch="load"
 		>
 			›
@@ -126,7 +140,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		<figure class="frame">
 			<Image
 				src={photo.data.src}
-				alt={photo.data.alt}
+				alt={alt}
 				widths={FRAME_IMAGE_WIDTHS}
 				sizes={FRAME_IMAGE_SIZES}
 				class="frame-image"
@@ -138,7 +152,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 		</figure>
 
 		<div class="meta">
-			{photo.data.caption && <p class="caption">{photo.data.caption}</p>}
+			{caption && <p class="caption">{caption}</p>}
 			<p class="date">{formattedDate}</p>
 			{photo.data.location && <p class="location">{photo.data.location}</p>}
 			{exif && <p class="exif">{formattedExif}</p>}
@@ -146,7 +160,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 				{
 					photo.data.tags.map((tag) => (
 						<li>
-							<a href={`/tag/${tag}/`}>{tag}</a>
+							<a href={localizedPath(`/tag/${tag}/`, lang)}>{tagLabel(tag, lang)}</a>
 						</li>
 					))
 				}
@@ -167,7 +181,13 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	// per arrow key once N photos had been visited. The photo's slug now
 	// comes from a `data-photo-slug` attribute (read fresh from the
 	// swapped-in DOM) instead, so this script's text is identical on
-	// every photo page and only ever runs once per session.
+	// every photo page and only ever runs once per session. Same reasoning
+	// is why the locale isn't baked in either — every /en/ and every /nl/
+	// photo page would otherwise need its own copy of this script just to
+	// close differently, defeating the same dedup. `document.documentElement.lang`
+	// (set by Base.astro's <html lang>, and swapped along with the rest of
+	// <html>'s attributes on every ClientRouter navigation) is read fresh
+	// instead, so this one script text serves both locales too.
 	document.addEventListener('astro:page-load', () => {
 		const main = document.querySelector('.photo-detail');
 		const closeLink = document.getElementById('photo-close');
@@ -201,7 +221,8 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 			activeTag = sessionStorage.getItem('activeTag');
 		} catch {}
 		if (activeTag) {
-			closeLink.href = `/tag/${encodeURIComponent(activeTag)}/#photos`;
+			const lang = document.documentElement.lang;
+			closeLink.href = `/${lang}/tag/${encodeURIComponent(activeTag)}/#photos`;
 		}
 		// `autofocus` only applies during the browser's initial parse of a
 		// fresh Document — ClientRouter swaps this page's content into the

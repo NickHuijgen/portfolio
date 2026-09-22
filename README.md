@@ -1,9 +1,14 @@
 # nickhuijgen.nl
 
-Nick Huijgen's photo portfolio: a single-page photo grid with tag filtering,
-a per-photo lightbox, and an about page. Built with [Astro](https://astro.build),
-plain CSS, and vanilla JS for the interactive bits — no client framework.
-Deployed on Cloudflare Pages.
+Nick Huijgen's photo portfolio: a photo grid with tag filtering, a per-photo
+lightbox, and an about page, in English and Dutch (`/en/…` and `/nl/…`).
+Built with [Astro](https://astro.build), plain CSS, and vanilla JS for the
+interactive bits — no client framework. Deployed to Cloudflare as Workers
+static assets (`wrangler.jsonc`), with a small worker in `worker/` that
+redirects the bare `/` to a locale based on the browser's language.
+
+Note that `npm run dev` does **not** run that worker — use
+`npx wrangler dev` against a fresh build to exercise it.
 
 For the full picture (constraints, layout math, the view-transitions
 system, SEO setup) see [`AGENTS.md`](./AGENTS.md) — it's the primary

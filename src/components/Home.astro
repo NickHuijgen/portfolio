@@ -2,10 +2,12 @@
 import { Image } from 'astro:assets';
 import PhotoGallery from './PhotoGallery.astro';
 import { getAbout } from '../lib/about.ts';
-import { INSTAGRAM_URL, LINKEDIN_URL } from '../lib/site.ts';
+import { INSTAGRAM_URL, LINKEDIN_URL, SITE_NAME } from '../lib/site.ts';
 import { tagCopy } from '../lib/tag-copy.ts';
+import { localizedPath, UI, type Locale } from '../lib/i18n.ts';
 
 interface Props {
+	lang: Locale;
 	activeTag?: string;
 	/** Required alongside activeTag — the caller (tag/[tag].astro) already has this count from building the page, so Home.astro doesn't re-fetch and re-filter the whole collection just to get it again. */
 	activeTagCount?: number;
@@ -13,9 +15,10 @@ interface Props {
 	openSlug?: string;
 }
 
-const { activeTag, activeTagCount, openSlug } = Astro.props;
+const { lang, activeTag, activeTagCount, openSlug } = Astro.props;
+const strings = UI[lang];
 
-const about = await getAbout();
+const about = await getAbout(lang);
 
 // A hardcoded "Nick Huijgen" h1 + fixed intro paragraph on every tag
 // page (as well as /) is most of why / and /tag/[tag] measured 0.9998
@@ -28,7 +31,7 @@ const about = await getAbout();
 // leaves this heading/lead alone rather than mirroring tagCopy, so
 // clicking a filter pill never changes the page head.
 const { heading: tagHeading, lead: tagLead } = activeTag
-	? tagCopy(activeTag, activeTagCount ?? 0)
+	? tagCopy(activeTag, activeTagCount ?? 0, lang)
 	: { heading: undefined, lead: undefined };
 ---
 
@@ -70,34 +73,42 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 				}
 			</span>
 			<div class="heading-group">
-				<h1>{tagHeading ?? 'Nick Huijgen'}</h1>
-				{tagHeading && <p class="byline">by Nick Huijgen</p>}
+				<h1>{tagHeading ?? SITE_NAME}</h1>
+				{tagHeading && (
+					<p class="byline">
+						{strings.bylineBy} {SITE_NAME}
+					</p>
+				)}
 			</div>
 		</div>
-		<p class="lead">{tagLead ?? 'Photography from wherever I end up.'}</p>
+		<p class="lead">{tagLead ?? strings.homeLead}</p>
 		<p class="bio">
-			{about.homeIntro} <a href="/about/" class="more-link">More about me</a>
+			{about.homeIntro}{' '}
+			<a href={localizedPath('/about/', lang)} class="more-link">
+				{strings.moreAboutMe}
+			</a>
 		</p>
 		<div class="cta">
-			<a href="#photos" class="button">View photos</a>
+			<a href="#photos" class="button">{strings.viewPhotos}</a>
 			<div class="social-links">
 				<a href={LINKEDIN_URL} class="social-link" target="_blank" rel="me noopener">
-					LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+					LinkedIn<span class="visually-hidden">{strings.opensInNewTab}</span>
 				</a>
 				<a href={INSTAGRAM_URL} class="social-link" target="_blank" rel="me noopener">
-					Instagram<span class="visually-hidden"> (opens in a new tab)</span>
+					Instagram<span class="visually-hidden">{strings.opensInNewTab}</span>
 				</a>
 			</div>
 		</div>
 	</section>
 
 	<section id="photos" tabindex="-1">
-		<PhotoGallery activeTag={activeTag} openSlug={openSlug} />
+		<PhotoGallery activeTag={activeTag} openSlug={openSlug} lang={lang} />
 	</section>
 </main>
 
 <footer class="site-footer">
-	© {new Date().getFullYear()} Nick Huijgen. All rights reserved. <a href="/license/">Licensing</a>
+	© {new Date().getFullYear()} Nick Huijgen. {strings.allRightsReserved}{' '}
+	<a href={localizedPath('/license/', lang)}>{strings.licensing}</a>
 </footer>
 
 <style>
@@ -176,6 +187,19 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 		margin: 0;
 		font-size: 2rem;
 		font-weight: 500;
+		/* Dutch compounds into single unbreakable words, and this heading
+		   sits in a flex item that is only ~226px wide at a 320px viewport
+		   (304px content box, less the 64px avatar and its 14px gap).
+		   Measured min-content widths at this 32px size: "Portretfotografie"
+		   254px and "Dierenfotografie" 246px — both overflow, and did cause
+		   horizontal page scroll. English escapes it only by having a space
+		   to break at ("Portrait photography", 193px), as does "Uitgelichte
+		   foto's" (163px), so this is invisible until a locale supplies a
+		   long compound. break-word is the guarantee; hyphens:auto makes the
+		   break read properly, using the Dutch patterns <html lang="nl">
+		   already selects. Both are inert whenever the word fits. */
+		overflow-wrap: break-word;
+		hyphens: auto;
 	}
 
 	.heading-group {

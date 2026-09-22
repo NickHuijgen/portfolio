@@ -10,8 +10,8 @@ const photos = defineCollection({
       // skill, and the first bullet under Lightbox / View Transitions in
       // AGENTS.md for everything keyed off it. Never regenerated
       // from a later title edit, and never exposed in Pages CMS, so it
-      // can't be hand-edited into breaking public/_redirects or an
-      // already-shared /photo/<slug>/ URL. This is the only identifier
+      // can't be hand-edited into breaking an already-shared
+      // /<lang>/photo/<slug>/ URL. This is the only identifier
       // the front end uses: the route param, the grid thumbnail link's
       // DOM id, the in-grid expansion key, and the view-transition name.
       // `id` (the collection key, from this entry's `id:` field) stays
@@ -45,6 +45,33 @@ const photos = defineCollection({
           iso: z.number(),
         })
         .optional(),
+      // Dutch translations of the fields that are actually prose. Optional,
+      // and per-field optional inside that: a half-translated library still
+      // builds, and an entry that predates a translation pass still
+      // builds. The add-photos skill writes `nl` alongside the English
+      // (see its step 8b), but a blank field from Pages CMS must never
+      // block a deploy. localizedPhoto() in src/lib/photos.ts is the
+      // single place that resolves an entry's title/alt/caption against
+      // this against the English fallback — see the comment there.
+      // `location` is deliberately not included: it's a venue's actual
+      // name (a zoo, a park), not descriptive prose, so there's nothing to
+      // translate.
+      nl: z
+        .object({
+          // No .min(1) here, unlike the English `alt` above. These are
+          // editable in Pages CMS, which writes a blank field as `""`
+          // rather than omitting the key — .min(1) would turn "editor
+          // opened the Dutch block and left a field empty" into a failed
+          // build and a blocked deploy. It would also buy nothing:
+          // localizedPhoto() falls back with `||`, so an empty string
+          // already resolves to the English text. The English `alt`
+          // keeps its .min(1) because it's genuinely required (the
+          // alt-text convention), and this isn't.
+          title: z.string().optional(),
+          alt: z.string().optional(),
+          caption: z.string().optional(),
+        })
+        .optional(),
     }),
 });
 
@@ -71,6 +98,29 @@ const about = defineCollection({
           value: z.string(),
         }),
       ),
+      // Dutch translations of the prose fields, same optional-and-optional-
+      // inside shape and reasoning as the photos collection's `nl` above —
+      // see the comment there. Resolved by getAbout(lang) in
+      // src/lib/about.ts. `portrait`/`avatar` stay untranslated (they're
+      // images), but `portraitAlt` IS translated — it's alt text, read
+      // aloud to a Dutch screen-reader user and used as og:image:alt on
+      // the Dutch pages.
+      nl: z
+        .object({
+          portraitAlt: z.string().optional(),
+          homeIntro: z.string().optional(),
+          heading: z.string().optional(),
+          body: z.string().optional(),
+          facts: z
+            .array(
+              z.object({
+                label: z.string(),
+                value: z.string(),
+              }),
+            )
+            .optional(),
+        })
+        .optional(),
     }),
 });
 

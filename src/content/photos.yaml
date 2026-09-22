@@ -3,6 +3,9 @@
   title: Sleeping tiger
   src: images/914a3845.jpeg
   alt: Tiger sleeping with its head resting against a moss-covered rock
+  nl:
+    title: "Slapende tijger"
+    alt: "Tijger die slaapt met zijn kop tegen een met mos begroeide rots"
   date: 2026-08-30
   location: Dierenpark Amersfoort
   tags:
@@ -21,6 +24,10 @@
   src: images/914a3132.jpeg
   alt: Clouded leopard sleeping on a wooden platform
   caption: Napping between exhibits
+  nl:
+    title: "Slapende nevelpanter"
+    alt: "Nevelpanter die slaapt op een houten platform"
+    caption: "Dutje tussen de verblijven"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -38,6 +45,9 @@
   title: Clouded leopard in the grass
   src: images/914a3202.jpeg
   alt: Clouded leopard's eye and muzzle glimpsed through tall grass while feeding
+  nl:
+    title: "Nevelpanter in het gras"
+    alt: "Oog en snuit van een nevelpanter, zichtbaar door hoog gras terwijl hij eet"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -55,6 +65,9 @@
   title: Snow leopard eyeing its prey
   src: images/914a3233.jpeg
   alt: Snow leopard perched on a log, eyeing a hanging rabbit carcass
+  nl:
+    title: "Sneeuwpanter loert naar zijn prooi"
+    alt: "Sneeuwpanter die op een boomstam zit en loert naar een hangend konijnenkarkas"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -72,6 +85,9 @@
   title: Snow leopard biting its prey
   src: images/914a3262.jpeg
   alt: Snow leopard biting into a rabbit carcass hanging from a rope
+  nl:
+    title: "Sneeuwpanter bijt in zijn prooi"
+    alt: "Sneeuwpanter die bijt in een konijnenkarkas dat aan een touw hangt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -89,6 +105,9 @@
   title: Snow leopard reaching for prey
   src: images/914a3268.jpeg
   alt: Snow leopard reaching a paw up toward a hanging rabbit carcass
+  nl:
+    title: "Sneeuwpanter reikt naar zijn prooi"
+    alt: "Sneeuwpanter die een poot uitsteekt naar een hangend konijnenkarkas"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -106,6 +125,9 @@
   title: Snow leopard licking its lips
   src: images/914a3269.jpeg
   alt: Snow leopard licking its lips beside a hanging rabbit carcass
+  nl:
+    title: "Sneeuwpanter likt zijn lippen af"
+    alt: "Sneeuwpanter die zijn lippen aflikt naast een hangend konijnenkarkas"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -124,6 +146,10 @@
   src: images/914a3298.jpeg
   alt: Snow leopard snarling as it emerges from a rock den
   caption: Announcing itself
+  nl:
+    title: "Grauwende sneeuwpanter"
+    alt: "Sneeuwpanter die grauwt terwijl hij uit een rotshol tevoorschijn komt"
+    caption: "Hij kondigt zich aan"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -141,6 +167,9 @@
   title: Snow leopard looking up
   src: images/914a3324.jpeg
   alt: Close-up of a snow leopard's face as it looks upward
+  nl:
+    title: "Sneeuwpanter kijkt omhoog"
+    alt: "Close-up van de kop van een sneeuwpanter die omhoog kijkt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -158,6 +187,9 @@
   title: Snow leopard holding its prey
   src: images/914a3330.jpeg
   alt: Snow leopard holding a hanging rabbit carcass with one paw
+  nl:
+    title: "Sneeuwpanter houdt zijn prooi vast"
+    alt: "Sneeuwpanter die een hangend konijnenkarkas met één poot vasthoudt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -175,6 +207,9 @@
   title: Snow leopard gripping its prey
   src: images/914a3336.jpeg
   alt: Snow leopard gripping a hanging rabbit carcass in its jaws
+  nl:
+    title: "Sneeuwpanter grijpt zijn prooi"
+    alt: "Sneeuwpanter die een hangend konijnenkarkas in zijn bek klemt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -193,6 +228,10 @@
   src: images/914a3346.jpeg
   alt: Snow leopard looking upward with rocks in the background
   caption: Closing in
+  nl:
+    title: "Sneeuwpanter kijkt omhoog tussen de rotsen"
+    alt: "Sneeuwpanter die omhoog kijkt, met rotsen op de achtergrond"
+    caption: "Hij komt dichterbij"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -210,6 +249,9 @@
   title: Snow leopard prowling with prey
   src: images/914a3385.jpeg
   alt: Snow leopard prowling over rocks toward the camera with fur in its mouth
+  nl:
+    title: "Sneeuwpanter sluipt met zijn prooi"
+    alt: "Sneeuwpanter die over de rotsen naar de camera toe sluipt, met bont in zijn bek"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -227,6 +269,9 @@
   title: Snow leopard facing the camera
   src: images/914a3389.jpeg
   alt: Snow leopard licking its lips while looking at the camera
+  nl:
+    title: "Sneeuwpanter kijkt in de camera"
+    alt: "Sneeuwpanter die zijn lippen aflikt terwijl hij in de camera kijkt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -244,6 +289,9 @@
   title: Snow leopard standing among rocks
   src: images/914a3391.jpeg
   alt: Snow leopard standing among rocks, looking upward
+  nl:
+    title: "Sneeuwpanter tussen de rotsen"
+    alt: "Sneeuwpanter die tussen de rotsen staat en omhoog kijkt"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -261,6 +309,9 @@
   title: Snow leopard reaching up
   src: images/914a3392.jpeg
   alt: Snow leopard reaching a paw up toward a dangling rabbit carcass
+  nl:
+    title: "Sneeuwpanter reikt omhoog"
+    alt: "Sneeuwpanter die een poot omhoog steekt naar een bungelend konijnenkarkas"
   date: 2026-07-27
   location: Dierenpark Zie-Zoo
   tags:
@@ -278,6 +329,9 @@
   title: Prairie dog with a parsnip
   src: images/914a2688.jpeg
   alt: Prairie dog sitting upright, holding a parsnip in its paws
+  nl:
+    title: "Prairiehond met een pastinaak"
+    alt: "Prairiehond die rechtop zit met een pastinaak in zijn voorpoten"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -295,6 +349,9 @@
   title: Prairie dog eating a parsnip
   src: images/914a2695.jpeg
   alt: Prairie dog holding a parsnip up to its mouth
+  nl:
+    title: "Prairiehond eet een pastinaak"
+    alt: "Prairiehond die een pastinaak naar zijn bek brengt"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -312,6 +369,9 @@
   title: Prairie dog nibbling a parsnip
   src: images/914a2711.jpeg
   alt: Prairie dog nibbling on a parsnip held in its paws
+  nl:
+    title: "Prairiehond knabbelt aan een pastinaak"
+    alt: "Prairiehond die knabbelt aan een pastinaak in zijn voorpoten"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -330,6 +390,10 @@
   src: images/914a2721.jpeg
   alt: Prairie dog standing upright and alert
   caption: Keeping watch
+  nl:
+    title: "Waakzame prairiehond"
+    alt: "Prairiehond die rechtop en waakzaam staat"
+    caption: "Op de uitkijk"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -347,6 +411,9 @@
   title: Pelican in profile
   src: images/914a2818.jpeg
   alt: Pelican in profile, showing its long bill and throat pouch
+  nl:
+    title: "Pelikaan in profiel"
+    alt: "Pelikaan in profiel, met zijn lange snavel en keelzak goed zichtbaar"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -365,6 +432,10 @@
   src: images/914a2879.jpeg
   alt: Young baboon sitting cross-legged on the ground, looking at the camera
   caption: Sizing me up
+  nl:
+    title: "Jonge baviaan kijkt in de camera"
+    alt: "Jonge baviaan die met gekruiste benen op de grond zit en in de camera kijkt"
+    caption: "Hij schat me in"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -383,6 +454,10 @@
   src: images/914a2912.jpeg
   alt: Snowy owl perched on a stump, looking over its shoulder
   caption: Turning to look
+  nl:
+    title: "Sneeuwuil kijkt achterom"
+    alt: "Sneeuwuil die op een boomstronk zit en over zijn schouder kijkt"
+    caption: "Even omkijken"
   date: 2026-07-07
   location: Dierenpark Amersfoort
   tags:
@@ -400,6 +475,9 @@
   title: Prairie dog at its burrow
   src: images/mg6620.jpeg
   alt: Prairie dog standing upright at its burrow entrance, forepaws raised
+  nl:
+    title: "Prairiehond bij zijn hol"
+    alt: "Prairiehond die rechtop bij de ingang van zijn hol staat, voorpoten opgeheven"
   date: 2026-04-07
   location: Dierenpark Amersfoort
   tags:
@@ -417,6 +495,9 @@
   title: Prairie dog looking aside
   src: images/mg6625.jpeg
   alt: Prairie dog standing upright, looking off to the side with forepaws raised
+  nl:
+    title: "Prairiehond kijkt opzij"
+    alt: "Prairiehond die rechtop staat en opzij kijkt, voorpoten opgeheven"
   date: 2026-04-07
   location: Dierenpark Amersfoort
   tags:
@@ -434,6 +515,9 @@
   title: Prairie dog chewing dirt
   src: images/mg6637.jpeg
   alt: Close-up profile of a prairie dog chewing on a clump of dirt, dust flying from its paws
+  nl:
+    title: "Prairiehond kauwt op aarde"
+    alt: "Close-up in profiel van een prairiehond die op een kluit aarde kauwt, met stof dat van zijn voorpoten stuift"
   date: 2026-04-07
   location: Dierenpark Amersfoort
   tags:
@@ -451,6 +535,9 @@
   title: Prairie dog holding food
   src: images/mg6645.jpeg
   alt: Prairie dog holding a clump of food in both paws while eating
+  nl:
+    title: "Prairiehond houdt zijn eten vast"
+    alt: "Prairiehond die tijdens het eten een pluk voer in beide voorpoten houdt"
   date: 2026-04-07
   location: Dierenpark Amersfoort
   tags:
@@ -468,6 +555,9 @@
   title: Prairie dog on a mound, looking up
   src: images/mg6686.jpeg
   alt: Prairie dog standing upright on a dirt mound, looking up and to the side
+  nl:
+    title: "Prairiehond op een heuveltje, omhoog kijkend"
+    alt: "Prairiehond die rechtop op een zandheuveltje staat en omhoog en opzij kijkt"
   date: 2026-04-07
   location: Dierenpark Amersfoort
   tags:
@@ -485,6 +575,9 @@
   title: Juvenile prairie dog peering over
   src: images/mg6722.jpeg
   alt: Juvenile prairie dog peering over the edge of a dirt mound
+  nl:
+    title: "Jonge prairiehond gluurt over de rand"
+    alt: "Jonge prairiehond die over de rand van een zandheuveltje gluurt"
   date: 2026-04-28
   location: Dierenpark Amersfoort
   tags:
@@ -502,6 +595,9 @@
   title: Juvenile prairie dog cresting a mound
   src: images/mg6723.jpeg
   alt: Juvenile prairie dog cresting a mound with its mouth slightly open
+  nl:
+    title: "Jonge prairiehond op de top van een heuveltje"
+    alt: "Jonge prairiehond die boven op een zandheuveltje komt, zijn bek een stukje open"
   date: 2026-04-28
   location: Dierenpark Amersfoort
   tags:
@@ -520,6 +616,10 @@
   src: images/mg6753.jpeg
   alt: Young prairie dog chewing on a strand of dried grass
   caption: Grass for lunch
+  nl:
+    title: "Jonge prairiehond kauwt op gras"
+    alt: "Jonge prairiehond die kauwt op een spriet droog gras"
+    caption: "Gras als lunch"
   date: 2026-04-28
   location: Dierenpark Amersfoort
   tags:
@@ -537,6 +637,9 @@
   title: Juvenile prairie dog nibbling grass
   src: images/mg6827.jpeg
   alt: Juvenile prairie dog standing upright, nibbling a strand of grass held in both paws
+  nl:
+    title: "Jonge prairiehond knabbelt aan gras"
+    alt: "Jonge prairiehond die rechtop staat en knabbelt aan een grasspriet in beide voorpoten"
   date: 2026-04-28
   location: Dierenpark Amersfoort
   tags:
@@ -555,6 +658,10 @@
   src: images/mg6978.jpeg
   alt: Two prairie dog pups resting together, one's head draped over the other's
   caption: Pile of two
+  nl:
+    title: "Prairiehondjes rusten samen"
+    alt: "Twee jonge prairiehonden die samen liggen te rusten, de kop van de een over die van de ander"
+    caption: "Op een hoopje"
   date: 2026-04-28
   location: Dierenpark Amersfoort
   tags:
@@ -572,6 +679,9 @@
   title: Prairie dog nibbling on a rock
   src: images/mg5905.jpeg
   alt: Prairie dog sitting upright on a rock, nibbling something held in its paws
+  nl:
+    title: "Knabbelende prairiehond op een steen"
+    alt: "Prairiehond die rechtop op een steen zit en knabbelt aan iets in zijn voorpoten"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -590,6 +700,10 @@
   src: images/mg5914.jpeg
   alt: Prairie dog holding an autumn leaf up to its mouth
   caption: Autumn snack
+  nl:
+    title: "Prairiehond met een herfstblad"
+    alt: "Prairiehond die een herfstblad naar zijn bek brengt"
+    caption: "Herfsthapje"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -607,6 +721,9 @@
   title: Prairie dog on a dirt mound
   src: images/mg5959.jpeg
   alt: Prairie dog in profile atop a dirt mound, whiskers dusted with sand
+  nl:
+    title: "Prairiehond op een zandheuveltje"
+    alt: "Prairiehond in profiel boven op een zandheuveltje, met zand op zijn snorharen"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -624,6 +741,9 @@
   title: Baboon on ancient ruins
   src: images/mg6000.jpeg
   alt: Baboon sitting on ancient stone ruins, eating a piece of food
+  nl:
+    title: "Baviaan op oude ruïnes"
+    alt: "Baviaan die op oude stenen ruïnes zit en iets eet"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -641,6 +761,9 @@
   title: Baboon perched on ruins
   src: images/mg6001.jpeg
   alt: Baboon perched on stone ruins, biting into a piece of food while looking to the side
+  nl:
+    title: "Baviaan hoog op de ruïnes"
+    alt: "Baviaan die op stenen ruïnes zit en in zijn eten bijt terwijl hij opzij kijkt"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -658,6 +781,9 @@
   title: Prairie dog chewing a twig
   src: images/mg6012.jpeg
   alt: Prairie dog chewing on a thin twig held in both paws
+  nl:
+    title: "Prairiehond kauwt op een takje"
+    alt: "Prairiehond die kauwt op een dun takje in beide voorpoten"
   date: 2025-11-04
   location: Dierenpark Amersfoort
   tags:
@@ -676,6 +802,10 @@
   src: images/mg6284.jpeg
   alt: Two prairie dogs standing side by side, both feeding on green leaves
   caption: Sharing a snack
+  nl:
+    title: "Twee prairiehonden eten"
+    alt: "Twee prairiehonden die naast elkaar staan en allebei groene blaadjes eten"
+    caption: "Samen delen"
   date: 2026-02-08
   location: Dierenpark Amersfoort
   tags:
@@ -693,6 +823,9 @@
   title: Prairie dog emerging from its burrow
   src: images/mg6328.jpeg
   alt: Prairie dog emerging from its burrow beside a moss-covered rock
+  nl:
+    title: "Prairiehond komt uit zijn hol"
+    alt: "Prairiehond die uit zijn hol tevoorschijn komt naast een met mos begroeid rotsblok"
   date: 2026-02-08
   location: Dierenpark Amersfoort
   tags:
@@ -710,6 +843,9 @@
   title: Prairie dog eating grass
   src: images/mg6356.jpeg
   alt: Prairie dog eating a blade of grass, with another prairie dog blurred behind
+  nl:
+    title: "Prairiehond eet gras"
+    alt: "Prairiehond die een grasspriet eet, met een andere prairiehond wazig op de achtergrond"
   date: 2026-02-08
   location: Dierenpark Amersfoort
   tags:
@@ -727,6 +863,9 @@
   title: Prairie dog chewing grass, in profile
   src: images/mg6361.jpeg
   alt: Prairie dog in profile chewing a blade of grass, another prairie dog out of focus in the background
+  nl:
+    title: "Prairiehond kauwt op gras, in profiel"
+    alt: "Prairiehond in profiel die op een grasspriet kauwt, met een andere prairiehond onscherp op de achtergrond"
   date: 2026-02-08
   location: Dierenpark Amersfoort
   tags:
@@ -744,6 +883,9 @@
   title: Prairie dog standing alert
   src: images/mg6366.jpeg
   alt: Prairie dog standing upright and alert, another prairie dog blurred in the background
+  nl:
+    title: "Waakzame prairiehond"
+    alt: "Prairiehond die rechtop en waakzaam staat, met een andere prairiehond wazig op de achtergrond"
   date: 2026-02-08
   location: Dierenpark Amersfoort
   tags:
@@ -761,6 +903,9 @@
   title: Baboon on a rooftop
   src: images/mg5323.jpeg
   alt: Baboon sitting on the edge of a wooden roof, looking out into the trees
+  nl:
+    title: "Baviaan op een dak"
+    alt: "Baviaan die op de rand van een houten dak zit en uitkijkt over de bomen"
   date: 2025-09-27
   location: Dierenpark Amersfoort
   tags:
@@ -778,6 +923,9 @@
   title: Prairie dog eating a twig
   src: images/mg5352.jpeg
   alt: Prairie dog eating a twig while sitting in scattered hay
+  nl:
+    title: "Prairiehond eet een takje"
+    alt: "Prairiehond die een takje eet terwijl hij in los stro zit"
   date: 2025-09-28
   location: Dierenpark Amersfoort
   tags:
@@ -795,6 +943,9 @@
   title: Prairie dog dusted with dirt
   src: images/mg5526.jpeg
   alt: Prairie dog standing upright on a branch, its face dusted with dirt
+  nl:
+    title: "Prairiehond onder het zand"
+    alt: "Prairiehond die rechtop op een tak staat, met zand op zijn snuit"
   date: 2025-10-14
   location: Dierenpark Amersfoort
   tags:
@@ -812,6 +963,9 @@
   title: Pelican's shaggy head
   src: images/mg5537.jpeg
   alt: Close-up of a pelican's shaggy head and long bill, another pelican behind
+  nl:
+    title: "Ruige kop van een pelikaan"
+    alt: "Close-up van de ruige kop en lange snavel van een pelikaan, met een tweede pelikaan erachter"
   date: 2025-10-14
   location: Dierenpark Amersfoort
   tags:
@@ -830,6 +984,10 @@
   src: images/mg5560.jpeg
   alt: Two ring-tailed lemurs sitting together in a rope hammock
   caption: Hammock buddies
+  nl:
+    title: "Maki's in een hangmat"
+    alt: "Twee ringstaartmaki's die samen in een touwen hangmat zitten"
+    caption: "Hangmatmaatjes"
   date: 2025-10-14
   location: Dierenpark Amersfoort
   tags:
@@ -847,6 +1005,9 @@
   title: Prairie dog nibbling straw
   src: images/img2358.jpeg
   alt: Prairie dog nibbling a piece of straw, another prairie dog blurred beside it
+  nl:
+    title: "Prairiehond knabbelt aan stro"
+    alt: "Prairiehond die knabbelt aan een strootje, met een andere prairiehond wazig ernaast"
   date: 2025-07-31
   location: Dierenpark Amersfoort
   tags:
@@ -864,6 +1025,9 @@
   title: Prairie dog eating straw
   src: images/img2360.jpeg
   alt: Prairie dog holding a wisp of straw in both paws while eating
+  nl:
+    title: "Prairiehond eet stro"
+    alt: "Prairiehond die tijdens het eten een pluk stro in beide voorpoten houdt"
   date: 2025-07-31
   location: Dierenpark Amersfoort
   tags:
@@ -881,6 +1045,9 @@
   title: Prairie dog chewing in profile
   src: images/img2371.jpeg
   alt: Prairie dog in profile, chewing something held in its paws
+  nl:
+    title: "Prairiehond kauwt, in profiel"
+    alt: "Prairiehond in profiel die kauwt op iets in zijn voorpoten"
   date: 2025-07-31
   location: Dierenpark Amersfoort
   tags:
@@ -899,6 +1066,10 @@
   src: images/mg3366.jpeg
   alt: Pallas's cat peering through leaves, its round face framed by thick fur
   caption: Peekaboo
+  nl:
+    title: "Manoel tussen de bladeren"
+    alt: "Manoel die door de bladeren gluurt, zijn ronde kop omlijst door dikke vacht"
+    caption: "Kiekeboe"
   date: 2025-08-23
   location: Dierenpark Zie-Zoo
   tags:
@@ -916,6 +1087,9 @@
   title: Resting kangaroo
   src: images/mg3595.jpeg
   alt: Kangaroo resting on the ground, eyes half closed
+  nl:
+    title: "Rustende kangoeroe"
+    alt: "Kangoeroe die op de grond ligt te rusten, ogen half gesloten"
   date: 2025-08-23
   location: Dierenpark Zie-Zoo
   tags:
@@ -933,6 +1107,9 @@
   title: Highland calf in wildflowers
   src: images/mg3647.jpeg
   alt: Highland cattle calf standing in a wildflower meadow, its fringe covering its eyes
+  nl:
+    title: "Hooglanderkalfje tussen de wilde bloemen"
+    alt: "Kalfje van een Schotse hooglander dat in een bloemenweide staat, de ogen schuil onder zijn pony"
   date: 2025-08-26
   location: Stille Kern Zeewolde
   tags:
@@ -950,6 +1127,9 @@
   title: Prairie dog whiskers in the light
   src: images/mg3967.jpeg
   alt: Close-up profile of a prairie dog, whiskers catching the light
+  nl:
+    title: "Snorharen in het licht"
+    alt: "Close-up in profiel van een prairiehond, met het licht op zijn snorharen"
   date: 2025-09-02
   location: Dierenpark Amersfoort
   tags:
@@ -967,6 +1147,9 @@
   title: Two lemurs sitting together
   src: images/mg4221.jpeg
   alt: Two ring-tailed lemurs sitting close together
+  nl:
+    title: "Twee maki's bij elkaar"
+    alt: "Twee ringstaartmaki's die dicht tegen elkaar aan zitten"
   date: 2025-09-02
   location: Dierenpark Amersfoort
   tags:
@@ -985,6 +1168,10 @@
   src: images/mg4309.jpeg
   alt: Ring-tailed lemur eating a piece of red fruit, tongue out
   caption: Fruit break
+  nl:
+    title: "Maki eet rood fruit"
+    alt: "Ringstaartmaki die een stuk rood fruit eet, tong naar buiten"
+    caption: "Fruitpauze"
   date: 2025-09-02
   location: Dierenpark Amersfoort
   tags:
@@ -1002,6 +1189,9 @@
   title: Lemur mid-bite
   src: images/mg4310.jpeg
   alt: Ring-tailed lemur with mouth open mid-bite of red fruit
+  nl:
+    title: "Maki midden in een hap"
+    alt: "Ringstaartmaki met open bek, midden in een hap rood fruit"
   date: 2025-09-02
   location: Dierenpark Amersfoort
   tags:
@@ -1019,6 +1209,9 @@
   title: Prairie dog eating, mouth open
   src: images/mg4632.jpeg
   alt: Prairie dog eating with its mouth open, other prairie dogs blurred behind
+  nl:
+    title: "Prairiehond eet met open bek"
+    alt: "Prairiehond die eet met zijn bek open, met andere prairiehonden wazig erachter"
   date: 2025-09-08
   location: Wildlands Emmen
   tags:
@@ -1036,6 +1229,9 @@
   title: Prairie dog hunched over food
   src: images/mg4636.jpeg
   alt: Prairie dog hunched over, nibbling food held in its paws
+  nl:
+    title: "Prairiehond gebogen over zijn eten"
+    alt: "Prairiehond die voorovergebogen knabbelt aan voer in zijn voorpoten"
   date: 2025-09-08
   location: Wildlands Emmen
   tags:
@@ -1053,6 +1249,9 @@
   title: Prairie dog close-up, eating
   src: images/mg4675.jpeg
   alt: Prairie dog eating with its mouth open, close-up against a blurred background
+  nl:
+    title: "Prairiehond van dichtbij, etend"
+    alt: "Prairiehond die eet met zijn bek open, van dichtbij tegen een wazige achtergrond"
   date: 2025-09-08
   location: Wildlands Emmen
   tags:
@@ -1071,6 +1270,10 @@
   src: images/mg4829.jpeg
   alt: Two baboons sitting together with their arms wrapped around each other
   caption: A quiet hug
+  nl:
+    title: "Bavianen in een omhelzing"
+    alt: "Twee bavianen die samen zitten met hun armen om elkaar heen"
+    caption: "Een stil knuffelmoment"
   date: 2025-09-08
   location: Wildlands Emmen
   tags:
@@ -1089,6 +1292,10 @@
   src: images/mg3150.jpeg
   alt: Silhouette of a person standing on a hilltop against a setting sun
   caption: Golden hour
+  nl:
+    title: "Silhouet bij zonsondergang"
+    alt: "Silhouet van een persoon op een heuveltop tegen de ondergaande zon"
+    caption: "Gouden uur"
   date: 2025-08-20
   location: Bunschoten-Spakenburg
   tags:

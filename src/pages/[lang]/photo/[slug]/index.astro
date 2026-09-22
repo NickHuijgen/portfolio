@@ -1,12 +1,13 @@
 ---
 import { getImage } from 'astro:assets';
-import Base from '../../../layouts/Base.astro';
-import Home from '../../../components/Home.astro';
-import { OG_IMAGE_OPTIONS } from '../../../lib/og-image.ts';
-import { gallerySchema } from '../../../lib/schema.ts';
-import { getSortedPhotos, photoDetailsUrl } from '../../../lib/photos.ts';
-import { gridImageSizesOpen } from '../../../lib/grid.ts';
-import { SITE_URL } from '../../../lib/site.ts';
+import Base from '../../../../layouts/Base.astro';
+import Home from '../../../../components/Home.astro';
+import { OG_IMAGE_OPTIONS } from '../../../../lib/og-image.ts';
+import { gallerySchema } from '../../../../lib/schema.ts';
+import { getSortedPhotos, photoDetailsUrl, localizedPhoto } from '../../../../lib/photos.ts';
+import { gridImageSizesOpen } from '../../../../lib/grid.ts';
+import { SITE_URL } from '../../../../lib/site.ts';
+import { LOCALES, isLocale, localizedPath, UI, type Locale } from '../../../../lib/i18n.ts';
 
 // The share-landing page for a photo: the ordinary grid, with this
 // photo's tile already expanded in place, rather than the separate
@@ -22,17 +23,29 @@ import { SITE_URL } from '../../../lib/site.ts';
 // and the page served at that URL now agree.
 export async function getStaticPaths() {
 	const photos = await getSortedPhotos();
-	return photos.map((photo) => ({ params: { slug: photo.data.slug }, props: { photo } }));
+	return LOCALES.flatMap((lang) =>
+		photos.map((photo) => ({ params: { lang, slug: photo.data.slug }, props: { photo } })),
+	);
 }
+
+const { lang: rawLang } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
 
 const { photo } = Astro.props;
 const photos = await getSortedPhotos();
+const { title, alt, caption } = localizedPhoto(photo, lang);
 
 // The same ImageGallery schema the homepage and every tag page emit —
 // this *is* the grid, so it describes the same thing. The photo's own
 // single-photo ImageObject (representative, with EXIF) belongs to the
 // details page, which is where this page's canonical points.
-const structuredData = await gallerySchema(photos, `${SITE_URL}/`, 'Nick Huijgen — Photography');
+const structuredData = await gallerySchema(
+	photos,
+	`${SITE_URL}${localizedPath('/', lang)}`,
+	UI[lang].homeTitle,
+	lang,
+);
 
 // Mirrors index.astro's LCP preload, retargeted: the expanded tile is
 // this page's LCP element, not the grid's first photo. widths must stay
@@ -55,14 +68,15 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
 
 <Base
-	title={`${photo.data.title} — Nick Huijgen`}
-	description={photo.data.caption ?? photo.data.alt}
+	lang={lang}
+	title={`${title} — Nick Huijgen`}
+	description={caption ?? alt}
 	ogImage={ogImage}
-	ogImageAlt={photo.data.alt}
+	ogImageAlt={alt}
 	ogType="article"
 	structuredData={structuredData}
 	preloadImages={[openPreload]}
-	canonical={`${SITE_URL}${photoDetailsUrl(photo.data.slug)}`}
+	canonical={`${SITE_URL}${localizedPath(photoDetailsUrl(photo.data.slug), lang)}`}
 >
-	<Home openSlug={photo.data.slug} />
+	<Home lang={lang} openSlug={photo.data.slug} />
 </Base>

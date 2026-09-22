@@ -1,6 +1,6 @@
 ---
 name: add-photos
-description: Turn newly uploaded, undescribed photos in src/content/images/ into full photos.yaml entries — title, slug, EXIF-derived metadata, alt text, optional captions, location, tags, dedup against the existing library — then commit and push to main so Cloudflare Pages deploys them. Use when the user says things like "add the new photos", "pick up what I uploaded", "describe the new images", "deploy the photos I uploaded", or after they mention uploading photos via Pages CMS from their phone.
+description: Turn newly uploaded, undescribed photos in src/content/images/ into full photos.yaml entries — title, slug, EXIF-derived metadata, alt text, optional captions, Dutch translations, location, tags, dedup against the existing library — then commit and push to main so Cloudflare deploys them. Use when the user says things like "add the new photos", "pick up what I uploaded", "describe the new images", "deploy the photos I uploaded", or after they mention uploading photos via Pages CMS from their phone.
 ---
 
 # Add photos
@@ -11,7 +11,7 @@ file into `src/content/images/`; this skill does the judgment-heavy rest
 (a title, accurate alt text, clean EXIF-derived metadata, a confirmed
 location, dedup against the existing library) and — per standing
 authorization, see step 14 — commits and pushes straight to `main`, so
-Cloudflare Pages deploys it. No laptop, no separate commit step.
+Cloudflare deploys it. No laptop, no separate commit step.
 
 Two bundled scripts do the deterministic parts — never hand-roll their
 logic inline, the parsing/arithmetic is easy to get subtly wrong twice:
@@ -193,6 +193,58 @@ never infer content from the filename or EXIF alone.
   you're unsure about and ask the user rather than picking your best
   guess silently.
 
+### 8b. Dutch translation
+
+The site is bilingual: `/en/...` and `/nl/...` (see `src/lib/i18n.ts`).
+Every photo carries an optional `nl:` block with its own `title`, `alt`
+and `caption`, and `localizedPhoto()` in `src/lib/photos.ts` falls back to
+the English field when one is missing. Write the Dutch at the same time as
+the English — a missing `nl:` block doesn't break the build, but it does
+ship an English photo page under a Dutch URL, which is the near-duplicate
+problem the whole locale split exists to avoid.
+
+Translate exactly the three fields you just wrote, and nothing else:
+`location` is a venue proper noun, `tags` are keys rather than display
+text, and `slug` is the immutable public URL and stays English.
+
+The Dutch is held to the same standard as the English, not a lower one —
+a first pass at this library produced errors that only a careful reader
+caught. In particular:
+
+- **English "-ing" clauses become Dutch relative clauses**, never bare
+  participles. "Tijger die slaapt met zijn kop tegen…", not "Tijger
+  slapend met…". This is the single most common way the Dutch comes out
+  wrong, and it reads as machine-translated immediately.
+- **Use animal vocabulary**: `kop` (not `gezicht`) for an animal's head,
+  `bek` (not `mond`), `snuit` for a muzzle, `voorpoten` where the English
+  says paws doing the gripping.
+- **Watch adjective inflection and de/het gender** — "een *andere*
+  prairiehond", "een met mos begroeid*e* rots". Getting this wrong is the
+  second most common error.
+- **Dutch species names, or ask.** Same rule as the English alt text
+  above, and it bites harder here: a Dutch name you're unsure of is a
+  factual claim a Dutch screen-reader user can't check. The Dutch name
+  is often **not** a translation, and calquing the English is the exact
+  failure mode — both of these shipped once and had to be corrected by
+  the user:
+  - snow leopard is a **sneeuwpanter**, not a "sneeuwluipaard"
+    (Dutch uses *-panter* across this genus, which is also why a clouded
+    leopard is a *nevelpanter*)
+  - Pallas's cat is a **manoel**, not a "Pallas-kat"
+
+  Check the Dutch name against nl.wikipedia or a Dutch zoo's own species
+  page rather than deriving it from the English. If you can't confirm it,
+  ask — don't guess.
+- **`foto's`** takes an apostrophe in the plural.
+- **Prefer the precise Dutch term over a softened paraphrase.** A dead
+  prey animal is a *karkas* (`konijnenkarkas`), not a "dood konijn" —
+  the euphemism was tried and rejected.
+- Match the English register: informal (`je`, not `u`), sentence case, no
+  trailing period, captions short and editorial.
+
+Report the Dutch verbatim in step 15 alongside the English, so it can be
+corrected without opening the file.
+
 ### 9. Location
 
 Ask the user which zoo or park this was shot at — **never guess or infer
@@ -238,6 +290,10 @@ existing `photo-NN` zero-padded-to-2 format:
   src: images/<filename>.jpeg
   alt: <required, factual>
   caption: <optional, editorial — omit the key entirely if none>
+  nl:
+    title: <Dutch title, step 8b>
+    alt: <Dutch alt, step 8b>
+    caption: <only if the English entry has one — omit the key otherwise>
   date: <YYYY-MM-DD from inspect_photo.py's "date">
   location: <optional — the venue name from step 9; omit the key entirely if unconfirmed>
   tags:
@@ -300,12 +356,14 @@ if that doesn't resolve cleanly, stop and ask rather than force-pushing.
 ### 15. Report
 
 Summarize: for each photo added, show its id, slug, filename, **the exact
-title, alt text, and caption you wrote for it** (verbatim, not
-paraphrased — the user should be able to read and correct them without
-opening the file), its location (or "unconfirmed" if step 9 didn't get an
-answer), and its tags. Confirm it's pushed. Also report what was skipped
+title, alt text, and caption you wrote for it, in both English and Dutch**
+(verbatim, not paraphrased — the user should be able to read and correct
+them without opening the file; the Dutch is the half most worth a native
+speaker's eyes), its location (or "unconfirmed" if step 9
+didn't get an answer), and its tags. Confirm it's pushed. Also report what was skipped
 as a duplicate (and of what), and anything that needed a judgment call
 along the way (new gear added to `gear.json`, a new tag, GPS present,
-missing EXIF, an unconfirmed location) — including anything still sitting
+missing EXIF, an unconfirmed location, a Dutch species name you weren't
+certain of) — including anything still sitting
 unprocessed because of one of those judgment calls, since those photos
 weren't part of the commit and will need a follow-up.

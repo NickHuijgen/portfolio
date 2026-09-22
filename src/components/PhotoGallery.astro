@@ -1,14 +1,22 @@
 ---
 import { Image } from 'astro:assets';
-import { getSortedPhotos, photoDetailsUrl, photoMatchesTag, photoUrl } from '../lib/photos.ts';
+import {
+	getSortedPhotos,
+	localizedPhoto,
+	photoDetailsUrl,
+	photoMatchesTag,
+	photoUrl,
+} from '../lib/photos.ts';
 // TIERS/columnWidth/gridImageSizes live in a shared module (not just
 // here) because index.astro needs the exact same `sizes` value, matched
 // to the same `widths` array, to preload the homepage's LCP photo — see
 // the comment on that preload for why an exact match matters. See
 // grid.ts for the full reasoning behind the md/md2/lg/lg2 tier split.
 import { OPEN_COLS, TIERS, columnWidth, gridImageSizes, gridImageSizesOpen } from '../lib/grid.ts';
+import { localizedPath, photoCount, tagLabel, UI, type Locale } from '../lib/i18n.ts';
 
 interface Props {
+	lang: Locale;
 	activeTag?: string;
 	/**
 	 * Slug of a photo to render already expanded, server-side. Set only by
@@ -21,7 +29,8 @@ interface Props {
 	openSlug?: string;
 }
 
-const { activeTag, openSlug } = Astro.props;
+const { lang, activeTag, openSlug } = Astro.props;
+const strings = UI[lang];
 
 const ROW = 8;
 
@@ -119,6 +128,10 @@ const items = photos.map((photo) => {
 
 	const visible = !activeTag || photoMatchesTag(photo, activeTag);
 	const open = photo.data.slug === openSlug;
+	// Single definition of the nl-with-English-fallback rule — see the
+	// comment on localizedPhoto() in photos.ts. Every rendered title/alt/
+	// caption below goes through this rather than photo.data.* directly.
+	const localized = localizedPhoto(photo, lang);
 
 	// Shared with index.astro's LCP preload — see the import comment above.
 	const sizes = gridImageSizes(photo.data.feature);
@@ -149,6 +162,7 @@ const items = photos.map((photo) => {
 
 	return {
 		photo,
+		localized,
 		visible,
 		open,
 		sizes,
@@ -204,36 +218,36 @@ let visibleIndex = -1;
 const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1));
 ---
 
-<nav class="filters" aria-label="Filter photos by tag">
+<nav class="filters" aria-label={strings.filterNavLabel}>
 	<a
-		href="/"
+		href={localizedPath('/', lang)}
 		data-tag=""
 		aria-current={!activeTag ? 'page' : undefined}
 		class="filter-link"
 	>
-		All
+		{strings.filterAll}
 	</a>
 	{
 		hasFeatured && (
 			<a
-				href="/tag/featured/"
+				href={localizedPath('/tag/featured/', lang)}
 				data-tag="featured"
 				aria-current={activeTag === 'featured' ? 'page' : undefined}
 				class="filter-link"
 			>
-				featured
+				{tagLabel('featured', lang)}
 			</a>
 		)
 	}
 	{
 		tags.map((tag) => (
 			<a
-				href={`/tag/${tag}/`}
+				href={localizedPath(`/tag/${tag}/`, lang)}
 				data-tag={tag}
 				aria-current={activeTag === tag ? 'page' : undefined}
 				class="filter-link"
 			>
-				{tag}
+				{tagLabel(tag, lang)}
 			</a>
 		))
 	}
@@ -245,9 +259,27 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	     so with aria-live on .gallery, un-hiding ~58 figures on a filter
 	     switch queued every one's long descriptive alt text for
 	     announcement — a multi-minute queue on NVDA/JAWS. This element is
-	     also reused to announce in-grid expand/collapse (see setTileOpen). -->
-	<p class="visually-hidden" id="photo-count" role="status" aria-live="polite" aria-atomic="true">
-		{visibleCount} photo{visibleCount === 1 ? '' : 's'}
+	     also reused to announce in-grid expand/collapse (see setTileOpen).
+
+	     The four data-* attributes exist for the inline script below: it
+	     can't import UI/photoCount from i18n.ts (is:inline, no build
+	     step — see Constraints), so it reads the current locale's
+	     strings back off this element instead, keeping the script's text
+	     identical across both locales. data-count-one/-other each carry
+	     the `{n}` placeholder photoCount() knows how to fill; the script
+	     does the same one-line .replace(). -->
+	<p
+		class="visually-hidden"
+		id="photo-count"
+		role="status"
+		aria-live="polite"
+		aria-atomic="true"
+		data-count-one={strings.photoCountOne}
+		data-count-other={strings.photoCountOther}
+		data-expanded={strings.photoExpanded}
+		data-collapsed={strings.photoCollapsed}
+	>
+		{photoCount(visibleCount, lang)}
 	</p>
 	<div class={`grid${activeTag === 'featured' ? ' is-featured' : ''}`} id="photo-grid">
 		{
@@ -283,7 +315,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						*/
 					}
 					<a
-						href={photoUrl(item.photo.data.slug)}
+						href={localizedPath(photoUrl(item.photo.data.slug), lang)}
 						id={item.photo.data.slug}
 						class="thumb-link"
 						aria-expanded={item.open ? 'true' : 'false'}
@@ -346,7 +378,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						}
 						<Image
 							src={item.photo.data.src}
-							alt={item.photo.data.alt}
+							alt={item.localized.alt}
 							widths={[150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800]}
 							sizes={
 								item.open ? item.sizesOpen : activeTag === 'featured' ? item.sizesFlat : item.sizes
@@ -366,15 +398,15 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					</a>
 					<div class="expand-overlay">
 						<a
-							href={photoDetailsUrl(item.photo.data.slug)}
+							href={localizedPath(photoDetailsUrl(item.photo.data.slug), lang)}
 							class="expand-link"
-							aria-label="View full photo"
+							aria-label={strings.viewFullPhoto}
 						>
 							⤢
 						</a>
 					</div>
 					{
-						item.photo.data.caption && (
+						item.localized.caption && (
 							// A figcaption must be a direct child of its figure for the
 							// figure/figcaption relationship (and the accessible name it
 							// gives the figure) to apply — it can't live inside
@@ -382,7 +414,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 							// reproduces .expand-overlay's aspect-ratio box independently
 							// (see the comment there) so it still anchors to the image's
 							// bottom edge rather than the figure's, which can be taller.
-							<figcaption class="expand-caption">{item.photo.data.caption}</figcaption>
+							<figcaption class="expand-caption">{item.localized.caption}</figcaption>
 						)
 					}
 				</figure>
@@ -438,6 +470,28 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		if (window.__photoGalleryInit) return;
 		window.__photoGalleryInit = true;
 
+		// This script is is:inline (no build step, no imports — see
+		// Constraints) and must stay byte-identical across both locales so
+		// Astro's textContent-keyed inline-script dedup treats the two
+		// pages' copies as the same script (see the define:vars warning
+		// elsewhere in this file's comments). So it can't call
+		// localizedPath() from i18n.ts — it restates that module's own
+		// "unconditionally prefix with /<lang>" rule instead, reading the
+		// locale at runtime from the <html lang> Base.astro already sets.
+		// A FUNCTION, not a constant, and that matters: ClientRouter's
+		// swapRootAttributes() copies the incoming document's <html>
+		// attributes onto the live documentElement on every swap, so `lang`
+		// changes under this script — while the script itself never re-runs
+		// (dedup keys on textContent, and this IIFE is init-guarded above).
+		// Cached once, it went stale the moment someone used the header's
+		// language switcher: on /nl/ after switching from /en/, opening a
+		// tile pushed `/en/photo/<slug>/` onto history, so the URL in the
+		// address bar — the one that gets copied and shared — named the
+		// wrong locale. Both `startsWith` guards below silently stopped
+		// matching too, re-enabling the exact bugs their own comments
+		// describe. details.astro reads it fresh for the same reason.
+		const L = () => '/' + document.documentElement.lang;
+
 		// Every id below is a photo's `slug` — that's what .thumb-link
 		// carries as its DOM id, and (via /photo/<slug>/) what an open
 		// tile puts in the address bar.
@@ -474,9 +528,17 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		// this covers the moment it changes). #photo-count is otherwise a
 		// filter-count announcer (visually-hidden either way), reused here
 		// rather than adding a second live region.
-		function announce(message) {
+		//
+		// The "Photo expanded"/"Photo collapsed" text can't be a literal
+		// string here — this script has to be byte-identical in both
+		// locales (see the `L` comment above) — so it's read off
+		// #photo-count's own data-expanded/data-collapsed attributes,
+		// which PhotoGallery.astro's frontmatter sets from UI[lang] since
+		// it isn't under that same is:inline restriction.
+		function announce(expanded) {
 			const count = document.getElementById('photo-count');
 			if (!count) return;
+			const message = expanded ? count.dataset.expanded : count.dataset.collapsed;
 			const prev = count.textContent;
 			count.textContent = message;
 			setTimeout(() => {
@@ -610,7 +672,17 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					img.sizes = tag === 'featured' ? img.dataset.sizesFlat : img.dataset.sizes;
 				}
 			});
-			count.textContent = `${visible} photo${visible === 1 ? '' : 's'}`;
+			// `{n}` substitution matches photoCount() in i18n.ts (see the
+			// comment there) — the one-liner that module's own doc comment
+			// says this script restates by hand rather than importing, for
+			// the same is:inline/no-imports reason as `L` above. The
+			// templates themselves come from #photo-count's data-count-one/
+			// -other attributes rather than a literal string, so this stays
+			// identical in both locales.
+			count.textContent = (visible === 1 ? count.dataset.countOne : count.dataset.countOther).replace(
+				'{n}',
+				String(visible),
+			);
 			nav.querySelectorAll('a').forEach((a) => {
 				if (a.getAttribute('data-tag') === tag) a.setAttribute('aria-current', 'page');
 				else a.removeAttribute('aria-current');
@@ -733,8 +805,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// unfiltered grid instead of /tag/wildlife/. Leaving the stored
 			// value alone is right for the other arrival too: a shared link
 			// starts a session with nothing stored, so there's nothing to
-			// preserve and nothing to clear.
-			if (!location.pathname.startsWith('/photo/')) {
+			// preserve and nothing to clear. `L() + '/photo/'`, not a bare
+			// '/photo/' — URLs are locale-prefixed (see the `L` comment near
+			// the top of this IIFE), so an unprefixed check here would never
+			// match and this guard would silently stop firing.
+			if (!location.pathname.startsWith(L() + '/photo/')) {
 				sessionStorage.setItem('activeTag', initialTag);
 			}
 		});
@@ -802,12 +877,16 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 					history.pushState(
 						{ ...history.state, photoOpen: next },
 						'',
-						`/photo/${encodeURIComponent(next)}/`,
+						// Locale-prefixed — see the `L` comment near the top of
+						// this IIFE. Every URL this script builds by hand has to
+						// restate localizedPath()'s `/${lang}${path}` rule itself,
+						// since it can't import it.
+						`${L()}/photo/${encodeURIComponent(next)}/`,
 					);
 				else history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
 				setOpen(next).then(() => {
 					document.getElementById(id)?.focus({ preventScroll: true });
-					announce(next ? 'Photo expanded' : 'Photo collapsed');
+					announce(Boolean(next));
 				});
 			},
 			true,
@@ -825,7 +904,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
 			setOpen(null).then(() => {
 				document.getElementById(id)?.focus({ preventScroll: true });
-				announce('Photo collapsed');
+				announce(false);
 			});
 		});
 
@@ -840,8 +919,10 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// this same grid with that tile expanded server-side, which the
 			// astro:page-load handler below adopts. Don't race that with a
 			// view transition here, and don't reopen a tile on a page
-			// that's about to be replaced.
-			if (location.pathname.startsWith('/photo/')) return;
+			// that's about to be replaced. `L() + '/photo/'` — see the `L`
+			// comment near the top of this IIFE for why an unprefixed
+			// '/photo/' check would never match a real, locale-prefixed URL.
+			if (location.pathname.startsWith(L() + '/photo/')) return;
 			gridUrl = location.pathname + location.search;
 			// Collapsed directly, not through setOpen(): a Back from an
 			// open tile leaves the grid's URL unchanged from
@@ -873,8 +954,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// `location` is the open tile's own URL rather than a grid one —
 			// so fall back to the unfiltered grid there. A shared link
 			// carries no filter to preserve, which is the only way to arrive
-			// with a tile already open.
-			gridUrl = openId ? '/' : location.pathname + location.search;
+			// with a tile already open. `L() + '/'`, not a bare `/` — this
+			// site is symmetric, so even the "unfiltered" fallback needs
+			// the locale prefix (see the `L` comment near the top of this
+			// IIFE).
+			gridUrl = openId ? L() + '/' : location.pathname + location.search;
 			// Dense packing puts an expanded tile wherever it fits, which on
 			// a 64-photo grid is usually far below the fold — so arriving at
 			// /photo/<slug>/ without this shows the top of the grid instead

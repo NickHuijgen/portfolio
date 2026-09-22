@@ -1,0 +1,82 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Home from '../../components/Home.astro';
+import { gallerySchema } from '../../lib/schema.ts';
+import { getSortedPhotos } from '../../lib/photos.ts';
+import { gridImageSizes } from '../../lib/grid.ts';
+import { SITE_URL } from '../../lib/site.ts';
+import { getAbout } from '../../lib/about.ts';
+import { OG_IMAGE_OPTIONS } from '../../lib/og-image.ts';
+import { LOCALES, isLocale, localizedPath, UI, type Locale } from '../../lib/i18n.ts';
+
+// One /<lang>/ homepage per locale — both are real, indexable pages (see
+// the i18n.ts comment on localizedPath: there's no unprefixed default),
+// crossed with nothing else since the homepage isn't itself parameterized
+// by anything but language.
+export function getStaticPaths() {
+	return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang: rawLang } = Astro.params;
+if (!isLocale(rawLang)) throw new Error(`Invalid lang param: ${rawLang}`);
+const lang: Locale = rawLang;
+
+// Every photo in the collection, so a newly added one is picked up here
+// automatically — no separate list to update.
+const photos = await getSortedPhotos();
+const structuredData = await gallerySchema(
+	photos,
+	`${SITE_URL}${localizedPath('/', lang)}`,
+	UI[lang].homeTitle,
+	lang,
+);
+
+// Base.astro's og:image fallback is the collection's single feature:true
+// photo (a wildlife shot) — fine for a tag page about that photo, but a
+// shared link to the homepage itself should show the same face as the
+// about page, not whichever photo happens to be tagged featured. Same
+// approach as about.astro.
+const about = await getAbout(lang);
+const ogImage = about.portrait
+	? new URL((await getImage({ src: about.portrait, ...OG_IMAGE_OPTIONS })).src, Astro.site).href
+	: undefined;
+
+// photos[0] (newest first — see getSortedPhotos) is always the grid's
+// first item on the unfiltered homepage, which is also the one
+// PhotoGallery.astro marks loading="eager" fetchpriority="high" — the
+// page's LCP candidate. A <link rel="preload"> gets the browser
+// fetching it before it's even parsed the grid's HTML, rather than
+// only once it reaches that <img> tag. widths/sizes here must mirror
+// the grid thumbnail <Image> exactly (same array, same gridImageSizes
+// call PhotoGallery.astro itself uses), or the browser won't recognize
+// this as the same request and will fetch the image again anyway — see
+// the identical warning on /photo/[slug]'s prev/next preload.
+const GRID_IMAGE_WIDTHS = [150, 300, 450, 550, 650, 900, 1100, 1300, 1400, 1800];
+const lcpPhoto = photos[0];
+let lcpPreload;
+if (lcpPhoto) {
+	const optimized = await getImage({ src: lcpPhoto.data.src, widths: GRID_IMAGE_WIDTHS });
+	lcpPreload = {
+		href: optimized.src,
+		imagesrcset: optimized.srcSet.attribute,
+		imagesizes: gridImageSizes(lcpPhoto.data.feature),
+		// This one preload *is* the homepage's LCP element, so it's the one
+		// case that should outrank the default Low priority an as="image"
+		// preload gets — see the prop's comment in Base.astro.
+		fetchpriority: 'high' as const,
+	};
+}
+---
+
+<Base
+	lang={lang}
+	title={UI[lang].homeTitle}
+	description={UI[lang].homeDescription}
+	structuredData={structuredData}
+	preloadImages={lcpPreload ? [lcpPreload] : undefined}
+	ogImage={ogImage}
+	ogImageAlt={about.portraitAlt}
+>
+	<Home lang={lang} />
+</Base>

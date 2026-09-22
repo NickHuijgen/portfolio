@@ -1,11 +1,64 @@
 ---
 import Base from '../layouts/Base.astro';
+import { LOCALES, DEFAULT_LOCALE, UI, localizedPath } from '../lib/i18n.ts';
+import { SITE_NAME } from '../lib/site.ts';
+
+// The site's ONLY 404 page, and deliberately bilingual because of that.
+//
+// The obvious design was one 404 per locale, letting Cloudflare's static
+// asset handler (not_found_handling: "404-page" in wrangler.jsonc — see
+// commit 8453f19) walk up from /nl/nonsense to a dist/nl/404.html. That
+// handler matches literal `404.html` files, and with trailingSlash:
+// 'always' Astro renders every non-root page as `<path>/index.html` — so
+// a src/pages/[lang]/404.astro builds to dist/nl/404/index.html, which
+// the handler never looks for. Verified against a real build, not
+// assumed: the per-locale files existed at the wrong path and every miss,
+// in either locale, fell through to this file anyway.
+//
+// Astro special-cases only the ROOT 404.astro into a bare 404.html.
+// Getting a per-locale one would mean either a `404.html.ts` endpoint
+// rendering a component through the Container API, or switching
+// build.format, which would rewrite every URL on the site — both far out
+// of proportion to a 404. So: one page, and since a miss can arrive from
+// either locale (and, at the root, from neither), it says its piece in
+// both languages rather than guessing.
+//
+// Uses Base.astro (unlike the bare-root picker at src/pages/index.astro,
+// which can't — see the comment there) because a noindexed page is
+// exactly the case Base already special-cases: `robots="noindex"`
+// suppresses canonical, the hreflang set, and every og:/twitter: tag on
+// its own (see `indexable` in Base.astro), which is precisely what the
+// Routes section of AGENTS.md requires of /404.
+//
+// `lang` on <html> has to be *something*; DEFAULT_LOCALE keeps it honest
+// for the English half, and each block below carries its own `lang` so a
+// screen reader switches voice rather than reading Dutch with English
+// phonetics.
+const messages = LOCALES.map((loc) => ({ loc, ...UI[loc] }));
 ---
 
-<Base title="Page not found — Nick Huijgen" description="This page doesn't exist." robots="noindex">
+<Base
+	lang={DEFAULT_LOCALE}
+	title={`${UI[DEFAULT_LOCALE].notFoundTitle} — ${SITE_NAME}`}
+	description={UI[DEFAULT_LOCALE].notFoundDescription}
+	robots="noindex"
+>
 	<main class="intro" id="main" tabindex="-1">
-		<h1>Page not found</h1>
-		<p>This page doesn't exist. <a href="/">Back to the homepage</a>.</p>
+		<h1 lang={DEFAULT_LOCALE}>{UI[DEFAULT_LOCALE].notFoundTitle}</h1>
+		{
+			messages.map(({ loc, notFoundTitle, notFoundBody, backToHomepage }) => (
+				<p class="message" lang={loc}>
+					{/* The heading above already says this in the default locale, so
+					    only the other locales repeat their own title inline — it's
+					    the cue a Dutch visitor needs to know this block is theirs. */}
+					{loc !== DEFAULT_LOCALE && <span class="message-title">{notFoundTitle}. </span>}
+					{notFoundBody}{' '}
+					<a href={localizedPath('/', loc)} hreflang={loc}>
+						{backToHomepage}
+					</a>.
+				</p>
+			))
+		}
 	</main>
 </Base>
 
@@ -26,12 +79,25 @@ import Base from '../layouts/Base.astro';
 		font-weight: 500;
 	}
 
-	.intro p {
-		margin: 0;
+	.message {
+		margin: 0 0 0.5rem;
 		font-size: 1.125rem;
 	}
 
-	.intro a {
+	/* The non-default locale's own "Page not found", inline ahead of its
+	   body text. Same weight as the h1 rather than a real heading: these
+	   blocks are peers, and a second <h1> or a stray <h2> under one would
+	   both misdescribe that. */
+	.message-title {
+		font-weight: 500;
+	}
+
+	.message a {
 		color: inherit;
+	}
+
+	.message a:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
 	}
 </style>
