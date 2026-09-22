@@ -529,6 +529,17 @@ this file:
   - Landing that way can't know which tag filter the sender had active —
     a shared link carries none — so `gridUrl` falls back to `/` when the
     tile came from the server rather than from a click.
+  - `document.title` has to be maintained by hand alongside that URL
+    (`gridTitle`, the title half of `gridUrl`): opening sets it to the
+    title `/photo/<slug>/` itself renders, collapsing restores the grid's.
+    Not optional — ClientRouter *does* set the photo's title on any real
+    swap onto that URL (Forward onto an open tile, Back from the `⤢`
+    page, a shared link), and before this the collapse that followed left
+    the grid sitting under the photo's title. The string comes from
+    `photoPageTitle()` (`src/lib/photos.ts`), via a `data-title` on each
+    thumbnail since the script can't import it; a filter switch
+    deliberately changes neither (see the `<title>` note in
+    `applyFilter`).
   - The grid URL to collapse back to can't be read off `location` while
     a tile is open, and isn't always `/` (a `/tag/<tag>/` page, or a
     client-side filter switch, is a grid URL too) — hence the `gridUrl`

@@ -4,7 +4,12 @@ import Base from '../../../../layouts/Base.astro';
 import Home from '../../../../components/Home.astro';
 import { OG_IMAGE_OPTIONS } from '../../../../lib/og-image.ts';
 import { gallerySchema } from '../../../../lib/schema.ts';
-import { getSortedPhotos, photoDetailsUrl, localizedPhoto } from '../../../../lib/photos.ts';
+import {
+	getSortedPhotos,
+	photoDetailsUrl,
+	photoPageTitle,
+	localizedPhoto,
+} from '../../../../lib/photos.ts';
 import { gridImageSizesOpen } from '../../../../lib/grid.ts';
 import { SITE_URL } from '../../../../lib/site.ts';
 import { LOCALES, isLocale, localizedPath, UI, type Locale } from '../../../../lib/i18n.ts';
@@ -69,7 +74,7 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 
 <Base
 	lang={lang}
-	title={`${title} — Nick Huijgen`}
+	title={photoPageTitle(title)}
 	description={caption ?? alt}
 	ogImage={ogImage}
 	ogImageAlt={alt}

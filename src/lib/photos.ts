@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { Locale } from './i18n.ts';
+import { SITE_NAME } from './site.ts';
 
 // Canonical photo order for the whole site: newest-to-oldest by the date
 // the picture was taken. The grid, the /tag pages, and /photo/[slug]'s
@@ -83,4 +84,17 @@ export function localizedPhoto(
 		alt: nl?.alt || photo.data.alt,
 		caption: nl?.caption || photo.data.caption,
 	};
+}
+
+// The <title> a photo's own pages carry, in one place. Both photo routes
+// render it (/photo/[slug]/ and its /details/), and — the reason it's a
+// function rather than two literals — PhotoGallery's expansion script
+// sets document.title to this same string when a tile opens, since an
+// open tile puts /photo/<slug>/ in the address bar and the title has to
+// match the page served there. The script can't import anything
+// (is:inline, see Constraints), so it reads the composed string off each
+// thumbnail's data-title attribute; that attribute and the two routes'
+// titles all come from here, so they can't drift apart.
+export function photoPageTitle(title: string) {
+	return `${title} — ${SITE_NAME}`;
 }

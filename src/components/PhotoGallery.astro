@@ -5,6 +5,7 @@ import {
 	localizedPhoto,
 	photoDetailsUrl,
 	photoMatchesTag,
+	photoPageTitle,
 	photoUrl,
 } from '../lib/photos.ts';
 // TIERS/columnWidth/gridImageSizes live in a shared module (not just
@@ -261,13 +262,15 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 	     announcement — a multi-minute queue on NVDA/JAWS. This element is
 	     also reused to announce in-grid expand/collapse (see setTileOpen).
 
-	     The four data-* attributes exist for the inline script below: it
+	     The five data-* attributes exist for the inline script below: it
 	     can't import UI/photoCount from i18n.ts (is:inline, no build
 	     step — see Constraints), so it reads the current locale's
 	     strings back off this element instead, keeping the script's text
 	     identical across both locales. data-count-one/-other each carry
 	     the `{n}` placeholder photoCount() knows how to fill; the script
-	     does the same one-line .replace(). -->
+	     does the same one-line .replace(). data-home-title is the
+	     homepage's own <title>, the title half of the `gridUrl` fallback
+	     to L() + '/' — see `gridTitle` in the script. -->
 	<p
 		class="visually-hidden"
 		id="photo-count"
@@ -278,6 +281,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		data-count-other={strings.photoCountOther}
 		data-expanded={strings.photoExpanded}
 		data-collapsed={strings.photoCollapsed}
+		data-home-title={strings.homeTitle}
 	>
 		{photoCount(visibleCount, lang)}
 	</p>
@@ -314,12 +318,27 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						  roughly on screen, scrollIntoView then centers it.
 						*/
 					}
+					{
+						/*
+						  data-title is the <title> of the page this link points at
+						  (photoPageTitle, the same helper /photo/[slug]/index.astro
+						  renders its own title from). Opening a tile pushes that
+						  URL into the address bar, so the expansion script sets
+						  document.title to this — it can't import photoPageTitle or
+						  read the photo's localized title any other way (is:inline,
+						  no imports — see the `L` comment in the script below), and
+						  a per-element data attribute keeps the script's own text
+						  identical across all photos and both locales the way
+						  #photo-count's data-count-* already do.
+						*/
+					}
 					<a
 						href={localizedPath(photoUrl(item.photo.data.slug), lang)}
 						id={item.photo.data.slug}
 						class="thumb-link"
 						aria-expanded={item.open ? 'true' : 'false'}
 						autofocus={item.open}
+						data-title={photoPageTitle(item.localized.title)}
 					>
 						{
 							/*
@@ -504,6 +523,17 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 		// Set on every grid page-load and kept current by the filter
 		// handler, both below.
 		let gridUrl = location.pathname + location.search;
+		// The <title> that goes with `gridUrl`, restored whenever a tile
+		// collapses. document.title has to be maintained by hand here for
+		// the same reason `gridUrl` does: opening a tile is a pushState to
+		// /photo/<slug>/, so the URL changes without a navigation to set a
+		// title for it. Leaving it alone isn't an option — ClientRouter
+		// *does* set it on any real swap onto /photo/<slug>/ (a Forward
+		// onto an open tile, or Back from the ⤢ detail page), and the
+		// collapse that follows then left the grid sitting under the
+		// photo's title. Set on every grid page-load below, and left alone
+		// by the filter handler on purpose — see the <title> note there.
+		let gridTitle = document.title;
 
 		function tileFor(id) {
 			return document.getElementById(id)?.closest('figure') ?? null;
@@ -692,7 +722,11 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// they were on load (e.g. "Nick Huijgen" / "Photography from
 			// wherever I end up." on the homepage) no matter which tag is
 			// showing, by design: the page head shouldn't visibly change
-			// just from clicking a filter pill.
+			// just from clicking a filter pill. `gridTitle` is left alone
+			// for the same reason, and has to be: it's what a collapsing
+			// tile restores, so updating it here would make closing a tile
+			// change a title that clicking a filter pill deliberately
+			// doesn't.
 			// So /photo/[slug]'s Close link can send you back to the filtered
 			// view you actually came from instead of always the unfiltered
 			// grid — that page is a separate static route with no way to
@@ -884,6 +918,13 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						`${L()}/photo/${encodeURIComponent(next)}/`,
 					);
 				else history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
+				// Alongside the URL, never after: the two describe the same
+				// thing, and a bookmark or a history entry made while a tile
+				// is open takes both. `a.dataset.title` is the <title>
+				// /photo/<slug>/ itself renders (see data-title in the markup
+				// above), so an open tile reads exactly as if that page had
+				// been navigated to.
+				document.title = next ? a.dataset.title : gridTitle;
 				setOpen(next).then(() => {
 					document.getElementById(id)?.focus({ preventScroll: true });
 					announce(Boolean(next));
@@ -902,6 +943,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// collapsing has to restore the grid's own URL from the
 			// variable that remembers it.
 			history.replaceState({ ...history.state, photoOpen: null }, '', gridUrl);
+			document.title = gridTitle;
 			setOpen(null).then(() => {
 				document.getElementById(id)?.focus({ preventScroll: true });
 				announce(false);
@@ -933,6 +975,12 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			if (openId) {
 				setTileOpen(tileFor(openId), false);
 				openId = null;
+				// Restored here too, even though ClientRouter is re-fetching
+				// this same grid page and will set it from the incoming
+				// document: that swap lands a frame or more later, and this
+				// pop can also arrive on a page ClientRouter won't swap (it
+				// bails when the URL it holds already matches).
+				document.title = gridTitle;
 			}
 		});
 
@@ -959,6 +1007,15 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 			// the locale prefix (see the `L` comment near the top of this
 			// IIFE).
 			gridUrl = openId ? L() + '/' : location.pathname + location.search;
+			// Same split, for the same reason: on /photo/<slug>/ the
+			// document's own title is the open photo's, not a grid title, so
+			// collapsing there has to fall back to the homepage's — the page
+			// `gridUrl` falls back to. Read off #photo-count rather than
+			// written as a literal, so this script stays identical in both
+			// locales (see the data-* comment on that element).
+			gridTitle = openId
+				? (document.getElementById('photo-count')?.dataset.homeTitle ?? document.title)
+				: document.title;
 			// Dense packing puts an expanded tile wherever it fits, which on
 			// a 64-photo grid is usually far below the fold — so arriving at
 			// /photo/<slug>/ without this shows the top of the grid instead
