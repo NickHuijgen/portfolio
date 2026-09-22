@@ -77,8 +77,8 @@ const items = photos.map((photo) => {
 	// getImage() read width/height too, but via this same `.clone` escape
 	// hatch internally, specifically so their own metadata reads don't
 	// trip that marking. Reading `.width`/`.height` straight off
-	// `photo.data.src` here defeated that cleanup for every one of the 64
-	// photos (all of them touch this line), leaving a 50MB orphaned
+	// `photo.data.src` here defeated that cleanup for every photo in the
+	// collection (all of them touch this line), leaving a 50MB orphaned
 	// original per build that nothing ever links to. `.clone` returns a
 	// plain (non-proxied) structuredClone of the same metadata, so
 	// reading off it doesn't mark anything referenced.
@@ -196,7 +196,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 
 // Eager-load/high-priority slots must be keyed on position *among visible
 // figures*, not position in the unfiltered collection — tag pages
-// server-render all 64 figures and merely set `hidden` on non-matching
+// server-render every figure and merely set `hidden` on non-matching
 // ones (`hidden` doesn't stop an eager fetch), so keying on the raw
 // collection index wastes eager slots on hidden figures while the
 // actually-visible photos load `lazy`. On a narrow tag (e.g. a single
@@ -210,7 +210,7 @@ const visibleCount = items.filter((item) => item.visible).length;
 // the first six figures in DOM order are off-screen above the fold.
 // Spending six eager fetches and a second fetchpriority="high" on them
 // puts unrelated images in direct competition with the one the visitor
-// actually came for — measured at index 60 of 64, that was 7 eager
+// actually came for — measured at index 60 of a 64-photo library, that was 7 eager
 // images and 2 high-priority ones for a single photo. The open tile's
 // neighbours don't need the budget either: they're in the viewport once
 // the scroll lands, and `loading="lazy"` never defers an in-viewport
@@ -256,8 +256,8 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 
 <div class="gallery">
 	<!-- role=status/aria-live scoped to the counter only, not the whole
-	     64-figure grid below: default aria-relevant is "additions text",
-	     so with aria-live on .gallery, un-hiding ~58 figures on a filter
+	     grid below: default aria-relevant is "additions text",
+	     so with aria-live on .gallery, un-hiding dozens of figures on a filter
 	     switch queued every one's long descriptive alt text for
 	     announcement — a multi-minute queue on NVDA/JAWS. This element is
 	     also reused to announce in-grid expand/collapse (see setTileOpen).
@@ -304,9 +304,10 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 						  scrollIntoView, but that needs JS; the browser scrolls an
 						  autofocused element into view during the initial parse on
 						  its own. Without it a no-JS visitor following a shared link
-						  gets the top of a 64-photo grid with the photo they were
+						  gets the top of the full grid with the photo they were
 						  sent expanded somewhere far below (dense packing puts it
-						  wherever it fits — index 60 of 64 in one measured case).
+						  wherever it fits — index 60 of 64 in one case measured
+						  when the library was that size).
 						  Only ever on the one open tile, so it can't fight itself.
 
 						  It doesn't double up with the JS path: `autofocus` applies
@@ -1017,7 +1018,7 @@ const visibleIndexOf = items.map((item) => (item.visible ? ++visibleIndex : -1))
 				? (document.getElementById('photo-count')?.dataset.homeTitle ?? document.title)
 				: document.title;
 			// Dense packing puts an expanded tile wherever it fits, which on
-			// a 64-photo grid is usually far below the fold — so arriving at
+			// a grid this size is usually far below the fold — so arriving at
 			// /photo/<slug>/ without this shows the top of the grid instead
 			// of the photo the URL names. Same centering setOpen does, and
 			// 'instant' for the same reason (see the note there on `auto`

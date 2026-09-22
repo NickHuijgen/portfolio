@@ -50,8 +50,8 @@ you know one exists before you touch either side of it.
 | `FRAME_IMAGE_WIDTHS`/`FRAME_IMAGE_SIZES` (`photo/[slug]/details.astro`) | The frame `<Image>` right below them, in the same file | Same reasoning, for the lightbox's prev/next preload — see the comment there. |
 | `GRID_IMAGE_WIDTHS` + `gridImageSizesOpen()` (`photo/[slug]/index.astro`) | The grid thumbnail `<Image>`'s `widths` (`PhotoGallery.astro`) and `gridImageSizesOpen` (`grid.ts`) | Same reasoning again, for the share-landing page's preload of its server-rendered *open* tile — which is that page's LCP element. Verified by diffing the preload's `imagesrcset`/`imagesizes` against the rendered `<img>`'s. |
 | `OG_IMAGE_OPTIONS` (`src/lib/og-image.ts`) | The hardcoded `og:image:type`/`width`/`height` meta values in `Base.astro` | Every `og:image` on the site is generated with these exact options (1200×630 JPEG) — the meta tags assume that rather than reading it back off the generated asset. |
-| `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer the animals tag — then named `wildlife` — which 63 of 64 photos carry). |
-| `LOCALES`/`DEFAULT_LOCALE` (`src/lib/i18n.ts`) | The `LOCALES` and `DEFAULT_LOCALE` constants in `worker/index.js` | The worker is bundled by Cloudflare's build, outside Astro's Vite pipeline *and* outside the project's tsconfig, so it restates the two locale strings rather than importing across that boundary — see the comment above its copy. `astro.config.mjs` *can* import `LOCALES` (and does, for its `filter`/`serialize` regexes), and derives `@astrojs/sitemap`'s `{ locale: langTag }` map from it too, so that file needs no edit. Adding a locale means editing **two** places: `i18n.ts` and `worker/index.js`. |
+| `.pages.yml`'s tag `select` options | The tags actually used in `photos.yaml` (`getSortedPhotos`/`photoMatchesTag` in `src/lib/photos.ts`) | The CMS can only apply a tag that's in its own predefined list — this list drifting from reality is exactly what happened once already (it offered `street`/`landscape` when nothing used either, and didn't offer the animals tag — then named `wildlife` — which nearly every photo carries). |
+| `LOCALES`/`DEFAULT_LOCALE` (`src/lib/i18n.ts`) | The `LOCALES` and `DEFAULT_LOCALE` constants in `worker/index.js` | The worker is bundled by Cloudflare's build, outside Astro's Vite pipeline *and* outside what `astro check` actually diagnoses (it walks the Astro app's own reachable graph, which never reaches `worker/`), so it restates the two locale strings rather than importing across that boundary — see the comment above its copy. `astro.config.mjs` *can* import `LOCALES` (and does, for its `filter`/`serialize` regexes), and derives `@astrojs/sitemap`'s `{ locale: langTag }` map from it too, so that file needs no edit. Adding a locale means editing **two** places: `i18n.ts` and `worker/index.js`. |
 | `not_found_handling: "404-page"` (`wrangler.jsonc`) | That there is exactly one `404.astro`, at the `src/pages/` root, and that it's bilingual | That handler matches literal `404.html` files walking *up* the tree, and `trailingSlash: 'always'` makes Astro render every **non-root** page as `<path>/index.html`. A per-locale `src/pages/[lang]/404.astro` therefore builds to `dist/nl/404/index.html`, which is never found — measured against a real build, not assumed. Astro special-cases only the root `404.astro` into a bare `404.html`, which is why that one page has to speak both languages. |
 
 `SITE_URL`/`SITE_NAME`/the social URLs (`src/lib/site.ts`) and `isTagNoindexed()` (`src/lib/tag-coverage.ts`, used by both `tag/[tag].astro`'s `robots` and `astro.config.mjs`'s sitemap `filter`) are *not* in this table on purpose — they're plain modules with no `astro:*` imports of their own, which import cleanly into `astro.config.mjs` (confirmed directly: the restriction there is specifically the `astro:` virtual-module scheme, not "no imports at all" — see the comment in `astro.config.mjs`), so there's exactly one copy of each, not two to keep in sync.
@@ -102,7 +102,7 @@ you know one exists before you touch either side of it.
   script's text unique per page and defeats Astro's textContent-keyed
   dedup, which has already caused a real listener leak here (see the
   comment at the top of `details.astro`'s script). The script text must
-  stay byte-identical across all 64 photos *and* both locales.
+  stay byte-identical across every photo page *and* both locales.
 - Photos: max 2400px long edge, committed to the repo.
 - Photos are always ordered newest-to-oldest by `date` (the date taken,
   not the date added to the repo or the entry's position in the YAML).
@@ -203,7 +203,7 @@ the coverage math behind that call, and what would justify revisiting it.
   — so it carries that photo's own `og:image`, and following it reopens
   exactly what the sender was looking at rather than dropping the
   recipient into a different view. `rel=canonical` points at the
-  `details/` page below (64 near-copies of `/` otherwise), while
+  `details/` page below (one near-copy of `/` per photo otherwise), while
   `og:url` deliberately keeps naming this page so a scraper can't
   rewrite a shared card's target to `details/`. Excluded from the
   sitemap for the same reason — see SEO / structured data. Preloads its
@@ -342,7 +342,7 @@ this file:
   region used for the filter's live-updating photo count (`#photo-count`
   in `PhotoGallery.astro`) — that region is intentionally scoped to
   just the count, not the whole `.gallery`, so switching filters
-  doesn't queue up to 64 photos' alt text for a screen reader (see the
+  doesn't queue up every photo's alt text for a screen reader (see the
   comment there).
 - Focus restoration after closing the lightbox back to the grid, and
   after collapsing an in-grid-expanded tile, both use
@@ -433,8 +433,8 @@ this file:
   e.g. LinkedIn's, don't render it) and not whatever aspect ratio the
   source happened to be. `Base.astro`'s `og:image:type`/`width`/`height`
   meta assume this — see the Invariants row.
-- `/photo/[slug]` (the grid with one tile expanded) is 64 near-copies of
-  `/`, so each one `rel=canonical`s at its own `/details/` page — the one
+- `/photo/[slug]` (the grid with one tile expanded) is one near-copy of
+  `/` per photo, so each one `rel=canonical`s at its own `/details/` page — the one
   carrying that photo's unique content and `photoPageSchema`. `Base.astro`
   takes that as a `canonical` prop, which deliberately does *not* move
   `og:url`: a scraper handed a shared `/photo/<slug>/` link must not
@@ -647,7 +647,8 @@ Before calling a change done:
   - every page that is indexable **and self-canonical** carries the full
     `en`/`nl`/`x-default` hreflang set, and every URL it names exists on
     disk. Pages whose `canonical` points elsewhere carry **none** — the
-    128 `/<lang>/photo/<slug>/` pages are indexable but consolidate into
+    `/<lang>/photo/<slug>/` pages (one per photo per locale) are indexable
+    but consolidate into
     their own `/details/` page, and hreflang clusters are built from
     canonical URLs, so annotations there would be ignored anyway (see the
     comment on the hreflang block in `Base.astro`). Don't "fix" their

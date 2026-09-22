@@ -114,7 +114,7 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 <style>
 	/* Skip-link and "View photos" jump targets (#main, #photos below) are
 	   sections, not interactive controls — a default focus ring around
-	   the whole intro or all 64 photos is more noise than signal for
+	   the whole intro or the entire photo grid is more noise than signal for
 	   sighted users, while assistive tech still announces landing here
 	   regardless of visual styling. */
 	#main:focus-visible {
@@ -163,7 +163,7 @@ const { heading: tagHeading, lead: tagLead } = activeTag
 	   (~45kB at the 512px width this needs to stay sharp at 2x once
 	   magnified 4x) to paint a 64px circle, because only a 128x128 region
 	   of it is ever visible. `about.avatar` exists to skip that — a
-	   pre-cropped square is ~4kB for the same result. These numbers are
+	   pre-cropped square is ~3kB for the same result. These numbers are
 	   specific to where the face falls in this particular shot, so re-tune
 	   them if the portrait changes and no avatar is set. */
 	.avatar-zoomed {

@@ -13,8 +13,10 @@
 // homepage. A tag that's a small, genuinely distinct subset doesn't
 // have that problem. A coverage threshold, not a hardcoded tag-name
 // list (which would go stale the moment tags change), decides which —
-// today: animals (63/64, 98%) and featured (11/64, 17%) both
-// noindex; portrait (1/64, 2%) stays indexable.
+// today: animals (66/77, 86%) and featured (13/77, 17%) both
+// noindex; motorsport (10/77, 13%) and portrait (1/77, 1%) stay
+// indexable. These counts are a snapshot of a library that grows —
+// the threshold, not this list, is what actually decides.
 export const NOINDEX_TAG_COVERAGE_THRESHOLD = 0.15;
 
 export function isTagNoindexed(taggedCount: number, totalCount: number): boolean {

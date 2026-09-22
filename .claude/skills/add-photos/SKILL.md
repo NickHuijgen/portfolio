@@ -263,9 +263,9 @@ your step 15 report so it isn't forgotten.
 ### 10. Tags
 
 Use `known_tags` from step 1. Prefer an existing tag over inventing a new
-one — the site's tag vocabulary is deliberately small (currently just
-`animals` and `portrait`). If a photo genuinely doesn't fit anything
-existing, or it's genuinely ambiguous which existing tag fits best, ask
+one — the site's tag vocabulary is deliberately small (currently
+`animals`, `motorsport`, and `portrait`). If a photo genuinely doesn't
+fit anything existing, or it's genuinely ambiguous which existing tag fits best, ask
 the user rather than guessing or growing the vocabulary unilaterally.
 
 ### 11. Feature flag

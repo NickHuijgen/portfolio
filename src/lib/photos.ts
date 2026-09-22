@@ -53,7 +53,8 @@ export function photoMatchesTag(photo: { data: { tags: string[]; feature: boolea
 // `photoDetailsUrl` is the deep view: full-viewport image, EXIF, date,
 // location, tag links and prev/next. Reached from the "⤢" control on an
 // expanded tile, and the page that actually gets indexed — photoUrl's
-// 64 near-identical grid renders all rel=canonical here, and the sitemap
+// near-identical grid renders (one per photo) all rel=canonical here,
+// and the sitemap
 // submits only these (see astro.config.mjs).
 export function photoUrl(slug: string) {
 	return `/photo/${slug}/`;

@@ -43,12 +43,13 @@ export const LOCALE_NAME: Record<Locale, string> = { en: 'English', nl: 'Nederla
 
 // Display labels for tags. The key stays the URL segment and the value in
 // photos.yaml — only what's rendered changes. See the tag-slug decision in
-// the localisation plan: with `animals` (63/64) and `featured` (11/64)
+// the localisation plan: with `animals` (66/77) and `featured` (13/77)
 // both over isTagNoindexed's threshold, localizing the slugs themselves
-// would buy exactly one indexable page in exchange for a slug<->key map
-// that six call sites (one of them a hand-duplicated inline script) would
-// have to agree on. Revisit if the tag vocabulary ever grows enough that
-// several tags fall *under* that threshold.
+// would buy two indexable pages (`motorsport`, `portrait`) in exchange
+// for a slug<->key map that six call sites (one of them a
+// hand-duplicated inline script) would have to agree on. The tag
+// vocabulary has since grown enough that most tags fall *under* that
+// threshold — the trade-off is worth re-checking the next time it does.
 export const TAG_LABELS: Record<string, Record<Locale, string>> = {
 	animals: { en: 'animals', nl: 'dieren' },
 	portrait: { en: 'portrait', nl: 'portret' },

@@ -115,7 +115,7 @@ function websiteSchema(lang: Locale) {
 }
 
 // EXIF as schema.org PropertyValues — /photo/[slug]/details/ only (see
-// photoPageSchema), not the 64-image gallery graph: it's already
+// photoPageSchema), not the whole-gallery graph: it's already
 // rendered as visible text on that page, but nowhere machine-readable.
 // The VALUES are numbers/units, not prose, and stay the same across
 // locales; only the PropertyValue `name` (the display label) is translated.
@@ -167,8 +167,9 @@ export async function imageObjectSchema(
 	const optimized = await getImage({ src: photo.data.src, width: 1600 });
 	const imageUrl = new URL(optimized.src, SITE_URL).href;
 	// The details page, not /<lang>/photo/<slug>/. Both render this photo,
-	// but /<lang>/photo/<slug>/ is the grid with the tile expanded — 64
-	// near-identical renders that all rel=canonical here — while /details/
+	// but /<lang>/photo/<slug>/ is the grid with the tile expanded — one
+	// near-identical render per photo, all rel=canonical here — while
+	// /details/
 	// is the page with the photo's unique content (EXIF, location,
 	// prev/next) and the one the sitemap submits. mainEntityOfPage and this
 	// @id have to name the page that actually gets indexed, and — unlike

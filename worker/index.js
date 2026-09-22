@@ -40,9 +40,11 @@
 
 // Duplicated from LOCALES/DEFAULT_LOCALE in src/lib/i18n.ts. This file is
 // bundled by Cloudflare's own build, outside Astro's Vite pipeline and
-// outside the project's tsconfig, so importing the real constants across
-// that boundary is more fragile than restating them. See AGENTS.md's
-// Invariants table — adding a locale means editing both.
+// outside the files `astro check` actually diagnoses (it walks the Astro
+// app's own reachable graph, which never reaches this file), so importing
+// the real constants across that boundary is more fragile than restating
+// them. See AGENTS.md's Invariants table — adding a locale means
+// editing both.
 const LOCALES = ['en', 'nl'];
 const DEFAULT_LOCALE = 'en';
 

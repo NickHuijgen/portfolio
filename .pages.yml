@@ -16,8 +16,8 @@ content:
       # No `slug` field here on purpose: it's generated once, at creation,
       # from `title` (see the add-photos skill and content.config.ts's
       # schema comment) and never regenerated afterwards. Exposing it as
-      # an editable CMS field would invite exactly the edit that breaks
-      # public/_redirects and any already-shared /photo/<slug>/ URL.
+      # an editable CMS field would invite exactly the edit that silently
+      # 404s an already-shared /photo/<slug>/ URL.
       - { name: src, label: Photo, type: image }
       - { name: title, label: Title, type: string, required: true }
       - { name: alt, label: Alt text, type: string, required: true }

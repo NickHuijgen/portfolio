@@ -177,7 +177,8 @@ const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 	// see swap-functions.js). `document` survives ClientRouter swaps —
 	// only `document.body` is replaced — so a re-run on every distinct
 	// photo page visited left one extra `keydown` listener behind each
-	// time (up to 64/session), each later throwing on the grid (where
+	// time (one per photo in the library, per session), each later
+	// throwing on the grid (where
 	// #photo-close doesn't exist) and, worse, firing N stale `.click()`s
 	// per arrow key once N photos had been visited. The photo's slug now
 	// comes from a `data-photo-slug` attribute (read fresh from the
