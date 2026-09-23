@@ -1576,3 +1576,43 @@
     aperture: 2.8
     shutterSpeed: 0.004
     iso: 800
+- id: photo-88
+  slug: scottish-terrier-on-a-sandy-path
+  title: Scottish terrier on a sandy path
+  src: images/914a2992.jpeg
+  alt: Black Scottish terrier trotting along a sandy path beside dry heath grass, tongue out, ears up and a brass tag hanging from its collar
+  nl:
+    title: "Schotse terriër op een zandpad"
+    alt: "Zwarte Schotse terriër die over een zandpad langs droog heidegras draaft, met zijn tong uit zijn bek, de oren omhoog en een koperen penning aan zijn halsband"
+  date: 2026-07-14
+  location: Tafelbergheide, Blaricum
+  tags:
+    - animals
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 5.6
+    shutterSpeed: 0.0015625
+    iso: 100
+- id: photo-89
+  slug: scottish-terrier-at-full-tilt
+  title: Scottish terrier at full tilt
+  src: images/914a3014.jpeg
+  alt: Black Scottish terrier in a checked bandana running straight toward the camera across dry grass, tongue out, with green heathland blurred behind it
+  nl:
+    title: "Schotse terriër in volle vaart"
+    alt: "Zwarte Schotse terriër met een geruite halsdoek die over droog gras recht op de camera af rent, met zijn tong uit zijn bek en onscherpe groene heide op de achtergrond"
+  date: 2026-07-14
+  location: Tafelbergheide, Blaricum
+  tags:
+    - animals
+  feature: false
+  exif:
+    camera: Canon EOS R6 Mark II
+    lens: Canon EF 300mm f/2.8L IS USM
+    focalLength: 300
+    aperture: 3.2
+    shutterSpeed: 0.0015625
+    iso: 100
