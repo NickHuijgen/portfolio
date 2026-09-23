@@ -16,9 +16,9 @@ Cloudflare deploys it. No laptop, no separate commit step.
 Two bundled scripts do the deterministic parts — never hand-roll their
 logic inline, the parsing/arithmetic is easy to get subtly wrong twice:
 
-- `scripts/scan_library.py <repo-root>` — surveys `photos.yaml` and
-  `src/content/images/`. Returns orphan images (uploaded but not yet in
-  `photos.yaml` — your actual worklist), the next `photo-N` id, every tag
+- `scripts/scan_library.py <repo-root>` — surveys `photos.yaml`,
+  `about.yaml` and `src/content/images/`. Returns orphan images (uploaded
+  but referenced by neither YAML file — your actual worklist), the next `photo-N` id, every tag
   currently in use, every slug currently in use (for collision detection —
   see step 7), and a fingerprint (date + camera + lens + focal length
   + aperture + shutter + iso) for every existing entry, for dedup.
@@ -48,7 +48,8 @@ pulling over them.
 ### 1. Find the worklist
 
 Run `scripts/scan_library.py <repo-root>`. `orphan_images` is every file
-in `src/content/images/` not yet referenced by any `photos.yaml` entry —
+in `src/content/images/` not yet referenced by any `photos.yaml` entry or
+by `about.yaml` (whose portrait and avatar live in the same directory) —
 that's what this run needs to process. If it's empty, say so and stop;
 there's nothing to do.
 

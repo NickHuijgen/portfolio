@@ -10,7 +10,10 @@ Usage: scan_library.py <repo-root>
 
 Prints JSON:
   existing_srcs   — every "images/<file>" already referenced in photos.yaml
-  orphan_images   — files in src/content/images/ not referenced by any entry
+  about_srcs      — every "images/<file>" referenced by about.yaml (the
+                     about page's portrait and avatar), which share
+                     src/content/images/ with the photo library
+  orphan_images   — files in src/content/images/ referenced by neither
                      (these are what Pages CMS uploaded but nobody has
                      described yet — the skill's actual worklist)
   next_id_number  — the integer to use for the next "photo-N" id
@@ -37,6 +40,9 @@ TAG_ITEM_RE = re.compile(r"^    - (.+)\n", re.MULTILINE)
 # Independent search (not matched sequentially from the top of the block)
 # so an optional, later section can't get skipped by an earlier lazy
 # quantifier finding a "good enough" shorter match first.
+# Any "key: images/<file>" value in about.yaml, whatever the key is called,
+# so a new image field there doesn't quietly turn back into an orphan.
+ABOUT_IMAGE_RE = re.compile(r"^\s*\w+: images/(\S+)\s*$", re.MULTILINE)
 EXIF_RE = re.compile(
     r"^  exif:\n"
     r"    camera: (?P<camera>.+)\n"
@@ -87,14 +93,17 @@ def main():
         sys.exit(1)
     root = Path(sys.argv[1])
     yaml_path = root / "src/content/photos.yaml"
+    about_path = root / "src/content/about.yaml"
     images_dir = root / "src/content/images"
 
     text = yaml_path.read_text()
     entries = parse_entries(text)
 
     existing_srcs = sorted({e["src"] for e in entries})
+    about_srcs = sorted(set(ABOUT_IMAGE_RE.findall(about_path.read_text()))) if about_path.exists() else []
+    referenced = set(existing_srcs) | set(about_srcs)
     all_images = sorted(p.name for p in images_dir.iterdir() if p.is_file() and not p.name.startswith("."))
-    orphan_images = [name for name in all_images if name not in existing_srcs]
+    orphan_images = [name for name in all_images if name not in referenced]
 
     known_tags = sorted({t for e in entries for t in e["tags"]})
     known_slugs = sorted({e["slug"] for e in entries})
@@ -119,6 +128,7 @@ def main():
         json.dumps(
             {
                 "existing_srcs": existing_srcs,
+                "about_srcs": about_srcs,
                 "orphan_images": orphan_images,
                 "next_id_number": next_id_number,
                 "known_tags": known_tags,
