@@ -160,7 +160,7 @@ export const UI: Record<Locale, UIStrings> = {
 		licenseDescription: 'Licensing terms for photos on this site.',
 		licenseTerms:
 			'All photos on this site are © Nick Huijgen. All rights reserved — none of them are available under a Creative Commons or other open license.',
-		licenseContactBefore: 'Interested in using one, or booking a portrait session? Send a message on ',
+		licenseContactBefore: 'Interested in using one? Send a message on ',
 		licenseContactAfter: '.',
 		continueToSite: 'Continue to the site',
 	},
@@ -202,8 +202,7 @@ export const UI: Record<Locale, UIStrings> = {
 		licenseDescription: "Licentievoorwaarden voor de foto's op deze site.",
 		licenseTerms:
 			"Alle foto's op deze site zijn © Nick Huijgen. Alle rechten voorbehouden — geen van de foto's is beschikbaar onder een Creative Commons- of andere open licentie.",
-		licenseContactBefore:
-			'Wil je er een gebruiken, of een portretsessie boeken? Stuur een bericht op ',
+		licenseContactBefore: 'Wil je er een gebruiken? Stuur een bericht op ',
 		licenseContactAfter: '.',
 		continueToSite: 'Ga verder naar de site',
 	},

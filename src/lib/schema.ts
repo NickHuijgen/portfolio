@@ -36,20 +36,34 @@ function licenseUrl(lang: Locale) {
 	return `${SITE_URL}${localizedPath('/license/', lang)}`;
 }
 
-// jobTitle/knowsAbout/the offer's itemOffered.name are prose, not URLs or
-// identifiers, so — unlike TAG_LABELS in i18n.ts, which is shared by
+// jobTitle/knowsAbout are prose, not URLs or identifiers, so — unlike TAG_LABELS in i18n.ts, which is shared by
 // several call sites including a hand-duplicated inline script — these
 // live here, next to their one caller.
-const PERSON_LABELS: Record<Locale, { jobTitle: string; knowsAbout: [string, string]; portraitOffer: string }> = {
+//
+// knowsAbout names the subjects the library ACTUALLY carries, in
+// proportion order (today: animals 66/77, motorsport 10/77). It is not a
+// statement of intent — `Next up: Portraits` in about.yaml's facts is
+// where a plan belongs. It previously read "Wildlife photography"/
+// "Portrait photography" and was wrong twice over: `wildlife` is the old
+// name of the tag now called `animals`, and these are zoo and park
+// animals rather than wildlife; portrait was a single photo out of 77.
+//
+// So this drifts silently as the library grows — nothing here reads
+// photos.yaml, and a wrong value costs no build error, just a false claim
+// in the structured data on every page. **When photos of a new subject go
+// up (or an existing subject's share changes materially), revisit this
+// pair, and re-read about.yaml's homeIntro and body at the same time —
+// they make the same claims in prose.** See the `knowsAbout` row in
+// CLAUDE.md's Invariants table, and step 12b of the add-photos skill,
+// which is the workflow that actually adds photos.
+const PERSON_LABELS: Record<Locale, { jobTitle: string; knowsAbout: [string, string] }> = {
 	en: {
 		jobTitle: 'Photographer',
-		knowsAbout: ['Wildlife photography', 'Portrait photography'],
-		portraitOffer: 'Portrait photography',
+		knowsAbout: ['Animal photography', 'Motorsport photography'],
 	},
 	nl: {
 		jobTitle: 'Fotograaf',
-		knowsAbout: ['Dierenfotografie', 'Portretfotografie'],
-		portraitOffer: 'Portretfotografie',
+		knowsAbout: ['Dierenfotografie', 'Motorsportfotografie'],
 	},
 };
 
@@ -57,8 +71,8 @@ const PERSON_LABELS: Record<Locale, { jobTitle: string; knowsAbout: [string, str
 // @id (like websiteSchema below) would make search engines see two
 // distinct people rather than one person described in two languages —
 // worse than the alternative, which is one @id whose `description` (and
-// jobTitle/knowsAbout/offer name) simply render in whichever language the
-// referring page is in. knowsLanguage says outright that this one person
+// jobTitle/knowsAbout) simply render in whichever language the referring
+// page is in. knowsLanguage says outright that this one person
 // speaks both.
 export async function personSchema(lang: Locale) {
 	const about = await getAbout(lang);
@@ -84,19 +98,22 @@ export async function personSchema(lang: Locale) {
 		knowsAbout: labels.knowsAbout,
 		knowsLanguage: ['nl', 'en'],
 		sameAs: [LINKEDIN_URL, INSTAGRAM_URL],
-		// No contactPoint: schema.org's documented contactType values
-		// (customer service, technical support, billing support, sales,
-		// reservations, etc.) are all organizational-desk vocabulary that
-		// doesn't honestly describe "photographer taking booking enquiries
-		// over Instagram DM" — picking the least-wrong one (customer
-		// service was the leading candidate) would still be a mismatch, not
-		// a fix. makesOffer below plus the Instagram link in `sameAs` (and
-		// on-page, in about.yaml's body text) already say how to reach him
-		// for bookings without overclaiming a formal contact desk.
-		makesOffer: {
-			'@type': 'Offer',
-			itemOffered: { '@type': 'Service', name: labels.portraitOffer },
-		},
+		// No makesOffer and no contactPoint. There used to be a
+		// makesOffer/Offer of portrait photography here, alongside an
+		// on-page invitation to book a session (about.yaml's body) and a
+		// booking line on /license/ — all removed together: the library
+		// carries one portrait today, so advertising sessions gets ahead of
+		// what the site can show. Re-add all three together if that
+		// changes, not just this one.
+		//
+		// contactPoint stays out regardless: schema.org's documented
+		// contactType values (customer service, technical support, billing
+		// support, sales, reservations, etc.) are all organizational-desk
+		// vocabulary that doesn't honestly describe "photographer reachable
+		// by Instagram DM" — picking the least-wrong one (customer service
+		// was the leading candidate) would still be a mismatch, not a fix.
+		// The Instagram link in `sameAs` (and on-page, on /license/) already
+		// says how to reach him without overclaiming a formal contact desk.
 	};
 }
 

@@ -313,6 +313,39 @@ every existing entry follows this same order. Omit the whole `exif:`
 block (it's optional in the schema) if step 2 couldn't read camera EXIF
 at all.
 
+### 12b. New subject? Re-read the site's self-description
+
+Only when this run introduces a subject the library didn't meaningfully
+have before — a tag used for the first time, or an existing tag whose
+share of the library changes materially (a handful of photos becoming
+tens). A routine batch of more animals is not that; skip straight to 13.
+
+Nothing in the build reads `photos.yaml` to check any of the following,
+so all of it drifts silently and costs no error — just claims that stop
+being true:
+
+- **`PERSON_LABELS.knowsAbout` (`src/lib/schema.ts`)** — names the
+  subjects actually in the library, in proportion order, and ships in the
+  JSON-LD on every page. Today it's a fixed two-tuple
+  (`[string, string]`); going to one or three entries means editing that
+  type on the same line.
+- **`about.yaml`'s `homeIntro` and `body`** — both describe in prose what
+  gets photographed ("Mostly animals, sometimes things that move a great
+  deal faster"), in **both** locales. `homeIntro` is also the `Person`
+  JSON-LD description and `/about/`'s meta description, so it's read in
+  three places.
+- **`about.yaml`'s `facts`** — `Next up` is where an *intention* lives;
+  when the intention arrives as actual photos, it has stopped being next.
+- **`homeTitle`/`homeDescription` (`src/lib/i18n.ts`)** — the homepage
+  `<title>` and search snippet, per locale. Changing these has real SEO
+  consequences, and the two locales are deliberately not translations of
+  each other (see the doc comment there).
+
+**Don't rewrite any of this unilaterally** — it's the user's own voice
+and their site's search presence. Report what's now out of step with the
+library and propose wording; let them choose. This is a prose judgment,
+not a mechanical sync, which is exactly why it isn't automated.
+
 ### 13. Validate
 
 Run `npm run verify` (this project's `astro check` then `astro build`, in
