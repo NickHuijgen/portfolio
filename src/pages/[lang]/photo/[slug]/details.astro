@@ -91,8 +91,9 @@ const formattedExif =
 const structuredData = await photoPageSchema(photo, lang);
 
 // Base.astro falls back to a `feature: true` photo for og:image when no
-// ogImage is given — fine for a generic page like /license/, but every /photo/[slug] page shares one photo, so sharing this URL (e.g.
-// on WhatsApp) always previewed that same featured photo instead of this one.
+// ogImage is given — fine for a generic page like /license/, but every
+// /photo/[slug] page shared one photo, so sharing this URL (e.g. on
+// WhatsApp) always previewed that same featured photo instead of this one.
 const ogImageAsset = await getImage({ src: photo.data.src, ...OG_IMAGE_OPTIONS });
 const ogImage = new URL(ogImageAsset.src, Astro.site).href;
 ---
