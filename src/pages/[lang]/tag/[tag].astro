@@ -1,9 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
 import Base from '../../../layouts/Base.astro';
 import Home from '../../../components/Home.astro';
 import { gallerySchema } from '../../../lib/schema.ts';
-import { getSortedPhotos, photoMatchesTag } from '../../../lib/photos.ts';
+import { getSortedPhotos, localizedPhoto, photoMatchesTag } from '../../../lib/photos.ts';
+import { OG_IMAGE_OPTIONS } from '../../../lib/og-image.ts';
 import { SITE_URL } from '../../../lib/site.ts';
 import { isTagNoindexed } from '../../../lib/tag-coverage.ts';
 import { tagCopy } from '../../../lib/tag-copy.ts';
@@ -44,6 +46,19 @@ const structuredData = await gallerySchema(
 // but still submitted to the sitemap gets Search Console's "Submitted
 // URL marked 'noindex'" warning, so both read the same function.
 const robots = isTagNoindexed(taggedPhotos.length, photos.length) ? 'noindex, follow' : undefined;
+
+// Without this, Base.astro's site-wide featured-photo fallback made every
+// tag page's share card show the same (unrelated) photo — /tag/motorsport/
+// embedded a tiger. Use this tag's own newest featured photo, else its
+// newest photo. Skipped when noindexed: robots suppresses every og: tag,
+// so the generated 1200x630 asset would ship unreferenced.
+const ogPhoto = robots
+	? undefined
+	: (taggedPhotos.find((photo) => photo.data.feature) ?? taggedPhotos[0]);
+const ogImage = ogPhoto
+	? new URL((await getImage({ src: ogPhoto.data.src, ...OG_IMAGE_OPTIONS })).src, Astro.site).href
+	: undefined;
+const ogImageAlt = ogPhoto ? localizedPhoto(ogPhoto, lang).alt : undefined;
 ---
 
 <Base
@@ -52,6 +67,8 @@ const robots = isTagNoindexed(taggedPhotos.length, photos.length) ? 'noindex, fo
 	description={copy.lead}
 	structuredData={structuredData}
 	robots={robots}
+	ogImage={ogImage}
+	ogImageAlt={ogImageAlt}
 >
 	<Home lang={lang} activeTag={tag} activeTagCount={taggedPhotos.length} />
 </Base>
