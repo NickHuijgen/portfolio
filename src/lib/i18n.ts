@@ -87,10 +87,22 @@ export interface UIStrings {
 	 * Dutch one names the searchable role nouns (`-fotograaf`, not
 	 * `-fotografie`) and the place, because a Dutch speaker looking to book
 	 * a photographer searches exactly that, in Dutch. The English one
-	 * doesn't, because someone searching "portretfotograaf Amersfoort" is
+	 * doesn't, because someone searching "dierenfotograaf Amersfoort" is
 	 * searching in Dutch by definition — English traffic arrives from
 	 * Instagram/LinkedIn and from English speakers in NL, for whom the
 	 * local terms buy nothing and cost clarity.
+	 *
+	 * The subject nouns track the library, not the plan: these read
+	 * Wildlife/Portrait until the counts were checked (86% animals, 13%
+	 * motorsport, one portrait), and `wildlife` was the old name of the tag
+	 * now called `animals` — zoo and park animals aren't wildlife. That
+	 * costs some reach ("wildlife photography" is the bigger search term)
+	 * and is meant to: the traffic it won arrived expecting animals in the
+	 * wild. Motorsport earns its half despite being 13% because
+	 * `/tag/animals/` is noindexed for covering 86% (see tag-coverage.ts),
+	 * which makes motorsport the largest tag page that IS indexable.
+	 * Revisit when the mix changes — see the subject-mix row in the
+	 * Invariants table.
 	 */
 	homeTitle: string;
 	homeDescription: string;
@@ -136,9 +148,9 @@ export const UI: Record<Locale, UIStrings> = {
 		opensInNewTab: ' (opens in a new tab)',
 		bylineBy: 'by',
 		homeLead: 'Photography from wherever I end up.',
-		homeTitle: 'Nick Huijgen — Wildlife & Portrait Photography',
+		homeTitle: 'Nick Huijgen — Animal & Motorsport Photography',
 		homeDescription:
-			'Wildlife and portrait photography by Nick Huijgen, based near Amersfoort, Netherlands.',
+			'Animal and motorsport photography by Nick Huijgen, based near Amersfoort, Netherlands.',
 		filterNavLabel: 'Filter photos by tag',
 		filterAll: 'All',
 		photoCountOne: '{n} photo',
@@ -175,9 +187,9 @@ export const UI: Record<Locale, UIStrings> = {
 		opensInNewTab: ' (opent in een nieuw tabblad)',
 		bylineBy: 'door',
 		homeLead: "Foto's van overal waar ik terechtkom.",
-		homeTitle: 'Nick Huijgen — Dieren- en portretfotograaf, Amersfoort',
+		homeTitle: 'Nick Huijgen — Dieren- en motorsportfotograaf, Amersfoort',
 		homeDescription:
-			'Dieren- en portretfotografie van Nick Huijgen, uit de omgeving van Amersfoort.',
+			'Dieren- en motorsportfotografie van Nick Huijgen, uit de omgeving van Amersfoort.',
 		// "op onderwerp", not "op tag": the tags on this site are subjects
 		// (dieren, portret), and this string is only ever read aloud — it's
 		// the filter nav's accessible name, never visible text.
