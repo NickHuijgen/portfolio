@@ -205,6 +205,12 @@ export async function imageObjectSchema(
 		height: optimized.attributes.height,
 		creator: { '@id': PERSON_ID },
 		creditText: SITE_NAME,
+		// Google's image-metadata report flags its absence ("Missing field
+		// 'copyrightNotice'"). Year taken, not build year — the copyright
+		// dates from when the photo was made. Locale-independent on purpose:
+		// "©" needs no translation, and the full rights statement lives on
+		// the license page.
+		copyrightNotice: `© ${photo.data.date.getUTCFullYear()} ${SITE_NAME}`,
 		license: licenseUrl(lang),
 		acquireLicensePage: licenseUrl(lang),
 		...(representative && photo.data.exif && { additionalProperty: exifProperties(photo.data.exif, lang) }),
