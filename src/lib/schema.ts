@@ -27,6 +27,9 @@ import { localizedPath, tagLabel, t, type Locale } from './i18n.ts';
 // PERSON_ID is deliberately *not* locale-prefixed, unlike everything else
 // below — see the comment on personSchema() for why.
 const PERSON_ID = `${SITE_URL}/#person`;
+// Locale-independent for the same reason as PERSON_ID: it's one photo of
+// one person, nested inside that one Person node.
+const PORTRAIT_ID = `${SITE_URL}/#portrait`;
 
 function websiteId(lang: Locale) {
 	return `${SITE_URL}${localizedPath('/', lang)}#website`;
@@ -76,9 +79,31 @@ const PERSON_LABELS: Record<Locale, { jobTitle: string; knowsAbout: [string, str
 // speaks both.
 export async function personSchema(lang: Locale) {
 	const about = await getAbout(lang);
-	const image = about.portrait
-		? new URL((await getImage({ src: about.portrait, width: 512 })).src, SITE_URL).href
-		: undefined;
+	const optimized = about.portrait ? await getImage({ src: about.portrait, width: 512 }) : undefined;
+	const imageUrl = optimized && new URL(optimized.src, SITE_URL).href;
+	// A full ImageObject rather than a bare URL, so the portrait carries the
+	// same licensing metadata as every gallery photo (see imageObjectSchema)
+	// — it's the about page's main image and its og:image, and can surface
+	// in Google Images like any other photo here. Nick holds the copyright
+	// to it, which is what makes pointing it at /license/ honest; if the
+	// portrait is ever replaced with one someone else shot, drop
+	// license/acquireLicensePage/copyrightNotice and credit that
+	// photographer instead. No dateCreated: about.yaml doesn't record one,
+	// hence also no year in copyrightNotice.
+	const image = optimized && {
+		'@type': 'ImageObject',
+		'@id': PORTRAIT_ID,
+		url: imageUrl,
+		contentUrl: imageUrl,
+		...(about.portraitAlt && { description: about.portraitAlt }),
+		width: optimized.attributes.width,
+		height: optimized.attributes.height,
+		creator: { '@id': PERSON_ID },
+		creditText: SITE_NAME,
+		copyrightNotice: `© ${SITE_NAME}`,
+		license: licenseUrl(lang),
+		acquireLicensePage: licenseUrl(lang),
+	};
 	const labels = PERSON_LABELS[lang];
 
 	return {
@@ -302,10 +327,11 @@ export async function photoPageSchema(photo: CollectionEntry<'photos'>, lang: Lo
 // with zero structured data of its own.
 export async function aboutPageSchema(lang: Locale) {
 	const aboutUrl = `${SITE_URL}${localizedPath('/about/', lang)}`;
+	const person = await personSchema(lang);
 	return {
 		'@context': 'https://schema.org',
 		'@graph': [
-			await personSchema(lang),
+			person,
 			websiteSchema(lang),
 			{
 				'@type': 'ProfilePage',
@@ -314,6 +340,9 @@ export async function aboutPageSchema(lang: Locale) {
 				name: `${t(lang).aboutTitle} — ${SITE_NAME}`,
 				isPartOf: { '@id': websiteId(lang) },
 				mainEntity: { '@id': PERSON_ID },
+				// The portrait ImageObject itself lives inside personSchema()'s
+				// node above — referenced here, not repeated.
+				...(person.image && { primaryImageOfPage: { '@id': PORTRAIT_ID } }),
 			},
 		],
 	};
