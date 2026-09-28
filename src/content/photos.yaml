@@ -1,7 +1,7 @@
 - id: photo-09
   slug: sleeping-tiger
   title: Sleeping tiger
-  src: images/914a3845.jpeg
+  src: images/sleeping-tiger.jpeg
   alt: Tiger sleeping with its head resting against a moss-covered rock
   nl:
     title: "Slapende tijger"
@@ -21,7 +21,7 @@
 - id: photo-10
   slug: clouded-leopard-sleeping
   title: Clouded leopard sleeping
-  src: images/914a3132.jpeg
+  src: images/clouded-leopard-sleeping.jpeg
   alt: Clouded leopard sleeping on a wooden platform
   caption: Napping between exhibits
   nl:
@@ -43,7 +43,7 @@
 - id: photo-11
   slug: clouded-leopard-in-the-grass
   title: Clouded leopard in the grass
-  src: images/914a3202.jpeg
+  src: images/clouded-leopard-in-the-grass.jpeg
   alt: Clouded leopard's eye and muzzle glimpsed through tall grass while feeding
   nl:
     title: "Nevelpanter in het gras"
@@ -63,7 +63,7 @@
 - id: photo-12
   slug: snow-leopard-eyeing-its-prey
   title: Snow leopard eyeing its prey
-  src: images/914a3233.jpeg
+  src: images/snow-leopard-eyeing-its-prey.jpeg
   alt: Snow leopard perched on a log, eyeing a hanging rabbit carcass
   nl:
     title: "Sneeuwpanter loert naar zijn prooi"
@@ -83,7 +83,7 @@
 - id: photo-13
   slug: snow-leopard-biting-its-prey
   title: Snow leopard biting its prey
-  src: images/914a3262.jpeg
+  src: images/snow-leopard-biting-its-prey.jpeg
   alt: Snow leopard biting into a rabbit carcass hanging from a rope
   nl:
     title: "Sneeuwpanter bijt in zijn prooi"
@@ -103,7 +103,7 @@
 - id: photo-14
   slug: snow-leopard-reaching-for-prey
   title: Snow leopard reaching for prey
-  src: images/914a3268.jpeg
+  src: images/snow-leopard-reaching-for-prey.jpeg
   alt: Snow leopard reaching a paw up toward a hanging rabbit carcass
   nl:
     title: "Sneeuwpanter reikt naar zijn prooi"
@@ -123,7 +123,7 @@
 - id: photo-15
   slug: snow-leopard-licking-its-lips
   title: Snow leopard licking its lips
-  src: images/914a3269.jpeg
+  src: images/snow-leopard-licking-its-lips.jpeg
   alt: Snow leopard licking its lips beside a hanging rabbit carcass
   nl:
     title: "Sneeuwpanter likt zijn lippen af"
@@ -143,7 +143,7 @@
 - id: photo-16
   slug: snow-leopard-snarling
   title: Snow leopard snarling
-  src: images/914a3298.jpeg
+  src: images/snow-leopard-snarling.jpeg
   alt: Snow leopard snarling as it emerges from a rock den
   caption: Announcing itself
   nl:
@@ -165,7 +165,7 @@
 - id: photo-17
   slug: snow-leopard-looking-up
   title: Snow leopard looking up
-  src: images/914a3324.jpeg
+  src: images/snow-leopard-looking-up.jpeg
   alt: Close-up of a snow leopard's face as it looks upward
   nl:
     title: "Sneeuwpanter kijkt omhoog"
@@ -185,7 +185,7 @@
 - id: photo-18
   slug: snow-leopard-holding-its-prey
   title: Snow leopard holding its prey
-  src: images/914a3330.jpeg
+  src: images/snow-leopard-holding-its-prey.jpeg
   alt: Snow leopard holding a hanging rabbit carcass with one paw
   nl:
     title: "Sneeuwpanter houdt zijn prooi vast"
@@ -205,7 +205,7 @@
 - id: photo-19
   slug: snow-leopard-gripping-its-prey
   title: Snow leopard gripping its prey
-  src: images/914a3336.jpeg
+  src: images/snow-leopard-gripping-its-prey.jpeg
   alt: Snow leopard gripping a hanging rabbit carcass in its jaws
   nl:
     title: "Sneeuwpanter grijpt zijn prooi"
@@ -225,7 +225,7 @@
 - id: photo-20
   slug: snow-leopard-looking-up-among-rocks
   title: Snow leopard looking up among rocks
-  src: images/914a3346.jpeg
+  src: images/snow-leopard-looking-up-among-rocks.jpeg
   alt: Snow leopard looking upward with rocks in the background
   caption: Closing in
   nl:
@@ -247,7 +247,7 @@
 - id: photo-21
   slug: snow-leopard-prowling-with-prey
   title: Snow leopard prowling with prey
-  src: images/914a3385.jpeg
+  src: images/snow-leopard-prowling-with-prey.jpeg
   alt: Snow leopard prowling over rocks toward the camera with fur in its mouth
   nl:
     title: "Sneeuwpanter sluipt met zijn prooi"
@@ -267,7 +267,7 @@
 - id: photo-22
   slug: snow-leopard-facing-the-camera
   title: Snow leopard facing the camera
-  src: images/914a3389.jpeg
+  src: images/snow-leopard-facing-the-camera.jpeg
   alt: Snow leopard licking its lips while looking at the camera
   nl:
     title: "Sneeuwpanter kijkt in de camera"
@@ -287,7 +287,7 @@
 - id: photo-23
   slug: snow-leopard-standing-among-rocks
   title: Snow leopard standing among rocks
-  src: images/914a3391.jpeg
+  src: images/snow-leopard-standing-among-rocks.jpeg
   alt: Snow leopard standing among rocks, looking upward
   nl:
     title: "Sneeuwpanter tussen de rotsen"
@@ -307,7 +307,7 @@
 - id: photo-24
   slug: snow-leopard-reaching-up
   title: Snow leopard reaching up
-  src: images/914a3392.jpeg
+  src: images/snow-leopard-reaching-up.jpeg
   alt: Snow leopard reaching a paw up toward a dangling rabbit carcass
   nl:
     title: "Sneeuwpanter reikt omhoog"
@@ -327,7 +327,7 @@
 - id: photo-27
   slug: prairie-dog-with-a-parsnip
   title: Prairie dog with a parsnip
-  src: images/914a2688.jpeg
+  src: images/prairie-dog-with-a-parsnip.jpeg
   alt: Prairie dog sitting upright, holding a parsnip in its paws
   nl:
     title: "Prairiehond met een pastinaak"
@@ -347,7 +347,7 @@
 - id: photo-28
   slug: prairie-dog-eating-a-parsnip
   title: Prairie dog eating a parsnip
-  src: images/914a2695.jpeg
+  src: images/prairie-dog-eating-a-parsnip.jpeg
   alt: Prairie dog holding a parsnip up to its mouth
   nl:
     title: "Prairiehond eet een pastinaak"
@@ -367,7 +367,7 @@
 - id: photo-29
   slug: prairie-dog-nibbling-a-parsnip
   title: Prairie dog nibbling a parsnip
-  src: images/914a2711.jpeg
+  src: images/prairie-dog-nibbling-a-parsnip.jpeg
   alt: Prairie dog nibbling on a parsnip held in its paws
   nl:
     title: "Prairiehond knabbelt aan een pastinaak"
@@ -387,7 +387,7 @@
 - id: photo-30
   slug: prairie-dog-standing-alert
   title: Prairie dog standing alert
-  src: images/914a2721.jpeg
+  src: images/prairie-dog-standing-alert.jpeg
   alt: Prairie dog standing upright and alert
   caption: Keeping watch
   nl:
@@ -409,7 +409,7 @@
 - id: photo-31
   slug: pelican-in-profile
   title: Pelican in profile
-  src: images/914a2818.jpeg
+  src: images/pelican-in-profile.jpeg
   alt: Pelican in profile, showing its long bill and throat pouch
   nl:
     title: "Pelikaan in profiel"
@@ -429,7 +429,7 @@
 - id: photo-32
   slug: young-baboon-looking-at-camera
   title: Young baboon looking at camera
-  src: images/914a2879.jpeg
+  src: images/young-baboon-looking-at-camera.jpeg
   alt: Young baboon sitting cross-legged on the ground, looking at the camera
   caption: Sizing me up
   nl:
@@ -451,7 +451,7 @@
 - id: photo-33
   slug: snowy-owl-looking-back
   title: Snowy owl looking back
-  src: images/914a2912.jpeg
+  src: images/snowy-owl-looking-back.jpeg
   alt: Snowy owl perched on a stump, looking over its shoulder
   caption: Turning to look
   nl:
@@ -473,7 +473,7 @@
 - id: photo-34
   slug: prairie-dog-at-its-burrow
   title: Prairie dog at its burrow
-  src: images/mg6620.jpeg
+  src: images/prairie-dog-at-its-burrow.jpeg
   alt: Prairie dog standing upright at its burrow entrance, forepaws raised
   nl:
     title: "Prairiehond bij zijn hol"
@@ -493,7 +493,7 @@
 - id: photo-35
   slug: prairie-dog-looking-aside
   title: Prairie dog looking aside
-  src: images/mg6625.jpeg
+  src: images/prairie-dog-looking-aside.jpeg
   alt: Prairie dog standing upright, looking off to the side with forepaws raised
   nl:
     title: "Prairiehond kijkt opzij"
@@ -513,7 +513,7 @@
 - id: photo-36
   slug: prairie-dog-chewing-dirt
   title: Prairie dog chewing dirt
-  src: images/mg6637.jpeg
+  src: images/prairie-dog-chewing-dirt.jpeg
   alt: Close-up profile of a prairie dog chewing on a clump of dirt, dust flying from its paws
   nl:
     title: "Prairiehond kauwt op aarde"
@@ -533,7 +533,7 @@
 - id: photo-37
   slug: prairie-dog-holding-food
   title: Prairie dog holding food
-  src: images/mg6645.jpeg
+  src: images/prairie-dog-holding-food.jpeg
   alt: Prairie dog holding a clump of food in both paws while eating
   nl:
     title: "Prairiehond houdt zijn eten vast"
@@ -553,7 +553,7 @@
 - id: photo-38
   slug: prairie-dog-on-a-mound-looking-up
   title: Prairie dog on a mound, looking up
-  src: images/mg6686.jpeg
+  src: images/prairie-dog-on-a-mound-looking-up.jpeg
   alt: Prairie dog standing upright on a dirt mound, looking up and to the side
   nl:
     title: "Prairiehond op een heuveltje, omhoog kijkend"
@@ -573,7 +573,7 @@
 - id: photo-39
   slug: juvenile-prairie-dog-peering-over
   title: Juvenile prairie dog peering over
-  src: images/mg6722.jpeg
+  src: images/juvenile-prairie-dog-peering-over.jpeg
   alt: Juvenile prairie dog peering over the edge of a dirt mound
   nl:
     title: "Jonge prairiehond gluurt over de rand"
@@ -593,7 +593,7 @@
 - id: photo-40
   slug: juvenile-prairie-dog-cresting-a-mound
   title: Juvenile prairie dog cresting a mound
-  src: images/mg6723.jpeg
+  src: images/juvenile-prairie-dog-cresting-a-mound.jpeg
   alt: Juvenile prairie dog cresting a mound with its mouth slightly open
   nl:
     title: "Jonge prairiehond op de top van een heuveltje"
@@ -613,7 +613,7 @@
 - id: photo-41
   slug: young-prairie-dog-chewing-grass
   title: Young prairie dog chewing grass
-  src: images/mg6753.jpeg
+  src: images/young-prairie-dog-chewing-grass.jpeg
   alt: Young prairie dog chewing on a strand of dried grass
   caption: Grass for lunch
   nl:
@@ -635,7 +635,7 @@
 - id: photo-42
   slug: juvenile-prairie-dog-nibbling-grass
   title: Juvenile prairie dog nibbling grass
-  src: images/mg6827.jpeg
+  src: images/juvenile-prairie-dog-nibbling-grass.jpeg
   alt: Juvenile prairie dog standing upright, nibbling a strand of grass held in both paws
   nl:
     title: "Jonge prairiehond knabbelt aan gras"
@@ -655,7 +655,7 @@
 - id: photo-43
   slug: prairie-dog-pups-resting-together
   title: Prairie dog pups resting together
-  src: images/mg6978.jpeg
+  src: images/prairie-dog-pups-resting-together.jpeg
   alt: Two prairie dog pups resting together, one's head draped over the other's
   caption: Pile of two
   nl:
@@ -677,7 +677,7 @@
 - id: photo-44
   slug: prairie-dog-nibbling-on-a-rock
   title: Prairie dog nibbling on a rock
-  src: images/mg5905.jpeg
+  src: images/prairie-dog-nibbling-on-a-rock.jpeg
   alt: Prairie dog sitting upright on a rock, nibbling something held in its paws
   nl:
     title: "Knabbelende prairiehond op een steen"
@@ -697,7 +697,7 @@
 - id: photo-45
   slug: prairie-dog-with-an-autumn-leaf
   title: Prairie dog with an autumn leaf
-  src: images/mg5914.jpeg
+  src: images/prairie-dog-with-an-autumn-leaf.jpeg
   alt: Prairie dog holding an autumn leaf up to its mouth
   caption: Autumn snack
   nl:
@@ -719,7 +719,7 @@
 - id: photo-46
   slug: prairie-dog-on-a-dirt-mound
   title: Prairie dog on a dirt mound
-  src: images/mg5959.jpeg
+  src: images/prairie-dog-on-a-dirt-mound.jpeg
   alt: Prairie dog in profile atop a dirt mound, whiskers dusted with sand
   nl:
     title: "Prairiehond op een zandheuveltje"
@@ -739,7 +739,7 @@
 - id: photo-47
   slug: baboon-on-ancient-ruins
   title: Baboon on ancient ruins
-  src: images/mg6000.jpeg
+  src: images/baboon-on-ancient-ruins.jpeg
   alt: Baboon sitting on ancient stone ruins, eating a piece of food
   nl:
     title: "Baviaan op oude ruïnes"
@@ -759,7 +759,7 @@
 - id: photo-48
   slug: baboon-perched-on-ruins
   title: Baboon perched on ruins
-  src: images/mg6001.jpeg
+  src: images/baboon-perched-on-ruins.jpeg
   alt: Baboon perched on stone ruins, biting into a piece of food while looking to the side
   nl:
     title: "Baviaan hoog op de ruïnes"
@@ -779,7 +779,7 @@
 - id: photo-49
   slug: prairie-dog-chewing-a-twig
   title: Prairie dog chewing a twig
-  src: images/mg6012.jpeg
+  src: images/prairie-dog-chewing-a-twig.jpeg
   alt: Prairie dog chewing on a thin twig held in both paws
   nl:
     title: "Prairiehond kauwt op een takje"
@@ -799,7 +799,7 @@
 - id: photo-50
   slug: two-prairie-dogs-feeding
   title: Two prairie dogs feeding
-  src: images/mg6284.jpeg
+  src: images/two-prairie-dogs-feeding.jpeg
   alt: Two prairie dogs standing side by side, both feeding on green leaves
   caption: Sharing a snack
   nl:
@@ -821,7 +821,7 @@
 - id: photo-51
   slug: prairie-dog-emerging-from-its-burrow
   title: Prairie dog emerging from its burrow
-  src: images/mg6328.jpeg
+  src: images/prairie-dog-emerging-from-its-burrow.jpeg
   alt: Prairie dog emerging from its burrow beside a moss-covered rock
   nl:
     title: "Prairiehond komt uit zijn hol"
@@ -841,7 +841,7 @@
 - id: photo-52
   slug: prairie-dog-eating-grass
   title: Prairie dog eating grass
-  src: images/mg6356.jpeg
+  src: images/prairie-dog-eating-grass.jpeg
   alt: Prairie dog eating a blade of grass, with another prairie dog blurred behind
   nl:
     title: "Prairiehond eet gras"
@@ -861,7 +861,7 @@
 - id: photo-53
   slug: prairie-dog-chewing-grass-in-profile
   title: Prairie dog chewing grass, in profile
-  src: images/mg6361.jpeg
+  src: images/prairie-dog-chewing-grass-in-profile.jpeg
   alt: Prairie dog in profile chewing a blade of grass, another prairie dog out of focus in the background
   nl:
     title: "Prairiehond kauwt op gras, in profiel"
@@ -881,7 +881,7 @@
 - id: photo-54
   slug: prairie-dog-standing-alert-2
   title: Prairie dog standing alert
-  src: images/mg6366.jpeg
+  src: images/prairie-dog-standing-alert-2.jpeg
   alt: Prairie dog standing upright and alert, another prairie dog blurred in the background
   nl:
     title: "Waakzame prairiehond"
@@ -901,7 +901,7 @@
 - id: photo-55
   slug: baboon-on-a-rooftop
   title: Baboon on a rooftop
-  src: images/mg5323.jpeg
+  src: images/baboon-on-a-rooftop.jpeg
   alt: Baboon sitting on the edge of a wooden roof, looking out into the trees
   nl:
     title: "Baviaan op een dak"
@@ -921,7 +921,7 @@
 - id: photo-56
   slug: prairie-dog-eating-a-twig
   title: Prairie dog eating a twig
-  src: images/mg5352.jpeg
+  src: images/prairie-dog-eating-a-twig.jpeg
   alt: Prairie dog eating a twig while sitting in scattered hay
   nl:
     title: "Prairiehond eet een takje"
@@ -941,7 +941,7 @@
 - id: photo-57
   slug: prairie-dog-dusted-with-dirt
   title: Prairie dog dusted with dirt
-  src: images/mg5526.jpeg
+  src: images/prairie-dog-dusted-with-dirt.jpeg
   alt: Prairie dog standing upright on a branch, its face dusted with dirt
   nl:
     title: "Prairiehond onder het zand"
@@ -961,7 +961,7 @@
 - id: photo-58
   slug: pelicans-shaggy-head
   title: Pelican's shaggy head
-  src: images/mg5537.jpeg
+  src: images/pelicans-shaggy-head.jpeg
   alt: Close-up of a pelican's shaggy head and long bill, another pelican behind
   nl:
     title: "Ruige kop van een pelikaan"
@@ -981,7 +981,7 @@
 - id: photo-59
   slug: lemurs-in-a-hammock
   title: Lemurs in a hammock
-  src: images/mg5560.jpeg
+  src: images/lemurs-in-a-hammock.jpeg
   alt: Two ring-tailed lemurs sitting together in a rope hammock
   caption: Hammock buddies
   nl:
@@ -1003,7 +1003,7 @@
 - id: photo-60
   slug: prairie-dog-nibbling-straw
   title: Prairie dog nibbling straw
-  src: images/img2358.jpeg
+  src: images/prairie-dog-nibbling-straw.jpeg
   alt: Prairie dog nibbling a piece of straw, another prairie dog blurred beside it
   nl:
     title: "Prairiehond knabbelt aan stro"
@@ -1023,7 +1023,7 @@
 - id: photo-61
   slug: prairie-dog-eating-straw
   title: Prairie dog eating straw
-  src: images/img2360.jpeg
+  src: images/prairie-dog-eating-straw.jpeg
   alt: Prairie dog holding a wisp of straw in both paws while eating
   nl:
     title: "Prairiehond eet stro"
@@ -1043,7 +1043,7 @@
 - id: photo-62
   slug: prairie-dog-chewing-in-profile
   title: Prairie dog chewing in profile
-  src: images/img2371.jpeg
+  src: images/prairie-dog-chewing-in-profile.jpeg
   alt: Prairie dog in profile, chewing something held in its paws
   nl:
     title: "Prairiehond kauwt, in profiel"
@@ -1063,7 +1063,7 @@
 - id: photo-63
   slug: pallas-cat-in-the-leaves
   title: Pallas's cat in the leaves
-  src: images/mg3366.jpeg
+  src: images/pallas-cat-in-the-leaves.jpeg
   alt: Pallas's cat peering through leaves, its round face framed by thick fur
   caption: Peekaboo
   nl:
@@ -1085,7 +1085,7 @@
 - id: photo-64
   slug: resting-kangaroo
   title: Resting kangaroo
-  src: images/mg3595.jpeg
+  src: images/resting-kangaroo.jpeg
   alt: Kangaroo resting on the ground, eyes half closed
   nl:
     title: "Rustende kangoeroe"
@@ -1105,7 +1105,7 @@
 - id: photo-65
   slug: highland-calf-in-wildflowers
   title: Highland calf in wildflowers
-  src: images/mg3647.jpeg
+  src: images/highland-calf-in-wildflowers.jpeg
   alt: Highland cattle calf standing in a wildflower meadow, its fringe covering its eyes
   nl:
     title: "Hooglanderkalfje tussen de wilde bloemen"
@@ -1125,7 +1125,7 @@
 - id: photo-66
   slug: prairie-dog-whiskers-in-the-light
   title: Prairie dog whiskers in the light
-  src: images/mg3967.jpeg
+  src: images/prairie-dog-whiskers-in-the-light.jpeg
   alt: Close-up profile of a prairie dog, whiskers catching the light
   nl:
     title: "Snorharen in het licht"
@@ -1145,7 +1145,7 @@
 - id: photo-67
   slug: two-lemurs-sitting-together
   title: Two lemurs sitting together
-  src: images/mg4221.jpeg
+  src: images/two-lemurs-sitting-together.jpeg
   alt: Two ring-tailed lemurs sitting close together
   nl:
     title: "Twee maki's bij elkaar"
@@ -1165,7 +1165,7 @@
 - id: photo-68
   slug: lemur-eating-red-fruit
   title: Lemur eating red fruit
-  src: images/mg4309.jpeg
+  src: images/lemur-eating-red-fruit.jpeg
   alt: Ring-tailed lemur eating a piece of red fruit, tongue out
   caption: Fruit break
   nl:
@@ -1187,7 +1187,7 @@
 - id: photo-69
   slug: lemur-mid-bite
   title: Lemur mid-bite
-  src: images/mg4310.jpeg
+  src: images/lemur-mid-bite.jpeg
   alt: Ring-tailed lemur with mouth open mid-bite of red fruit
   nl:
     title: "Maki midden in een hap"
@@ -1207,7 +1207,7 @@
 - id: photo-70
   slug: prairie-dog-eating-mouth-open
   title: Prairie dog eating, mouth open
-  src: images/mg4632.jpeg
+  src: images/prairie-dog-eating-mouth-open.jpeg
   alt: Prairie dog eating with its mouth open, other prairie dogs blurred behind
   nl:
     title: "Prairiehond eet met open bek"
@@ -1227,7 +1227,7 @@
 - id: photo-71
   slug: prairie-dog-hunched-over-food
   title: Prairie dog hunched over food
-  src: images/mg4636.jpeg
+  src: images/prairie-dog-hunched-over-food.jpeg
   alt: Prairie dog hunched over, nibbling food held in its paws
   nl:
     title: "Prairiehond gebogen over zijn eten"
@@ -1247,7 +1247,7 @@
 - id: photo-72
   slug: prairie-dog-close-up-eating
   title: Prairie dog close-up, eating
-  src: images/mg4675.jpeg
+  src: images/prairie-dog-close-up-eating.jpeg
   alt: Prairie dog eating with its mouth open, close-up against a blurred background
   nl:
     title: "Prairiehond van dichtbij, etend"
@@ -1267,7 +1267,7 @@
 - id: photo-73
   slug: baboons-embracing
   title: Baboons embracing
-  src: images/mg4829.jpeg
+  src: images/baboons-embracing.jpeg
   alt: Two baboons sitting together with their arms wrapped around each other
   caption: A quiet hug
   nl:
@@ -1289,7 +1289,7 @@
 - id: photo-74
   slug: silhouette-at-sunset
   title: Silhouette at sunset
-  src: images/mg3150.jpeg
+  src: images/silhouette-at-sunset.jpeg
   alt: Silhouette of a person standing on a hilltop against a setting sun
   caption: Golden hour
   nl:
@@ -1311,7 +1311,7 @@
 - id: photo-75
   slug: bmw-m3-on-the-gas
   title: BMW M3 on the gas
-  src: images/914a4600.jpeg
+  src: images/bmw-m3-on-the-gas.jpeg
   alt: White BMW M3 rally car at speed on a narrow country road, the trees and grass behind it blurred by the panning shot
   nl:
     title: "BMW M3 vol op het gas"
@@ -1331,7 +1331,7 @@
 - id: photo-76
   slug: rally-bmw-side-on
   title: Rally BMW side-on
-  src: images/914a4602.jpeg
+  src: images/rally-bmw-side-on.jpeg
   alt: White BMW M3 rally car in full side profile, its gold wheels spinning and the background streaked with motion blur
   nl:
     title: "Rally-BMW in zijaanzicht"
@@ -1351,7 +1351,7 @@
 - id: photo-77
   slug: green-porsche-flat-out
   title: Green Porsche flat out
-  src: images/914a4718.jpeg
+  src: images/green-porsche-flat-out.jpeg
   alt: Bright green Porsche 911 rally car with a black chequered pattern along its flank, side-on at speed past a farmhouse
   nl:
     title: "Groene Porsche op volle snelheid"
@@ -1371,7 +1371,7 @@
 - id: photo-78
   slug: rally-car-under-the-trees
   title: Rally car under the trees
-  src: images/914a4747.jpeg
+  src: images/rally-car-under-the-trees.jpeg
   alt: White, red and blue BMW E30 325i rally car on a narrow lane, dwarfed by the tall trees and a barn behind it
   caption: Small car, big trees
   nl:
@@ -1393,7 +1393,7 @@
 - id: photo-79
   slug: lancia-delta-hf-integrale-at-speed
   title: Lancia Delta HF Integrale at speed
-  src: images/914a4911.jpeg
+  src: images/lancia-delta-hf-integrale-at-speed.jpeg
   alt: Green and white Lancia Delta HF Integrale rally car side-on at speed, its wheels blurred with motion
   nl:
     title: "Lancia Delta HF Integrale op snelheid"
@@ -1413,7 +1413,7 @@
 - id: photo-80
   slug: orange-bmw-kicking-up-dust
   title: Orange BMW kicking up dust
-  src: images/914a4926.jpeg
+  src: images/orange-bmw-kicking-up-dust.jpeg
   alt: Orange BMW E30 325i rally car seen from behind, sliding through a corner past a brick house and kicking up dust
   caption: Sideways through the village
   nl:
@@ -1435,7 +1435,7 @@
 - id: photo-81
   slug: hyundai-i20-through-the-woods
   title: Hyundai i20 through the woods
-  src: images/914a5024.jpeg
+  src: images/hyundai-i20-through-the-woods.jpeg
   alt: Green and white Hyundai i20 N Rally2 car cornering on a wooded lane, the background blurred by the panning shot
   nl:
     title: "Hyundai i20 door het bos"
@@ -1455,7 +1455,7 @@
 - id: photo-82
   slug: rally-car-digging-for-grip
   title: Rally car digging for grip
-  src: images/914a5047.jpeg
+  src: images/rally-car-digging-for-grip.jpeg
   alt: Red and white Škoda Fabia RS Rally2 car cutting a corner and throwing up a spray of dirt, framed by oak trunks
   nl:
     title: "Rallyauto die grip zoekt"
@@ -1475,7 +1475,7 @@
 - id: photo-83
   slug: porsche-between-the-oaks
   title: Porsche between the oaks
-  src: images/914a5084.jpeg
+  src: images/porsche-between-the-oaks.jpeg
   alt: White and red Porsche 992 Rally GT powering through a corner between two oak trunks, flinging dirt from its rear wheels
   nl:
     title: "Porsche tussen de eiken"
@@ -1495,7 +1495,7 @@
 - id: photo-84
   slug: porsche-trailing-dust
   title: Porsche trailing dust
-  src: images/914a5097.jpeg
+  src: images/porsche-trailing-dust.jpeg
   alt: Grey and red Porsche 992 Rally GT on a narrow lane, a trail of dust hanging behind it and a farmhouse among the trees beyond
   nl:
     title: "Porsche met een sliert stof"
@@ -1515,7 +1515,7 @@
 - id: photo-85
   slug: pelican-with-its-bill-open
   title: Pelican with its bill open
-  src: images/914a5151.jpeg
+  src: images/pelican-with-its-bill-open.jpeg
   alt: Pelican swimming towards the camera on duckweed-covered water, its bill wide open around a fish
   caption: Catch of the day
   nl:
@@ -1537,7 +1537,7 @@
 - id: photo-86
   slug: pelican-bill-to-the-sky
   title: Pelican bill to the sky
-  src: images/914a5156.jpeg
+  src: images/pelican-bill-to-the-sky.jpeg
   alt: Pelican on duckweed-covered water tilting its bill up to swallow a fish, sunlight glowing through its orange throat pouch
   nl:
     title: "Pelikaan met de snavel omhoog"
@@ -1557,7 +1557,7 @@
 - id: photo-87
   slug: meerkat-on-lookout
   title: Meerkat on lookout
-  src: images/914a5178.jpeg
+  src: images/meerkat-on-lookout.jpeg
   alt: Meerkat sitting upright on a moss-covered rock, looking up and to one side, its whiskers lit against a dark green background
   caption: On watch
   nl:
@@ -1579,7 +1579,7 @@
 - id: photo-88
   slug: scottish-terrier-on-a-sandy-path
   title: Scottish terrier on a sandy path
-  src: images/914a2992.jpeg
+  src: images/scottish-terrier-on-a-sandy-path.jpeg
   alt: Black Scottish terrier trotting along a sandy path beside dry heath grass, tongue out, ears up and a brass tag hanging from its collar
   nl:
     title: "Schotse terriër op een zandpad"
@@ -1599,7 +1599,7 @@
 - id: photo-89
   slug: scottish-terrier-at-full-tilt
   title: Scottish terrier at full tilt
-  src: images/914a3014.jpeg
+  src: images/scottish-terrier-at-full-tilt.jpeg
   alt: Black Scottish terrier in a checked bandana running straight toward the camera across dry grass, tongue out, with green heathland blurred behind it
   nl:
     title: "Schotse terriër in volle vaart"

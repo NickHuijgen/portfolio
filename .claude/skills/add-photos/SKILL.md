@@ -20,7 +20,7 @@ logic inline, the parsing/arithmetic is easy to get subtly wrong twice:
   `about.yaml` and `src/content/images/`. Returns orphan images (uploaded
   but referenced by neither YAML file — your actual worklist), the next `photo-N` id, every tag
   currently in use, every slug currently in use (for collision detection —
-  see step 7), and a fingerprint (date + camera + lens + focal length
+  see step 6), and a fingerprint (date + camera + lens + focal length
   + aperture + shutter + iso) for every existing entry, for dedup.
 - `scripts/inspect_photo.py <path>` — reads one image's dimensions and
   EXIF via ImageMagick's `identify`, returns clean JSON (see the script
@@ -63,10 +63,11 @@ Run `scripts/inspect_photo.py` on the orphan. Then check for duplicates
    `aperture` + `shutterSpeed` + `iso` as an existing entry means this is
    the same photo already on the site. Skip it — don't add a second
    entry — and tell the user which existing `photo-N` it duplicates. (A
-   real example already sitting in this repo: `mg3595-1.jpeg` is a
-   byte-for-byte EXIF match — same date *and* camera *and* every setting
-   down to the second — for `photo-64`/`mg3595.jpeg`. That's the exact
-   case this check exists for.)
+   real example from this repo's history: an upload named `mg3595-1.jpeg`
+   was a byte-for-byte EXIF match — same date *and* camera *and* every
+   setting down to the second — for `photo-64`, now
+   `images/resting-kangaroo.jpeg`. That's the exact case this check
+   exists for.)
 2. Against other orphans in the *same* batch, the same way — two uploads
    of the same shot in one run should still only produce one entry.
 
@@ -129,24 +130,7 @@ something read out of GPS coordinates even when they're present. GPS
 metadata says where the *camera* was; the venue is a fact about the
 day, not something to derive from EXIF.
 
-### 6. Destination filename
-
-`src/content/images/` uses a consistent convention: the original camera
-filename, lowercased, with underscores removed, extension normalized to
-`.jpeg`. Canon bodies set to Adobe RGB prefix filenames with an
-underscore (`_MG_6620.CR2`) — that pattern collapses the same way:
-`_MG_6620` → `mg6620`. `IMG_2358` → `img2358`. If the orphan's current
-filename doesn't already match this convention (any uppercase letters,
-underscores, spaces, or a non-`.jpeg` extension), rename it to match
-(`git mv` if it's already tracked, plain `mv` if not yet staged) before
-referencing it from `photos.yaml`.
-
-If the normalized name would collide with a *different* existing photo
-(same target filename, but step 2 already established it's not a
-duplicate of it), append `-1`, `-2`, etc. before the extension — same
-pattern already in use elsewhere in this library.
-
-### 7. Title and slug
+### 6. Title and slug
 
 - **Title is mandatory** — a short human heading (e.g. "Snow leopard
   snarling"), separate from the alt text you'll write in step 8. Look at
@@ -168,6 +152,32 @@ pattern already in use elsewhere in this library.
   slug already assigned earlier in this same batch) — on collision,
   append `-2`, `-3`, etc. (the first use of a given base slug carries no
   suffix).
+
+### 7. Destination filename
+
+**The filename is the slug**: `src/content/images/<slug>.jpeg`, always
+lowercase, always `.jpeg` whatever the upload called itself. This is why
+this step comes *after* the slug exists rather than before — the file on
+disk can't be named until step 6 has run.
+
+It's the slug rather than the camera's own `914a3845.jpeg` because the
+source basename is what Astro carries into the built asset URL
+(`_astro/<basename>.<hash>.jpeg`), which is the URL Google Images
+indexes and the one every `ImageObject`'s `url` points at. A descriptive
+filename is a descriptive image URL; a camera filename is noise. It also
+means the file on disk, the public page URL (`/photo/<slug>/`), the
+view-transition name and the grid tile's DOM id all read as the same
+string.
+
+Rename the orphan to match — `git mv` if it's already tracked (Pages CMS
+commits its uploads, so usually yes), plain `mv` if it isn't yet — then
+reference it as `src: images/<slug>.jpeg` in step 12.
+
+Two things follow for free: filenames can't collide, because step 6
+already made the slug unique (a `-2` suffix carries through into the
+filename); and the filename is as immutable as the slug is, so a later
+title edit must not rename an existing photo's file any more than it
+renames its slug.
 
 ### 8. Alt text and caption
 
@@ -286,7 +296,7 @@ existing `photo-NN` zero-padded-to-2 format:
 
 ```yaml
 - id: photo-<next_id_number>
-  slug: <generated once in step 7, e.g. snow-leopard-snarling>
+  slug: <generated once in step 6, e.g. snow-leopard-snarling>
   title: <required, short heading>
   src: images/<filename>.jpeg
   alt: <required, factual>

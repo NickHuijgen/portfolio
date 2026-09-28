@@ -19,7 +19,7 @@ Prints JSON:
   next_id_number  — the integer to use for the next "photo-N" id
   known_tags      — every distinct tag already in use, sorted
   known_slugs     — every slug already in use, for collision detection when
-                     generating a new one from a title (see SKILL.md step 7)
+                     generating a new one from a title (see SKILL.md step 6)
   fingerprints    — [{id, date, camera, lens, focalLength, aperture,
                       shutterSpeed, iso}] for every existing entry that has
                      an exif block, for dedup matching against a new
