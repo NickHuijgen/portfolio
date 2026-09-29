@@ -328,6 +328,7 @@ export async function photoPageSchema(photo: CollectionEntry<'photos'>, lang: Lo
 export async function aboutPageSchema(lang: Locale) {
 	const aboutUrl = `${SITE_URL}${localizedPath('/about/', lang)}`;
 	const person = await personSchema(lang);
+	const { projects } = await getAbout(lang);
 	return {
 		'@context': 'https://schema.org',
 		'@graph': [
@@ -344,6 +345,18 @@ export async function aboutPageSchema(lang: Locale) {
 				// node above — referenced here, not repeated.
 				...(person.image && { primaryImageOfPage: { '@id': PORTRAIT_ID } }),
 			},
+			// The about page's "Things I've built" list. Deliberately not in
+			// the Person's `sameAs` — that's for profiles *of* Nick (LinkedIn,
+			// Instagram), not things he made — and no `@id`, since the
+			// project's canonical identity is whatever its own site declares.
+			...projects.map((project) => ({
+				'@type': 'WebSite',
+				name: project.name,
+				url: project.url,
+				description: project.description,
+				inLanguage: project.language,
+				creator: { '@id': PERSON_ID },
+			})),
 		],
 	};
 }

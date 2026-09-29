@@ -4,7 +4,8 @@ import type { Locale } from './i18n.ts';
 // Single-entry "about" collection (see src/content/about.yaml) — one file,
 // one record, editable from Pages CMS without touching code.
 //
-// `lang` resolves the prose fields (homeIntro/heading/body/facts) through
+// `lang` resolves the prose fields (homeIntro/heading/body/facts, and each
+// project's description) through
 // the same "nl if present and non-empty, else English" rule
 // localizedPhoto() applies to photos — see the comment there for why that
 // fallback lives in exactly one place. `portrait`/`avatar` are images and
@@ -24,5 +25,12 @@ export async function getAbout(lang: Locale) {
 		body: nl?.body || data.body,
 		portraitAlt: nl?.portraitAlt || data.portraitAlt,
 		facts: nl?.facts?.length ? nl.facts : data.facts,
+		// Per-item rather than whole-list like `facts`: a project's name and
+		// URL are the same in both languages, so only its description has a
+		// Dutch variant to fall back from.
+		projects: data.projects.map(({ nl: projectNl, ...project }) => ({
+			...project,
+			description: (lang === 'nl' && projectNl?.description) || project.description,
+		})),
 	};
 }

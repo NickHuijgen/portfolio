@@ -219,8 +219,15 @@ the coverage math behind that call, and what would justify revisiting it.
   back to the grid with this same tile still expanded — or to the active
   tag's `#photos` if there was one. The page that actually gets indexed:
   it holds the photo's unique content and its `photoPageSchema`.
-- `/about/` — Nick's bio, portrait, and a facts list, all from
-  `about.yaml`. Own `ProfilePage` structured data.
+- `/about/` — Nick's bio, portrait, a facts list, and a "Things I've
+  built" list of non-photo projects, all from `about.yaml`. Own
+  `ProfilePage` structured data, plus one `WebSite` node per project
+  with Nick as `creator` (deliberately not `sameAs` — that's for
+  profiles *of* him). A project's `language` is its own site's language,
+  not this page's: when the two differ the link gets `hreflang` and a
+  visible "(in Dutch)"-style note. The list sits *below* the
+  "View photos"/LinkedIn/Instagram row on purpose — above it, those
+  read as actions for the project rather than for the page.
 - `/404` — the one page in this list that is **not** locale-prefixed;
   `/en/404/` and `/nl/404/` do not exist. `noindex`, no canonical, no
   og:*/twitter:* (see `robots` on `Base.astro`), and bilingual — see the

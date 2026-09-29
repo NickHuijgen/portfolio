@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { file } from 'astro/loaders';
 import { z } from 'zod';
+import { LOCALES } from './lib/i18n.ts';
 
 const photos = defineCollection({
   loader: file('src/content/photos.yaml'),
@@ -98,6 +99,26 @@ const about = defineCollection({
           value: z.string(),
         }),
       ),
+      /**
+       * Things Nick has built outside of photography, listed on the about
+       * page. `language` is the language the project's own site is in —
+       * when it differs from the page's locale, the link gets an `hreflang`
+       * and a visible "(in Dutch)"-style note, so nobody clicks through
+       * expecting their own language. `name` and `url` aren't translated;
+       * `description` is, through the per-project `nl` block, resolved by
+       * getAbout(lang) like every other prose field here.
+       */
+      projects: z
+        .array(
+          z.object({
+            name: z.string(),
+            url: z.url(),
+            language: z.enum(LOCALES),
+            description: z.string(),
+            nl: z.object({ description: z.string().optional() }).optional(),
+          }),
+        )
+        .default([]),
       // Dutch translations of the prose fields, same optional-and-optional-
       // inside shape and reasoning as the photos collection's `nl` above —
       // see the comment there. Resolved by getAbout(lang) in

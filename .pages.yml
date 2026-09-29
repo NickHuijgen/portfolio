@@ -59,6 +59,25 @@ content:
         fields:
           - { name: label, type: string, required: true }
           - { name: value, type: string, required: true }
+      - name: projects
+        label: Projects
+        type: object
+        list: true
+        fields:
+          - { name: name, label: Name, type: string, required: true }
+          - { name: url, label: URL, type: string, required: true }
+          - name: language
+            label: Language of the project's site
+            type: select
+            required: true
+            options:
+              values: [en, nl]
+          - { name: description, label: Description, type: text, required: true }
+          - name: nl
+            label: Dutch translation
+            type: object
+            fields:
+              - { name: description, label: Description, type: text }
       - name: nl
         label: Dutch translation
         type: object

@@ -80,6 +80,34 @@ const structuredData = await aboutPageSchema(lang);
 					</a>
 				</div>
 			</div>
+			{
+				about.projects.length > 0 && (
+					<section class="projects" aria-labelledby="projects-heading">
+						<h2 id="projects-heading">{UI[lang].projectsHeading}</h2>
+						<ul>
+							{about.projects.map((project) => (
+								<li>
+									<a
+										href={project.url}
+										hreflang={project.language === lang ? undefined : project.language}
+										target="_blank"
+										rel="noopener"
+									>
+										{project.name}
+										<span class="visually-hidden">{UI[lang].opensInNewTab}</span>
+									</a>
+									{project.language !== lang && (
+										<span class="project-language">
+											{UI[lang].inLanguage[project.language]}
+										</span>
+									)}
+									<p>{project.description}</p>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
 		</div>
 	</main>
 </Base>
@@ -208,6 +236,53 @@ const structuredData = await aboutPageSchema(lang);
 		margin: 0;
 		font-size: 1rem;
 		font-weight: 500;
+	}
+
+	/* After the CTA row, not before it: sitting between the facts and the
+	   "View photos"/LinkedIn/Instagram row made those read as actions for
+	   the project rather than for the page. */
+	.projects {
+		margin-top: 40px;
+		padding-top: 24px;
+		border-top: 1px solid #eee;
+		max-width: 40em;
+	}
+
+	.projects h2 {
+		margin: 0 0 12px;
+		font-size: 0.8125rem;
+		font-weight: 400;
+		color: #666;
+	}
+
+	.projects ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 16px;
+	}
+
+	.projects a {
+		color: inherit;
+		font-weight: 500;
+		text-underline-offset: 2px;
+	}
+
+	.projects a:focus-visible {
+		outline: 2px solid #1a73e8;
+		outline-offset: 2px;
+	}
+
+	.project-language {
+		color: #666;
+	}
+
+	/* Beats the generic `.content-col p` rule above on specificity. */
+	.content-col .projects p {
+		margin: 4px 0 0;
+		font-size: 1rem;
+		line-height: 1.5;
 	}
 
 	.cta {

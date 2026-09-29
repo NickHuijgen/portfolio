@@ -29,6 +29,19 @@
       value: Canon EOS R6 Mark II
     - label: Next up
       value: Portraits
+  projects:
+    - name: inflatie-berekenen.nl
+      url: https://inflatie-berekenen.nl/
+      language: nl
+      description: What's ƒ 10 from 1970 worth today? Enter an amount and two
+        years and it tells you, using official CBS price figures back to 1900,
+        guilders included. Open source, and it pulls in new CBS data by itself
+        every day.
+      nl:
+        description: Wat is ƒ 10 uit 1970 nu waard? Vul een bedrag en twee
+          jaartallen in en je ziet het meteen, op basis van officiële CBS-cijfers
+          vanaf 1900, guldens inbegrepen. Open source, en de cijfers worden elke
+          dag automatisch bijgewerkt.
   nl:
     portraitAlt: Nick Huijgen lacht op een graspad over de heide, met dennen op de
       achtergrond

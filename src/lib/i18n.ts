@@ -119,6 +119,13 @@ export interface UIStrings {
 	allRightsReserved: string;
 	licensing: string;
 	aboutTitle: string;
+	projectsHeading: string;
+	/**
+	 * Appended to an about-page project link whose site is in a different
+	 * language than the page, keyed by that site's language — e.g. the
+	 * Dutch-only inflatie-berekenen.nl on /en/about/.
+	 */
+	inLanguage: Record<Locale, string>;
 	notFoundTitle: string;
 	notFoundBody: string;
 	notFoundDescription: string;
@@ -164,6 +171,8 @@ export const UI: Record<Locale, UIStrings> = {
 		allRightsReserved: 'All rights reserved.',
 		licensing: 'Licensing',
 		aboutTitle: 'About',
+		projectsHeading: "Things I've built",
+		inLanguage: { en: ' (in English)', nl: ' (in Dutch)' },
 		notFoundTitle: 'Page not found',
 		notFoundBody: "This page doesn't exist.",
 		notFoundDescription: "This page doesn't exist.",
@@ -206,6 +215,8 @@ export const UI: Record<Locale, UIStrings> = {
 		allRightsReserved: 'Alle rechten voorbehouden.',
 		licensing: 'Licenties',
 		aboutTitle: 'Over mij',
+		projectsHeading: 'Zelf gebouwd',
+		inLanguage: { en: ' (in het Engels)', nl: ' (in het Nederlands)' },
 		notFoundTitle: 'Pagina niet gevonden',
 		notFoundBody: 'Deze pagina bestaat niet.',
 		notFoundDescription: 'Deze pagina bestaat niet.',
